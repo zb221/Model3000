@@ -429,9 +429,9 @@
           <GroupName>user</GroupName>
           <Files>
             <File>
-              <FileName>Measure.c</FileName>
+              <FileName>Main.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\Measure.c</FilePath>
+              <FilePath>.\Main.c</FilePath>
             </File>
           </Files>
         </Group>
