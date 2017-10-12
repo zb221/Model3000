@@ -11,8 +11,11 @@
 #include "AD7738.h"
 #include "Cubic.h"
 
-/*---------------------------------------------AD7738 DATASHEET-----------------------------------*/
-/*---------------------------ADDRESS--------------------------------------------------------------*/
+/***********************************************************
+Description: Global variable region.
+Author: zhuobin
+Date: 2017/10/10
+***********************************************************/
 #define IO_PORT_REG          0x01
 
 #define ADC_STATUS_REG    0x04
@@ -39,7 +42,7 @@ enum {
 	channel_status_7
 }CHANNEL_STATUS_REG_ADDR;
 
-/*----------------------------------------Channel Setup---------------------------------*/
+/*-----------------------Channel Setup---------------------------*/
 enum {
 	channel_setup_0 = 0x28,
 	channel_setup_1,
@@ -62,7 +65,7 @@ enum {
 #define NP_25   0x04
 #define P_25    0x05
 
-/*------------------------------------Channel Conversion Time Registers----------------------*/
+/*----------------Channel Conversion Time Registers--------------*/
 enum {
 	channel_conv_time_0 = 0x30,
 	channel_conv_time_1,
@@ -76,7 +79,7 @@ enum {
 #define Chop_Enable		(TURE<<7)
 #define FW	17
 
-/*---------------------------------------Mode Register------------------------------------*/
+/*-----------------Mode Register-----------------------------*/
 enum {
 	channel_mode_0 = 0x38,
 	channel_mode_1,
@@ -105,35 +108,67 @@ float Current_of_Temperature_resistance = 5;
 float Current_of_Hydrogen_Resistance = 0.75;
 
 
+/***********************************************************
+Function:	 AD7738 CS pin init.
+Input:	none
+Output: none
+Author: zhuobin
+Date: 2017/10/10
+Description: .
+***********************************************************/
 void AD7738_CS_INIT(void)
 {
-	PINSEL1 = PINSEL1 & (~(0x03 << 8));			/*CS1/SSEL1->P0.20*/	
+	PINSEL1 = PINSEL1 & (~(0x03 << 8));       /*CS1/SSEL1->P0.20*/	
 	IODIR0 = IODIR0 | 0x1<<20;								
 	IOSET0 = IOSET0 | 0x1<<20;
 	
-	PINSEL0 = PINSEL0 & (~(0x03 << 30));    /*RDY1->P0.15*/
+	PINSEL0 = PINSEL0 & (~(0x03 << 30));     /*RDY1->P0.15*/
 	IODIR0 = IODIR0 | 0x0<<15;								
  	IOCLR0 = IOCLR0 | 0x1<<15;
 }
 
+/***********************************************************
+Function:	 M25P16 CS pin init.
+Input:	none
+Output: none
+Author: zhuobin
+Date: 2017/10/10
+Description: .
+***********************************************************/
 void M25P16_CS_INIT(void)
 {
-	PINSEL1 = PINSEL1 & (~(0x03 << 18));			/*RD1->P0.25*/	
+	PINSEL1 = PINSEL1 & (~(0x03 << 18));        /*RD1->P0.25*/	
 	IODIR0 = IODIR0 | 0x1<<25;								
 	IOSET0 = IOSET0 | 0x1<<25;
 }
 
-
+/***********************************************************
+Function:	 AD7738 WRITE.
+Input: Register data
+Output: none
+Author: zhuobin
+Date: 2017/10/10
+Description: .
+***********************************************************/
 void AD7738_write(unsigned char Register,unsigned char data)
 {
-	IOCLR0 = IOCLR0 | 0x1<<20;		/*CS1/SSEL1 set LOW*/
+	IOCLR0 = IOCLR0 | 0x1<<20;                  /*CS1/SSEL1 set LOW*/
 	
 	SPI0_SendDate(0<<6|(0x3F & Register));
 
  	SPI0_SendDate(data);
 	
-	IOSET0 = IOSET0 | 0x1<<20;    /*CS1/SSEL1 set HIGHT*/
+	IOSET0 = IOSET0 | 0x1<<20;                /*CS1/SSEL1 set HIGHT*/
 }
+
+/***********************************************************
+Function:	 AD7738 read.
+Input: Register and data to accpet.
+Output: none
+Author: zhuobin
+Date: 2017/10/10
+Description: .
+***********************************************************/
 void AD7738_read(unsigned char Register,unsigned char *data)
 {
 	IOCLR0 = IOCLR0 | 0x1<<20;		/*CS1/SSEL1 set LOW*/
@@ -141,16 +176,24 @@ void AD7738_read(unsigned char Register,unsigned char *data)
 	SPI0_SendDate(1<<6|(0x3F & Register));
  	*data = SPI0_SendDate(0x00);
 	
-	IOSET0 = IOSET0 | 0x1<<20;    /*CS1/SSEL1 set HIGHT*/
+	IOSET0 = IOSET0 | 0x1<<20;           /*CS1/SSEL1 set HIGHT*/
 }
 
+/***********************************************************
+Function:	 AD7738 read channel data.
+Input: Register and three buffer to accpet 24bit data.
+Output: none
+Author: zhuobin
+Date: 2017/10/10
+Description: .
+***********************************************************/
 void AD7738_read_channel_data(unsigned char Register,unsigned char *buf0,unsigned char *buf1,unsigned char *buf2)
 {
 	*buf0 = 0;
 	*buf1 = 0;
 	*buf2 = 0;
 	
-	IOCLR0 = IOCLR0 | 0x1<<20;		/*CS1/SSEL1 set LOW*/
+	IOCLR0 = IOCLR0 | 0x1<<20;           /* CS1/SSEL1 set LOW*/
 	
 	SPI0_SendDate(1<<6|(0x3F & Register));
 	
@@ -160,51 +203,62 @@ void AD7738_read_channel_data(unsigned char Register,unsigned char *buf0,unsigne
 	
 	*buf2 = SPI0_SendDate(0xFF);
 	
-	IOSET0 = IOSET0 | 0x1<<20;    /*CS1/SSEL1 set HIGHT*/
+	IOSET0 = IOSET0 | 0x1<<20;          /* CS1/SSEL1 set HIGHT*/
 }
 
-//void AD7738_SET(void)
-//{
-//	unsigned char IO_Port_Reg = 0;
-//	
-//	IOCLR0 = IOCLR0 | 0x1<<20;		/*CS1/SSEL1 set LOW*/
-//	SPI0_SendDate(0x00);		/*RESET AD7738*/
-//	SPI0_SendDate(0xFF);
-//	SPI0_SendDate(0xFF);
-//	SPI0_SendDate(0xFF);
-//	SPI0_SendDate(0xFF);
-//	IOSET0 = IOSET0 | 0x1<<20;		/*CS1/SSEL1 set HIGHT*/
-//	
-//	DelayNS(100);
-//	
-///*-----------------------------------------------set common register of AD7738-----------------------------------------------------*/
-//	AD7738_read(IO_PORT_REG,&IO_Port_Reg);
-//	AD7738_write(IO_PORT_REG,IO_Port_Reg & (~(1<<3)));		/*0: the RDY pin will only go low if any, 1: the RDY pin will only go low if all enabled channels have unread data*/
+/***********************************************************
+Function:	 AD7738 set.
+Input: none
+Output: none
+Author: zhuobin
+Date: 2017/10/10
+Description: .
+***********************************************************/
+void AD7738_SET(void)
+{
+	unsigned char IO_Port_Reg = 0;
+	
+	IOCLR0 = IOCLR0 | 0x1<<20;         /* CS1/SSEL1 set LOW */
+	SPI0_SendDate(0x00);               /* RESET AD7738 */
+	SPI0_SendDate(0xFF);
+	SPI0_SendDate(0xFF);
+	SPI0_SendDate(0xFF);
+	SPI0_SendDate(0xFF);
+	IOSET0 = IOSET0 | 0x1<<20;       /* CS1/SSEL1 set HIGHT */
+	
+	DelayNS(100);
+	
+/*-----------------------------------------------set common register of AD7738-----------------------------------------------------*/
+	AD7738_read(IO_PORT_REG,&IO_Port_Reg);
+	AD7738_write(IO_PORT_REG,IO_Port_Reg & (~(1<<3)));		/*0: the RDY pin will only go low if any, 1: the RDY pin will only go low if all enabled channels have unread data*/
 
-//#ifdef Channel1
-///*-----------------------------------------------set channel 1 register of AD7738-----------------------------------------------------*/
-//	AD7738_write(channel_setup_1,0<<7|AINx_AINx|0<<4|Channel_Continuous_conversion_enable|NP_25);	/*Channel_1 Setup Registers:BUF_OFF<<7|COM1|COM0|Stat|Channel_CCM|RNG2_0*/
-//	AD7738_write(channel_conv_time_1,Chop_Enable|FW);	/*channel coversion time*/
-//#endif
+/*-----------------------------------------------set channel 1 register of AD7738-----------------------------------------------------*/
+	AD7738_write(channel_setup_1,0<<7|AINx_AINx|0<<4|Channel_Continuous_conversion_enable|NP_25);	/*Channel_1 Setup Registers:BUF_OFF<<7|COM1|COM0|Stat|Channel_CCM|RNG2_0*/
+	AD7738_write(channel_conv_time_1,Chop_Enable|FW);	/*channel coversion time*/
 
-//#ifdef Channel2
-///*-----------------------------------------------set channel 2 register of AD7738-----------------------------------------------------*/
-//	AD7738_write(channel_setup_2,0<<7|AINx_AINx|0<<4|Channel_Continuous_conversion_enable|NP_25);	/*Channel_2 Setup Registers:BUF_OFF<<7|COM1|COM0|Stat|Channel_CCM|RNG2_0*/
-//	AD7738_write(channel_conv_time_2,Chop_Enable|FW);	/*channel coversion time*/
-//#endif
+/*-----------------------------------------------set channel 2 register of AD7738-----------------------------------------------------*/
+	AD7738_write(channel_setup_2,0<<7|AINx_AINx|0<<4|Channel_Continuous_conversion_enable|NP_25);	/*Channel_2 Setup Registers:BUF_OFF<<7|COM1|COM0|Stat|Channel_CCM|RNG2_0*/
+	AD7738_write(channel_conv_time_2,Chop_Enable|FW);	/*channel coversion time*/
 
-//#ifdef Channel3
-///*-----------------------------------------------set channel 3 register of AD7738-----------------------------------------------------*/
-//	AD7738_write(channel_setup_3,0<<7|AINx_AINx|0<<4|Channel_Continuous_conversion_enable|NP_25);	/*Channel_3 Setup Registers:BUF_OFF<<7|COM1|COM0|Stat|Channel_CCM|RNG2_0*/
-//	AD7738_write(channel_conv_time_3,Chop_Enable|FW);	/*channel coversion time*/
-//#endif
-///*-----------------------------------------------set Mode register of AD7738-----------------------------------------------------*/
-////	AD7738_write(channel_mode_1,Continues_Conversion_Mode|1<<4|0<<3|0<<2|BIT24|1);		/*Mode Register: Mod2_0|CLKDIS|DUMP|CONT_RD|24_16|CLAMP*/
-////	AD7738_write(channel_mode_2,Continues_Conversion_Mode|1<<4|0<<3|0<<2|BIT24|1);		/*Mode Register: Mod2_0|CLKDIS|DUMP|CONT_RD|24_16|CLAMP*/
-////	AD7738_write(channel_mode_3,Continues_Conversion_Mode|1<<4|0<<3|0<<2|BIT24|1);		/*Mode Register: Mod2_0|CLKDIS|DUMP|CONT_RD|24_16|CLAMP*/
+/*-----------------------------------------------set channel 3 register of AD7738-----------------------------------------------------*/
+	AD7738_write(channel_setup_3,0<<7|AINx_AINx|0<<4|Channel_Continuous_conversion_enable|NP_25);	/*Channel_3 Setup Registers:BUF_OFF<<7|COM1|COM0|Stat|Channel_CCM|RNG2_0*/
+	AD7738_write(channel_conv_time_3,Chop_Enable|FW);	/*channel coversion time*/
 
-//}
+/*-----------------------------------------------set Mode register of AD7738-----------------------------------------------------*/
+//	AD7738_write(channel_mode_1,Continues_Conversion_Mode|1<<4|0<<3|0<<2|BIT24|1);		/*Mode Register: Mod2_0|CLKDIS|DUMP|CONT_RD|24_16|CLAMP*/
+//	AD7738_write(channel_mode_2,Continues_Conversion_Mode|1<<4|0<<3|0<<2|BIT24|1);		/*Mode Register: Mod2_0|CLKDIS|DUMP|CONT_RD|24_16|CLAMP*/
+//	AD7738_write(channel_mode_3,Continues_Conversion_Mode|1<<4|0<<3|0<<2|BIT24|1);		/*Mode Register: Mod2_0|CLKDIS|DUMP|CONT_RD|24_16|CLAMP*/
 
+}
+
+/***********************************************************
+Function:	 get Parameter form Temperature_of_resistance .
+Input: three char data of 24bit data.
+Output: none
+Author: zhuobin
+Date: 2017/10/10
+Description: .
+***********************************************************/
 void Temperature_of_resistance_Parameter(unsigned char A,unsigned char B,unsigned char C)
 {
 	float resistance = 0;
@@ -220,6 +274,14 @@ void Temperature_of_resistance_Parameter(unsigned char A,unsigned char B,unsigne
 	printf("%.3f; ",Temperature);
 }
 
+/***********************************************************
+Function:	 get Parameter form Hydrogen_Resistance .
+Input: three char data of 24bit data.
+Output: none
+Author: zhuobin
+Date: 2017/10/10
+Description: .
+***********************************************************/
 void Hydrogen_Resistance_Parameter(unsigned char A,unsigned char B,unsigned char C)
 {
 	float resistance = 0;
@@ -232,7 +294,14 @@ void Hydrogen_Resistance_Parameter(unsigned char A,unsigned char B,unsigned char
 	printf("%.3f \n",resistance);
 }
 
-
+/***********************************************************
+Function:	 AD7738 Read channel DATA.
+Input: three char data of 24bit data.
+Output: none
+Author: zhuobin
+Date: 2017/10/10
+Description: output Temperature_of_resistance_Parameter and Hydrogen_Resistance_Parameter.
+***********************************************************/
 void Read_channel(unsigned char channel)
 {
 		unsigned char data0 = 0;
@@ -242,7 +311,7 @@ void Read_channel(unsigned char channel)
 		unsigned int temp = 0, count1 = 0;
 	
 		for (count1=0;count1<20;count1++){
-		/*-----------------------------------------------set channel register of AD7738-----------------------------------------------------*/
+		/*--------------------------------------------set channel register of AD7738--------------------------------------------*/
 		AD7738_write(channel_setup_0 + channel,0<<7|AINx_AINx|0<<4|Channel_Continuous_conversion_disable|NP_125);	/*Channel_1 Setup Registers:BUF_OFF<<7|COM1|COM0|Stat|Channel_CCM|RNG2_0*/
 		AD7738_write(channel_conv_time_0 + channel,Chop_Enable|FW);	/*channel coversion time*/
 		AD7738_write(channel_mode_0 + channel,Single_Conversion_Mode|1<<4|0<<3|0<<2|BIT24|1);
@@ -254,7 +323,7 @@ void Read_channel(unsigned char channel)
 		AD7738_read_channel_data(channel_data_0 + channel,&data0,&data1,&data2);
 		temp += (data0<<16|data1<<8|data2);
 	}
-/*-------------------------control the temp of sense----------------------------------*/
+/*---------------------control the temp of sense-------------------------*/
 		temp = temp/20;
 		data0 = (temp>>16)&0xff;
 		data1 = (temp>>8)&0xff;

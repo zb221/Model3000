@@ -14,7 +14,9 @@
 #include "AD7738.h"
 #include "DAC8568.h"
 
+/*-------------------------Global variable region----------------------*/
 extern int flag1, flag2;
+
 /***********************************************************
 Function:	init peripherals.
 Input:	none
@@ -109,3 +111,4 @@ int main (void)
 		}
 	}
 }
+

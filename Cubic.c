@@ -1,6 +1,20 @@
+/***********************************************
+@		Description: This file is about Cubic.c data.
+@		Copyright: Hydrogen Sense(Suzhou)  Technology Co.,Ltd. All rights reserved.
+@		Author: zhuobin.
+@		Date: 2017/9/22.
+***********************************************/
+
 #include <stdio.h>
 #include <math.h>
 #include "Cubic.h"
+
+/***********************************************************
+Description: Global variable region.
+Author: zhuobin
+Date: 2017/10/10
+***********************************************************/
+#define  MAXNUM  50   
 
 float H2[] = {0.5,0.8,1.0,2.0,4.0,6.0,8.0,10.0,15.0,20.0,30,40,60,80,100};
 float OHM[] = {607.732,608.799,609.422,611.832,615.097,617.59,619.734,621.5,625.587,628.711,634.544,639.727,648.659,656.587,663.789};
@@ -11,9 +25,6 @@ float Temp_R[] = {91.366,96.190,101.087,106.101,111.456};
 
 float DAC_Din[] =  {38864,39083,39421,39754,40247,40960,41600};
 float Din_temp[] = {35.080,43.085,58.520,75.125,96.450,128.450,157.625};
-
-#define  MAXNUM  50   
-
 
 typedef struct SPLINE    
 { 
@@ -33,12 +44,19 @@ typedef struct SPLINE
     //xi?x[i]??,xi_1?x[i+1]??
 }SPLINE,*pSPLINE;
 
-		SPLINE line1;
-		pSPLINE pLine1 = &line1;
+SPLINE line1;
+pSPLINE pLine1 = &line1;
 
 typedef int RESULT;      
 
-
+/***********************************************************
+Function: Spline3.
+Input:	none
+Output: none
+Author: zhuobin
+Date: 2017/10/10
+Description: .
+***********************************************************/
 RESULT Spline3(pSPLINE pLine)
 {
     float H[MAXNUM] = {0};     
@@ -107,60 +125,75 @@ RESULT Spline3(pSPLINE pLine)
     return TRUE;
 }
 
+/***********************************************************
+Function: Cubic_main.
+Input: value and type
+Output: Si for Cubic spline calculation results
+Author: zhuobin
+Date: 2017/10/10
+Description: .
+***********************************************************/
 float Cubic_main(float value,unsigned char type)
 {
 	int number = 0, i = 0;
 	float Si = 0;
 	pLine1 = &line1;
 
-		switch (type){
-			case Temp_Res:
-				if (sizeof(Temp)/sizeof(Temp[0]) != sizeof(Temp_R)/sizeof(Temp_R[0]))
-						printf("input data ERROR!\n");
-				else{
-						number = sizeof(Temp_R)/sizeof(Temp_R[0]);
-						line1.point_num = number;
-				}
+	switch (type){
+		case Temp_Res:
+			if (sizeof(Temp)/sizeof(Temp[0]) != sizeof(Temp_R)/sizeof(Temp_R[0]))
+					printf("input data ERROR!\n");
+			else{
+					number = sizeof(Temp_R)/sizeof(Temp_R[0]);
+					line1.point_num = number;
+			}
 
-				for (i=0;i<number;i++){
-						line1.x[i] = Temp_R[i];
-						line1.y[i] = Temp[i];
-				}
-				break;
-			case Hydrogen_Res:
-				if (sizeof(Temp)/sizeof(Temp[0]) != sizeof(Hydrogen_R)/sizeof(Hydrogen_R[0]))
-						printf("input data ERROR!\n");
-				else{
-						number = sizeof(Hydrogen_R)/sizeof(Hydrogen_R[0]);
-						line1.point_num = number;
-				}
+			for (i=0;i<number;i++){
+					line1.x[i] = Temp_R[i];
+					line1.y[i] = Temp[i];
+			}
+			break;
+		case Hydrogen_Res:
+			if (sizeof(Temp)/sizeof(Temp[0]) != sizeof(Hydrogen_R)/sizeof(Hydrogen_R[0]))
+					printf("input data ERROR!\n");
+			else{
+					number = sizeof(Hydrogen_R)/sizeof(Hydrogen_R[0]);
+					line1.point_num = number;
+			}
 
-				for (i=0;i<number;i++){
-						line1.x[i] = Hydrogen_R[i];
-						line1.y[i] = Temp[i];
-				}
-				break;
-				default: break;
-		}
+			for (i=0;i<number;i++){
+					line1.x[i] = Hydrogen_R[i];
+					line1.y[i] = Temp[i];
+			}
+			break;
+		default: break;
+	}
 		
-    line1.begin_k1 = ((line1.y[1]-line1.y[0])/(line1.x[1]-line1.x[0]));
-    line1.end_k1 = ((line1.y[number-1]-line1.y[number-2])/(line1.x[number-1]-line1.x[number-2]));
+	line1.begin_k1 = ((line1.y[1]-line1.y[0])/(line1.x[1]-line1.x[0]));
+	line1.end_k1 = ((line1.y[number-1]-line1.y[number-2])/(line1.x[number-1]-line1.x[number-2]));
 
-    Spline3(pLine1);
+	Spline3(pLine1);
 
-    if (value>=line1.x[0] && value<=line1.x[number-1]){
-        for (i=0;i<number-1;i++){
-            if ((value>=line1.x[i] && value< line1.x[i+1]) || (value>line1.x[i] && value<=line1.x[i+1]))
-            {
-                Si = pLine1->a3[i]*pow((line1.x[i+1]-value),3) + pLine1->a1[i]*(line1.x[i+1]-value) + pLine1->b3[i]*pow((value-line1.x[i]),3) + pLine1->b1[i]*(value-line1.x[i]);
-//                printf("%d\n",i);
-            }
-        }
-    }else printf("value outside of temp. ");
+	if (value>=line1.x[0] && value<=line1.x[number-1]){
+	    for (i=0;i<number-1;i++){
+	        if ((value>=line1.x[i] && value< line1.x[i+1]) || (value>line1.x[i] && value<=line1.x[i+1]))
+	        {
+	            Si = pLine1->a3[i]*pow((line1.x[i+1]-value),3) + pLine1->a1[i]*(line1.x[i+1]-value) + pLine1->b3[i]*pow((value-line1.x[i]),3) + pLine1->b1[i]*(value-line1.x[i]);
+	        }
+	    }
+	}else printf("value outside of temp. ");
 
-    return Si;
+	return Si;
 }
 
+/***********************************************************
+Function: Linear_slope.
+Input: *slope x y type
+Output: none
+Author: zhuobin
+Date: 2017/10/10
+Description: .
+***********************************************************/
 void Linear_slope(float *slope, float *x, float *y, unsigned char type)
 {
 	unsigned char number = 0, i = 0;
@@ -194,5 +227,6 @@ void Linear_slope(float *slope, float *x, float *y, unsigned char type)
 			break;
 
 			default: break;
-		}
+	}
 }
+
