@@ -433,6 +433,26 @@
               <FileType>1</FileType>
               <FilePath>.\Main.c</FilePath>
             </File>
+            <File>
+              <FileName>AD7738.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\AD7738.c</FilePath>
+            </File>
+            <File>
+              <FileName>Peripherals_LPC2194.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Peripherals_LPC2194.c</FilePath>
+            </File>
+            <File>
+              <FileName>Cubic.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Cubic.c</FilePath>
+            </File>
+            <File>
+              <FileName>DAC8568.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\DAC8568.c</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>
