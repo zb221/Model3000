@@ -28,7 +28,7 @@ Description: Global variable region.
 Author: zhuobin
 Date: 2017/10/10
 ***********************************************************/
-int counter = 0, flag1 = 0, flag2 = 0;
+int count1 = 0, count2 = 0, count3 = 0, flag1 = 0, flag2 = 0, flag3 = 0;
 unsigned char rcv_buf[100];
 volatile unsigned char rcv_new;
 unsigned int rcv_cnt;
@@ -104,33 +104,36 @@ Description: serial default interrupt.
 
 __irq void IRQ_UART0(void)
 {
+	volatile unsigned char i;
 
-  volatile unsigned char i;
-	
 	do{
-     switch(U0IIR&0x0e)
-		 {
-		   case 0x04://接收数据可用
-				 for(i=0;i<7;i++)
-				{
-			    rcv_buf[rcv_cnt++]=U0RBR;				
-				}
-				   break;
-       case 0x0c://接收超时
-				  while((U0LSR&0x01)!=0)//U0RBR包含有效数据
-					{
-					  rcv_buf[rcv_cnt++]=U0RBR;
-					}
-					rcv_new=1;
-				   break;
-       case 0x02://THRE中断
-				   break;
-       case 0x06://接收线状态
-				  i=U0LSR;
-				   break;
-			 default:				 
-           break;	
-		 }			 			 
+		switch(U0IIR&0x0e)
+		{
+			case 0x04://接收数据可用
+			for(i=0;i<7;i++)
+			{
+				rcv_buf[rcv_cnt++]=U0RBR;				
+			}
+			break;
+			
+			case 0x0c://接收超时
+			while((U0LSR&0x01)!=0)//U0RBR包含有效数据
+			{
+				rcv_buf[rcv_cnt++]=U0RBR;
+			}
+			rcv_new=1;
+			break;
+			
+			case 0x02://THRE中断
+			break;
+			
+			case 0x06://接收线状态
+			i=U0LSR;
+			break;
+			
+			default:				 
+			break;	
+		}			 			 
 	}while((U0IIR&0x01)==0);//没有挂起的中断
 	VICVectAddr=0;
 }
@@ -149,7 +152,7 @@ void init_serial (void)
 	unsigned short Fdiv;
   PINSEL0 |= 0x00050005;                /* Enable UART0 UART1             */
   U1LCR = 0x83;                         /* 8 bits, no Parity, 1 Stop bit     */
-  U1DLL = 156;                          /* 19200 Baud Rate @ 12MHz VPB Clock  */
+  U1DLL = 39;                          /* 19200 Baud Rate @ 12MHz VPB Clock  */
   U1LCR = 0x03;                         /* DLAB = 0                          */
 
 	U0FCR = 0x81;                          /* FIFO enable 8 character trigger   */
@@ -176,13 +179,12 @@ Description: serial init.
 ***********************************************************/
 /* implementation of putchar (also used by printf function to output data)    */
 int sendchar (int ch)  {                 /* Write character to Serial Port    */
-
-  if (ch == '\n')  {
-    while (!(U0LSR & 0x20));
-    U0THR = CR;                          /* output CR */
-  }
-  while (!(U0LSR & 0x20));
-  return (U0THR = ch);
+	if (ch == '\n')  {
+		while (!(U0LSR & 0x20));
+		U0THR = CR;                          /* output CR */
+	}
+	while (!(U0LSR & 0x20));
+	return (U0THR = ch);
 }
 
 /***********************************************************
@@ -382,47 +384,64 @@ Description: timer 0 interrupt.
 ***********************************************************/
 __irq void TC0_IR (void) 
 {
-	counter++;
-	switch (counter){
+	count1++;
+	count2++;
+	count3++;
+	switch (count1){
 		case 10000://capture oil temp
-			flag1 = 1;
+		flag1 = 1;
 		break;
 
 		case 20000://set 50 temp
-			flag1 = 2;
+		flag1 = 2;
 		break;
 
 		case 30000://capture Temperature_of_resistance and Hydrogen_Resistance;Stop heating
-			flag1 = 3;
+		flag1 = 3;
 		break;
 
 		case 40000://stop heating
-			flag1 = 4;
+		flag1 = 4;
 		break;
 
 		case 50000://capture oil temp
-			flag1 = 5;
+		flag1 = 5;
 		break;
 
 		case 60000://capture oil temp
-			counter = 0;
+		count1 = 0;
 		break;
 
 		default:
-			break;
+		break;
 	}
 
-	if (counter%200 == 0)
+	switch (count2){
+		case 200:
 		flag2 = 1;//200ms LED
-	else if (counter%300 == 0)
+		break;
+		case 300:
 		flag2 = 2;//300ms ADC
-	else if (counter%600 == 0)
+		break;
+		case 600:
 		flag2 = 3;//600 ms checkself
-	else if (counter%800 == 0)
+		break;
+		case 800:
 		flag2 = 4;//800ms DS1390 
-	else if (counter%1800 == 0)
-		flag2 = 5;//30min FLASH
-	
+		break;
+		case 1000:
+		count2 = 0;
+		break;
+
+		default:
+		break;
+	}
+
+	if (count3 == 30000){
+		flag3 = 1;//30min FLASH
+		count3 = 0;
+	}
+
 	T0IR = 1;                                    /* Clear interrupt flag        */
 	VICVectAddr = 0;                             /* Acknowledge Interrupt       */
 }
@@ -437,7 +456,7 @@ Description: .
 ***********************************************************/
 void init_timer(void)
 {
-	T0MR0 = 47999;                               /* 1mSec = 15.000-1 counts     */
+	T0MR0 = 11999;                               /* 1mSec = 15.000-1 counts     */
 	T0MCR = 3;                                   /* Interrupt and Reset on MR0  */
 	T0TCR = 1;                                   /* Timer0 Enable               */
 	VICVectAddr0 = (unsigned long)TC0_IR;        /* set interrupt vector in 0   */
@@ -445,6 +464,3 @@ void init_timer(void)
 	VICIntEnable = 0x00000010;                   /* Enable Timer0 Interrupt     */
 	VICDefVectAddr = (unsigned long) DefISR;     /* un-assigned VIC interrupts  */
 }
-
-
-
