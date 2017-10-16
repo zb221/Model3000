@@ -8,6 +8,7 @@
 #include <stdio.h>                      /* standard I/O .h-file              */
 #include <ctype.h>                      /* character functions               */
 #include <LPC21xx.H>                    /* LPC21xx definitions               */
+#include <string.h>
 
 #include "main.h"                    /* global project definition file    */
 #include "config.h"
@@ -17,6 +18,9 @@
 
 /*-------------------------Global variable region----------------------*/
 extern int flag1, flag2;
+extern unsigned char rcv_buf[4096];
+extern volatile unsigned char rcv_new;
+extern unsigned int rcv_cnt;
 
 /***********************************************************
 Function:	init peripherals.
@@ -48,9 +52,18 @@ int main (void)
 {
 	FrecInit();
 	init_peripherals();
+	UARTprintf("model3000 test\n");
 	
 	while (1)  
 	{
+		
+		if(rcv_new==1)//≤‚ ‘¥Æø⁄ ’∑¢
+		{
+		  rcv_new=0;
+			UART0_SendData(rcv_buf,rcv_cnt);
+			memset(rcv_buf,0,rcv_cnt);
+			rcv_cnt=0;
+		}		
 		switch (flag1)  {
 			case 1:
 				//capture oil temp;
@@ -83,6 +96,7 @@ int main (void)
 		switch (flag2)  {
 			case 1:
 				//200ms LED
+			   UARTprintf("model3000 test led\n");
 				break;
 
 			case 2:

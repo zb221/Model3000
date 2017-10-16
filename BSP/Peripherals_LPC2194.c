@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include "Peripherals_LPC2194.h"
 #include "config.h"
+#include "stdarg.h"
 
 /***********************************************************
 Description: General define.
@@ -28,6 +29,10 @@ Author: zhuobin
 Date: 2017/10/10
 ***********************************************************/
 int counter = 0, flag1 = 0, flag2 = 0;
+unsigned char rcv_buf[100];
+volatile unsigned char rcv_new;
+unsigned int rcv_cnt;
+
 
 /***********************************************************
 Function: Delay .
@@ -88,54 +93,152 @@ void FrecInit(void)
 	PLLFEED = 0xaa;
 	PLLFEED = 0x55; 
 }
+/***********************************************************
+Function:	serial default interrupt.
+Input:	none
+Output: none
+Author: megzheng
+Date: 2017/10/13
+Description: serial default interrupt.
+***********************************************************/
+
+__irq void IRQ_UART0(void)
+{
+
+  volatile unsigned char i;
+	
+	do{
+     switch(U0IIR&0x0e)
+		 {
+		   case 0x04://接收数据可用
+				 for(i=0;i<7;i++)
+				{
+			    rcv_buf[rcv_cnt++]=U0RBR;				
+				}
+				   break;
+       case 0x0c://接收超时
+				  while((U0LSR&0x01)!=0)//U0RBR包含有效数据
+					{
+					  rcv_buf[rcv_cnt++]=U0RBR;
+					}
+					rcv_new=1;
+				   break;
+       case 0x02://THRE中断
+				   break;
+       case 0x06://接收线状态
+				  i=U0LSR;
+				   break;
+			 default:				 
+           break;	
+		 }			 			 
+	}while((U0IIR&0x01)==0);//没有挂起的中断
+	VICVectAddr=0;
+}
+
 
 /***********************************************************
-Function: Initialize Serial Interface(uart0/1).
-Input: none
+Function:	init peripherals.
+Input:	none
 Output: none
-Author: zhuobin
-Date: 2017/10/10
-Description:  .
+Author: megzheng
+Date: 2017/10/16
+Description: setup the timer counter 0 interrupt.
 ***********************************************************/
 void init_serial (void)  
 {
-  PINSEL0 = 0x00000000 | 0x01<<18 | 0x01<<16 | 0x01<<2 | 0x01<<0;                 /* Enable RxD1 and TxD1                                   */
-  U1LCR = 0x83;                          											/* 8 bits, no Parity, 1 Stop bit   0x1<<7|0x11<<0  */
-  U1DLL = 8;                      											      /* 9600 Baud Rate @ 15MHz VPB Clock                */
-  U1LCR = 0x03;                        										      /* DLAB = 0                                                    */
-}
+	unsigned short Fdiv;
+  PINSEL0 |= 0x00050005;                /* Enable UART0 UART1             */
+  U1LCR = 0x83;                         /* 8 bits, no Parity, 1 Stop bit     */
+  U1DLL = 156;                          /* 19200 Baud Rate @ 12MHz VPB Clock  */
+  U1LCR = 0x03;                         /* DLAB = 0                          */
 
+	U0FCR = 0x81;                          /* FIFO enable 8 character trigger   */
+  VICIntSelect=0x00;        
+  VICVectCntl1=0x26 | 6;
+	VICVectAddr1 = (unsigned long)IRQ_UART0;										   
+  VICIntEnClr|=1<<6;  
+  U0IER=0x00000001;                      /* enable uart0 irq   */
+  VICIntEnable |= 0x00000040;            
+		 
+  U0LCR=0x83;
+  Fdiv=(Fpclk/16)/19200;									
+  U0DLM=Fdiv/256;
+  U0DLL=Fdiv%256;
+  U0LCR=0x03;	                           /* DLAB = 0          */
+}
 /***********************************************************
-Function: implementation of putchar (also used by printf function to output data).
-Input: none
+Function:	serial send char.
+Input:	32bit string
 Output: none
-Author: zhuobin
-Date: 2017/10/10
-Description:  .
+Author: megzheng
+Date: 2017/10/13
+Description: serial init.
 ***********************************************************/
+/* implementation of putchar (also used by printf function to output data)    */
 int sendchar (int ch)  {                 /* Write character to Serial Port    */
 
   if (ch == '\n')  {
-    while (!(U1LSR & 0x20));
-    U1THR = 0x0D;                             /* output CR */
+    while (!(U0LSR & 0x20));
+    U0THR = CR;                          /* output CR */
   }
-  while (!(U1LSR & 0x20));
-  return (U1THR = ch);
+  while (!(U0LSR & 0x20));
+  return (U0THR = ch);
 }
 
 /***********************************************************
-Function: .
+Function:get serial key
 Input: none
 Output: none
-Author: zhuobin
-Date: 2017/10/10
+Author: megzheng
+Date: 2017/10/16
 Description:  .
 ***********************************************************/
 int getkey (void)  {                    /* Read character from Serial Port   */
 
-  while (!(U1LSR & 0x01));              /* wait until character ready        */
-  return (U1RBR);
+  while (!(U0LSR & 0x01));              /* wait until character ready        */
+  return (U0RBR);
 }
+
+void sendstring(char *string)
+{
+	while(*string!='\0')
+	{
+		sendchar(*string);
+		string++;
+	}
+}
+
+void UART0_SendData(unsigned char *sendbuf,unsigned int len)
+{
+  while(len!=0)
+	{
+	  U0THR = *sendbuf++;
+		while((U0LSR&0x20)==0);
+		len--;
+	}
+}
+
+void Uart1_SentByte(unsigned char data)
+{
+	U1THR=data;
+	while((U1LSR & 0x40)==0);//?????
+}
+
+void UARTprintf(const char *fmt,...)
+{	
+	va_list ap;
+//  char *string;	
+	char string[256];	
+	///EA=0;
+	va_start(ap,fmt);
+	vsprintf(string,fmt,ap);
+	//EA=0;	
+	sendstring(string);
+	//EA=1;	
+	va_end(ap);
+	///EA=1;	
+}
+
 
 /***********************************************************
 Function: .
@@ -334,7 +437,7 @@ Description: .
 ***********************************************************/
 void init_timer(void)
 {
-	T0MR0 = 14999;                               /* 1mSec = 15.000-1 counts     */
+	T0MR0 = 47999;                               /* 1mSec = 15.000-1 counts     */
 	T0MCR = 3;                                   /* Interrupt and Reset on MR0  */
 	T0TCR = 1;                                   /* Timer0 Enable               */
 	VICVectAddr0 = (unsigned long)TC0_IR;        /* set interrupt vector in 0   */
@@ -342,4 +445,6 @@ void init_timer(void)
 	VICIntEnable = 0x00000010;                   /* Enable Timer0 Interrupt     */
 	VICDefVectAddr = (unsigned long) DefISR;     /* un-assigned VIC interrupts  */
 }
+
+
 

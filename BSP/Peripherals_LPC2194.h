@@ -18,6 +18,10 @@ void init_serial (void);          /* initialize serial interface       */
 int  sendchar (int ch);           /* write character to serial port    */
 int  getkey (void);               /* read character from serial port   */
 void getline (char *line, int n);
+void sendstring(char *string);
+void Uart1_SentByte(unsigned char data);
+void UARTprintf(const char *fmt,...);
+void UART0_SendData(unsigned char *sendbuf,unsigned int len);
 
 /*------------------------------------------------------------------PWM--------------------------------------------------------------*/
 void init_PWM (void);
