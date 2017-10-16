@@ -8,6 +8,7 @@
 #include <stdio.h>                      /* standard I/O .h-file              */
 #include <ctype.h>                      /* character functions               */
 #include <LPC21xx.H>                    /* LPC21xx definitions               */
+#include <string.h>
 
 #include "main.h"                    /* global project definition file    */
 #include "config.h"
