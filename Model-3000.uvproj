@@ -433,6 +433,11 @@
               <FileType>1</FileType>
               <FilePath>.\User\Main.c</FilePath>
             </File>
+            <File>
+              <FileName>Command.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\User\Command.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

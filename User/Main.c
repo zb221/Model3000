@@ -15,12 +15,19 @@
 #include "Peripherals_LPC2194.h"
 #include "AD7738.h"
 #include "DAC8568.h"
+#include "Command.h"
 
 /*-------------------------Global variable region----------------------*/
 extern int flag1, flag2;
-extern unsigned char rcv_buf[4096];
+extern unsigned char flag_command;
+extern unsigned char flag_function;
+extern unsigned char rcv_buf[100];
 extern volatile unsigned char rcv_new;
 extern unsigned int rcv_cnt;
+extern unsigned char cmd_tmp[CMD_LEN];
+extern unsigned char cmd_buf[CMD_LEN];
+
+unsigned char flag_screen=0;
 
 /***********************************************************
 Function:	init peripherals.
@@ -50,6 +57,9 @@ Description: main function for Model3000 project.
 ***********************************************************/
 int main (void)  
 {
+//	unsigned char i;
+//	unsigned char tmp[100];
+	unsigned char a;
 	FrecInit();
 	init_peripherals();
 	UARTprintf("model3000 test\n");
@@ -61,65 +71,114 @@ int main (void)
 		{
 		  rcv_new=0;
 			UART0_SendData(rcv_buf,rcv_cnt);
+			//UARTprintf("\n");
+			//处理接收的数组
+			a=get_true_char_stream(cmd_tmp,rcv_buf);
+			UART0_SendData(cmd_tmp,a);
+			UARTprintf("\n");
+			UARTprintf("a=%d\n",a);
 			memset(rcv_buf,0,rcv_cnt);
 			rcv_cnt=0;
-		}		
-		switch (flag1)  {
-			case 1:
-				//capture oil temp;
-				ADC7738_acquisition(1);
-				ADC7738_acquisition_output(1);
-				break;
-
-			case 2:
-				//set 50 temp;
-				DAC8568_INIT_SET(50,0xF000);
-				break;
-			
-			case 3:
-				//capture Temperature_of_resistance and Hydrogen_Resistance;
-				ADC7738_acquisition(1);
-				ADC7738_acquisition_output(1);
-				ADC7738_acquisition(2);
-				ADC7738_acquisition_output(2);
-				break;
-			
-			case 4:
-				//Stop heating;
-				DAC8568_INIT_SET(0,0);
-				break;
-			
-			default:                                 /* Error Handling              */
-				break;
 		}
-		
-		switch (flag2)  {
+		if(findcmdfunction(cmd_tmp)==1)
+		{
+			memset(cmd_tmp,0,a);
+			flag_screen=1;
+			UARTprintf("guanbihuixian\n");
+		}
+		switch(flag_command){
 			case 1:
-				//200ms LED
-			   UARTprintf("model3000 test led\n");
-				break;
-
+			{
+			alarm_arg();			
+			}
+			break;
 			case 2:
-				//300ms ADC
-				ADC7738_acquisition(1);
-				ADC7738_acquisition(2);
-				break;
 			
+			break;
 			case 3:
-				//600 ms checkself
-				break;
-			
+			break;
 			case 4:
-				//800ms DS1390 
-				break;
-						
+			break;
 			case 5:
-				//30min FLASH
-				break;
-									
-			default:                                 /* Error Handling              */
-				break;
+			break;
+			case 6:
+			break;
+			case 7:
+			break;
+			case 8:
+			break;
+			case 9:
+			break;
+			case 10:
+			break;
+			case 11:
+			break;
+			case 12:
+			break;
+			case 13:
+			break;
+			case 14:
+			break;
+			case 15:
+			break;
+			default:
+			break;			
 		}
+//		switch (flag1)  {
+//			case 1:
+//				//capture oil temp;
+//				ADC7738_acquisition(1);
+//				ADC7738_acquisition_output(1);
+//				break;
+
+//			case 2:
+//				//set 50 temp;
+//				DAC8568_INIT_SET(50,0xF000);
+//				break;
+//			
+//			case 3:
+//				//capture Temperature_of_resistance and Hydrogen_Resistance;
+//				ADC7738_acquisition(1);
+//				ADC7738_acquisition_output(1);
+//				ADC7738_acquisition(2);
+//				ADC7738_acquisition_output(2);
+//				break;
+//			
+//			case 4:
+//				//Stop heating;
+//				DAC8568_INIT_SET(0,0);
+//				break;
+//			
+//			default:                                 /* Error Handling              */
+//				break;
+//		}
+//		
+//		switch (flag2)  {
+//			case 1:
+//				//200ms LED
+//				break;
+
+//			case 2:
+//				//300ms ADC
+//				ADC7738_acquisition(1);
+//				ADC7738_acquisition(2);
+//				break;
+//			
+//			case 3:
+//				//600 ms checkself
+//				break;
+//			
+//			case 4:
+//				//800ms DS1390 
+//				break;
+//						
+//			case 5:
+//				//30min FLASH
+//				break;
+//									
+//			default:                                 /* Error Handling              */
+//				break;
+//		}
 	}
 }
 

@@ -10,6 +10,7 @@
 #include "Peripherals_LPC2194.h"
 #include "config.h"
 #include "stdarg.h"
+#include "Command.h"
 
 /***********************************************************
 Description: General define.
@@ -104,35 +105,44 @@ Description: serial default interrupt.
 
 __irq void IRQ_UART0(void)
 {
+		volatile unsigned char i;
 
-  volatile unsigned char i;
-	
-	do{
-     switch(U0IIR&0x0e)
-		 {
-		   case 0x04://接收数据可用
-				 for(i=0;i<7;i++)
-				{
-			    rcv_buf[rcv_cnt++]=U0RBR;				
-				}
-				   break;
-       case 0x0c://接收超时
-				  while((U0LSR&0x01)!=0)//U0RBR包含有效数据
-					{
-					  rcv_buf[rcv_cnt++]=U0RBR;
-					}
-					rcv_new=1;
-				   break;
-       case 0x02://THRE中断
-				   break;
-       case 0x06://接收线状态
-				  i=U0LSR;
-				   break;
-			 default:				 
-           break;	
-		 }			 			 
-	}while((U0IIR&0x01)==0);//没有挂起的中断
-	VICVectAddr=0;
+		do{
+		switch(U0IIR&0x0e)
+		{
+		case 0x04://接收数据可用
+		for(i=0;i<7;i++)
+		{
+		rcv_buf[rcv_cnt++]=U0RBR;				
+		}
+		break;
+		case 0x0c://接收超时
+		while((U0LSR&0x01)!=0)//U0RBR包含有效数据
+		{
+		rcv_buf[rcv_cnt++]=U0RBR;
+		}
+		break;
+		case 0x02://THRE中断
+		break;
+		case 0x06://接收线状态
+		i=U0LSR;
+		break;
+		default:				 
+		break;	
+		}
+		}while((U0IIR&0x01)==0);//没有挂起的中断
+	if(0x0A==rcv_buf[rcv_cnt-1] && 0x0D==rcv_buf[rcv_cnt-2])
+	{
+		rcv_new=1;
+	}
+	else
+	{
+		if(rcv_cnt>=CMD_LEN)
+		{
+		rcv_cnt=0;
+		}
+	}
+		VICVectAddr=0;
 }
 
 
@@ -149,7 +159,9 @@ void init_serial (void)
 	unsigned short Fdiv;
   PINSEL0 |= 0x00050005;                /* Enable UART0 UART1             */
   U1LCR = 0x83;                         /* 8 bits, no Parity, 1 Stop bit     */
-  U1DLL = 156;                          /* 19200 Baud Rate @ 12MHz VPB Clock  */
+	Fdiv=(Fpclk/16)/19200;								/* 19200 Baud Rate @ 12MHz VPB Clock  */	
+  U1DLM=Fdiv/256;
+  U1DLL=Fdiv%256;                     
   U1LCR = 0x03;                         /* DLAB = 0                          */
 
 	U0FCR = 0x81;                          /* FIFO enable 8 character trigger   */
@@ -160,8 +172,7 @@ void init_serial (void)
   U0IER=0x00000001;                      /* enable uart0 irq   */
   VICIntEnable |= 0x00000040;            
 		 
-  U0LCR=0x83;
-  Fdiv=(Fpclk/16)/19200;									
+  U0LCR=0x83;								
   U0DLM=Fdiv/256;
   U0DLL=Fdiv%256;
   U0LCR=0x03;	                           /* DLAB = 0          */
@@ -437,7 +448,7 @@ Description: .
 ***********************************************************/
 void init_timer(void)
 {
-	T0MR0 = 47999;                               /* 1mSec = 15.000-1 counts     */
+	T0MR0 = 12000-1;                               /* 1mSec = 15.000-1 counts     */
 	T0MCR = 3;                                   /* Interrupt and Reset on MR0  */
 	T0TCR = 1;                                   /* Timer0 Enable               */
 	VICVectAddr0 = (unsigned long)TC0_IR;        /* set interrupt vector in 0   */
