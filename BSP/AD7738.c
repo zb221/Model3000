@@ -272,7 +272,7 @@ void Temperature_of_resistance_Parameter(unsigned char A,unsigned char B,unsigne
 
 	Temperature = (resistance-(y-Temp_resistance_slope*x))/Temp_resistance_slope;
 
-	printf("%.3f; ",Temperature);
+	UARTprintf("%.3f\n",Temperature);
 }
 
 /***********************************************************
@@ -292,7 +292,7 @@ void Hydrogen_Resistance_Parameter(unsigned char A,unsigned char B,unsigned char
 //	Temp = Cubic_main(resistance,Hydrogen_Res);
 //	R = Hydrogen_resistance_slope*temperature + (645-65*Hydrogen_resistance_slope);
 	
-	printf("%.3f \n",resistance);
+	UARTprintf("%.3f \n",resistance);
 }
 
 /***********************************************************
@@ -305,32 +305,31 @@ Description:  accept three char data.
 ***********************************************************/
 void ADC7738_acquisition(unsigned char channel)
 {
-		unsigned char flag = 0;
-		unsigned int temp = 0, count1 = 0;
-	
-		data0 = 0;
-		data1 = 0;
-		data2 = 0;
-	
-		for (count1=0;count1<20;count1++){
-		/*--------------------------------------------set channel register of AD7738--------------------------------------------*/
-		AD7738_write(channel_setup_0 + channel,0<<7|AINx_AINx|0<<4|Channel_Continuous_conversion_disable|NP_125);	/*Channel_1 Setup Registers:BUF_OFF<<7|COM1|COM0|Stat|Channel_CCM|RNG2_0*/
-		AD7738_write(channel_conv_time_0 + channel,Chop_Enable|FW);	/*channel coversion time*/
-		AD7738_write(channel_mode_0 + channel,Single_Conversion_Mode|1<<4|0<<3|0<<2|BIT24|1);
-	
-		flag = 0;
-		while(!((flag>>channel)&0x1)){
-			AD7738_read(ADC_STATUS_REG,&flag);
-		}
-		AD7738_read_channel_data(channel_data_0 + channel,&data0,&data1,&data2);
-		temp += (data0<<16|data1<<8|data2);
-	}
-/*---------------------control the temp of sense-------------------------*/
-		temp = temp/20;
-		data0 = (temp>>16)&0xff;
-		data1 = (temp>>8)&0xff;
-		data2 = (temp>>0)&0xff;
+	unsigned char flag = 0;
+	unsigned int temp = 0, count1 = 0;
 
+	data0 = 0;
+	data1 = 0;
+	data2 = 0;
+
+	for (count1=0;count1<1;count1++){
+	/*--------------------------------------------set channel register of AD7738--------------------------------------------*/
+	AD7738_write(channel_setup_0 + channel,0<<7|AINx_AINx|0<<4|Channel_Continuous_conversion_disable|NP_125);	/*Channel_1 Setup Registers:BUF_OFF<<7|COM1|COM0|Stat|Channel_CCM|RNG2_0*/
+	AD7738_write(channel_conv_time_0 + channel,Chop_Enable|FW);	/*channel coversion time*/
+	AD7738_write(channel_mode_0 + channel,Single_Conversion_Mode|1<<4|0<<3|0<<2|BIT24|1);
+
+	flag = 0;
+	while(!((flag>>channel)&0x1)){
+		AD7738_read(ADC_STATUS_REG,&flag);
+	}
+	AD7738_read_channel_data(channel_data_0 + channel,&data0,&data1,&data2);
+	temp += (data0<<16|data1<<8|data2);
+	}
+	/*---------------------control the temp of sense-------------------------*/
+	temp = temp/1;
+	data0 = (temp>>16)&0xff;
+	data1 = (temp>>8)&0xff;
+	data2 = (temp>>0)&0xff;
 }
 
 /***********************************************************
@@ -345,19 +344,19 @@ void ADC7738_acquisition_output(unsigned char channel)
 {
 	switch (channel){
 		case 1:
-			printf("%d ->%.3fmv ",(data0<<16|data1<<8|data2),(data0<<16|data1<<8|data2)/AD7738_resolution_NP_125);
-			Temperature_of_resistance_Parameter(data0,data1,data2);
+		UARTprintf("%d ->%.3fmv ",(data0<<16|data1<<8|data2),(data0<<16|data1<<8|data2)/AD7738_resolution_NP_125);
+		Temperature_of_resistance_Parameter(data0,data1,data2);
 		break;
-		
+
 		case 2:
-			printf("%d ->%.3fmv ",(data0<<16|data1<<8|data2),(data0<<16|data1<<8|data2)/AD7738_resolution_NP_125);
-			Hydrogen_Resistance_Parameter(data0,data1,data2);
+		UARTprintf("%d ->%.3fmv ",(data0<<16|data1<<8|data2),(data0<<16|data1<<8|data2)/AD7738_resolution_NP_125);
+		Hydrogen_Resistance_Parameter(data0,data1,data2);
 		break;
-		
+
 		case 3:
-			printf("%d ->%.3fmv \n",(data0<<16|data1<<8|data2),(data0<<16|data1<<8|data2)/AD7738_resolution_NP_125);
+		UARTprintf("%d ->%.3fmv \n",(data0<<16|data1<<8|data2),(data0<<16|data1<<8|data2)/AD7738_resolution_NP_125);
 		break;
-		
+
 		default: break;
 	}
 }
