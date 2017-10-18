@@ -51,6 +51,22 @@ void DelayNS (unsigned int uiDly)
     }
 } 
 
+/***********************************************************
+Function:	LED init.
+Input:	none
+Output: none
+Author: megzheng
+Date: 2017/10/13
+Description: .
+***********************************************************/
+void LED_init(void)
+{
+	IO1DIR |= (1<<17); /*RED*/
+	IO1SET |= (1<<17);
+	
+	IO1DIR|=(1<<18);	/*BLUE*/
+	IO1SET|=(1<<18);
+}
 
 /***********************************************************
 Function:	setup system clock.
@@ -180,11 +196,11 @@ Description: serial init.
 /* implementation of putchar (also used by printf function to output data)    */
 int sendchar (int ch)  {                 /* Write character to Serial Port    */
 	if (ch == '\n')  {
-		while (!(U0LSR & 0x20));
-		U0THR = CR;                          /* output CR */
+		while (!(U1LSR & 0x20));
+		U1THR = CR;                          /* output CR */
 	}
-	while (!(U0LSR & 0x20));
-	return (U0THR = ch);
+	while (!(U1LSR & 0x20));
+	return (U1THR = ch);
 }
 
 /***********************************************************

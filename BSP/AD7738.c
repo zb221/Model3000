@@ -129,21 +129,6 @@ void AD7738_CS_INIT(void)
 }
 
 /***********************************************************
-Function:	 M25P16 CS pin init.
-Input:	none
-Output: none
-Author: zhuobin
-Date: 2017/10/10
-Description: .
-***********************************************************/
-void M25P16_CS_INIT(void)
-{
-	PINSEL1 = PINSEL1 & (~(0x03 << 18));        /*RD1->P0.25*/	
-	IODIR0 = IODIR0 | 0x1<<25;								
-	IOSET0 = IOSET0 | 0x1<<25;
-}
-
-/***********************************************************
 Function:	 AD7738 WRITE.
 Input: Register data
 Output: none
@@ -330,6 +315,7 @@ void ADC7738_acquisition(unsigned char channel)
 	data0 = (temp>>16)&0xff;
 	data1 = (temp>>8)&0xff;
 	data2 = (temp>>0)&0xff;
+	
 }
 
 /***********************************************************
