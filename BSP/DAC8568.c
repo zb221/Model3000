@@ -48,9 +48,9 @@ void DAC8568_SET(unsigned char PB,unsigned char CB,unsigned char AB,unsigned sho
 	SPI0_SendDate((0xF & DB)<<4 | FB);
 	
 	IOSET0 = IOSET0 | 0x1<<10;            /*/SYNC  SET HIGHT */
-	DelayNS(100);
+	DelayNS(10);
 	IOCLR0 = IOCLR0 | 0x1<<12;            /*/LDAC set LOW*/
-	DelayNS(100);
+	DelayNS(10);
 	IOSET0 = IOSET0 | 0x1<<12;           /*/LDAC set HIGHT*/
 }
 
@@ -69,7 +69,7 @@ void DAC_SET_Chanel_Din(float temperature,int *DAC_DIN)
 	Linear_slope(&DAC_Din_Temp_slope, &x, &y, 2);
 
 	*DAC_DIN = (temperature - (y-(DAC_Din_Temp_slope*x)))/DAC_Din_Temp_slope;
-	printf("*DAC_DIN=%d\n",*DAC_DIN);
+//	UARTprintf("*DAC_DIN=%d\n",*DAC_DIN);
 }
 
 /***********************************************************

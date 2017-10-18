@@ -18,7 +18,7 @@
 #include "Command.h"
 
 /*-------------------------Global variable region----------------------*/
-extern int flag1, flag2;
+//extern int flag1, flag2;
 extern unsigned char flag_command;
 extern unsigned char flag_function;
 extern unsigned char rcv_buf[100];
@@ -28,6 +28,7 @@ extern unsigned char cmd_tmp[CMD_LEN];
 extern unsigned char cmd_buf[CMD_LEN];
 
 unsigned char flag_screen=0;
+extern int flag1, flag2, flag3;
 
 /***********************************************************
 Function:	init peripherals.
@@ -124,61 +125,80 @@ int main (void)
 			default:
 			break;			
 		}
-//		switch (flag1)  {
-//			case 1:
-//				//capture oil temp;
-//				ADC7738_acquisition(1);
-//				ADC7738_acquisition_output(1);
-//				break;
+		switch (flag1)  {
+			case 1:
+			//capture oil temp;
+			ADC7738_acquisition(1);
+			ADC7738_acquisition_output(1);
+			flag1 = 0;
+			UARTprintf("capture oil temp\n");
+			break;
 
-//			case 2:
-//				//set 50 temp;
-//				DAC8568_INIT_SET(50,0xF000);
-//				break;
-//			
-//			case 3:
-//				//capture Temperature_of_resistance and Hydrogen_Resistance;
-//				ADC7738_acquisition(1);
-//				ADC7738_acquisition_output(1);
-//				ADC7738_acquisition(2);
-//				ADC7738_acquisition_output(2);
-//				break;
-//			
-//			case 4:
-//				//Stop heating;
-//				DAC8568_INIT_SET(0,0);
-//				break;
-//			
-//			default:                                 /* Error Handling              */
-//				break;
-//		}
-//		
-//		switch (flag2)  {
-//			case 1:
-//				//200ms LED
-//				break;
+			case 2:
+			//set 50 temp;
+			DAC8568_INIT_SET(50,0xF000);
+			flag1 = 0;
+			UARTprintf("set 50 temp\n");
+			break;
 
-//			case 2:
-//				//300ms ADC
-//				ADC7738_acquisition(1);
-//				ADC7738_acquisition(2);
-//				break;
-//			
-//			case 3:
-//				//600 ms checkself
-//				break;
-//			
-//			case 4:
-//				//800ms DS1390 
-//				break;
-//						
-//			case 5:
-//				//30min FLASH
-//				break;
-//									
-//			default:                                 /* Error Handling              */
-//				break;
-//		}
+			case 3:
+			//capture Temperature_of_resistance and Hydrogen_Resistance;
+			ADC7738_acquisition(1);
+			ADC7738_acquisition_output(1);
+			ADC7738_acquisition(2);
+			ADC7738_acquisition_output(2);
+			flag1 = 0;
+			UARTprintf("capture Temperature_of_resistance and Hydrogen_Resistance\n");
+			break;
+
+			case 4:
+			//Stop heating;
+			DAC8568_INIT_SET(0,0);
+			flag1 = 0;
+			UARTprintf("Stop heating\n");
+			break;
+
+			default:                                 /* Error Handling              */
+			break;
+		}
+
+		switch (flag2)  {
+			case 1:
+			//200ms LED
+			UARTprintf("200ms LED\n");
+			flag2 = 0;
+			break;
+
+			case 2:
+			//300ms ADC
+			UARTprintf("300ms ADC\n");
+			ADC7738_acquisition(1);
+			ADC7738_acquisition(2);
+			flag2 = 0;
+			break;
+
+			case 3:
+			//600 ms checkself
+			UARTprintf("600 ms checkself\n");
+			flag2 = 0;
+			break;
+
+			case 4:
+			//800ms DS1390 
+			UARTprintf("800ms DS1390\n");
+			flag2 = 0;
+			break;
+
+			default:                                 /* Error Handling              */
+			break;
+		}
+
+		if (flag3 == 1)
+		{
+			//30min FLASH
+			UARTprintf("30min FLASH\n");
+			flag3 = 0;
+		}
 	}
 }
 

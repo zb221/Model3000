@@ -13,7 +13,7 @@ typedef struct {
 
 unsigned long int get_true_char_stream(unsigned char *dest,const unsigned char *src);
 unsigned char  findcmdfunction(unsigned char *dest);
-void alarm_arg();
+void alarm_arg(void);
 void config_arg( long int argc,void *cmd_arg);
 void da_arg(long int argc,void *cmd_arg);
 void db_arg(long int argc,void *cmd_arg);

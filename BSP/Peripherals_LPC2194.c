@@ -29,7 +29,8 @@ Description: Global variable region.
 Author: zhuobin
 Date: 2017/10/10
 ***********************************************************/
-int counter = 0, flag1 = 0, flag2 = 0;
+int count1 = 0, count2 = 0, count3 = 0, flag1 = 0, flag2 = 0, flag3 = 0;
+
 unsigned char rcv_buf[100];
 volatile unsigned char rcv_new;
 unsigned int rcv_cnt;
@@ -172,6 +173,7 @@ void init_serial (void)
   U0IER=0x00000001;                      /* enable uart0 irq   */
   VICIntEnable |= 0x00000040;            
 		 
+
   U0LCR=0x83;								
   U0DLM=Fdiv/256;
   U0DLL=Fdiv%256;
@@ -187,7 +189,6 @@ Description: serial init.
 ***********************************************************/
 /* implementation of putchar (also used by printf function to output data)    */
 int sendchar (int ch)  {                 /* Write character to Serial Port    */
-
   if (ch == '\n')  {
     while (!(U0LSR & 0x20));
     U0THR = CR;                          /* output CR */
@@ -249,8 +250,6 @@ void UARTprintf(const char *fmt,...)
 	va_end(ap);
 	///EA=1;	
 }
-
-
 /***********************************************************
 Function: .
 Input: none
@@ -393,47 +392,64 @@ Description: timer 0 interrupt.
 ***********************************************************/
 __irq void TC0_IR (void) 
 {
-	counter++;
-	switch (counter){
+	count1++;
+	count2++;
+	count3++;
+	switch (count1){
 		case 10000://capture oil temp
-			flag1 = 1;
+		flag1 = 1;
 		break;
 
 		case 20000://set 50 temp
-			flag1 = 2;
+		flag1 = 2;
 		break;
 
 		case 30000://capture Temperature_of_resistance and Hydrogen_Resistance;Stop heating
-			flag1 = 3;
+		flag1 = 3;
 		break;
 
 		case 40000://stop heating
-			flag1 = 4;
+		flag1 = 4;
 		break;
 
 		case 50000://capture oil temp
-			flag1 = 5;
+		flag1 = 5;
 		break;
 
 		case 60000://capture oil temp
-			counter = 0;
+		count1 = 0;
 		break;
 
 		default:
-			break;
+		break;
 	}
 
-	if (counter%200 == 0)
+	switch (count2){
+		case 200:
 		flag2 = 1;//200ms LED
-	else if (counter%300 == 0)
+		break;
+		case 300:
 		flag2 = 2;//300ms ADC
-	else if (counter%600 == 0)
+		break;
+		case 600:
 		flag2 = 3;//600 ms checkself
-	else if (counter%800 == 0)
+		break;
+		case 800:
 		flag2 = 4;//800ms DS1390 
-	else if (counter%1800 == 0)
-		flag2 = 5;//30min FLASH
-	
+		break;
+		case 1000:
+		count2 = 0;
+		break;
+
+		default:
+		break;
+	}
+
+	if (count3 == 30000){
+		flag3 = 1;//30min FLASH
+		count3 = 0;
+	}
+
 	T0IR = 1;                                    /* Clear interrupt flag        */
 	VICVectAddr = 0;                             /* Acknowledge Interrupt       */
 }
@@ -456,6 +472,3 @@ void init_timer(void)
 	VICIntEnable = 0x00000010;                   /* Enable Timer0 Interrupt     */
 	VICDefVectAddr = (unsigned long) DefISR;     /* un-assigned VIC interrupts  */
 }
-
-
-
