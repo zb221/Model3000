@@ -15,6 +15,7 @@
 #include "Peripherals_LPC2194.h"
 #include "AD7738.h"
 #include "DAC8568.h"
+#include "app.h"
 
 /*-------------------------Global variable region----------------------*/
 extern int flag1, flag2, flag3;
@@ -29,6 +30,7 @@ Description: setup the timer counter 0 interrupt.
 ***********************************************************/
 void init_peripherals(void)
 {
+	LED_init();
 	init_serial();
 	init_timer();
 	init_PWM();
@@ -92,6 +94,10 @@ int main (void)
 		switch (flag2)  {
 			case 1:
 			//200ms LED
+			LED_RED_SET
+			LED_BLUE_SET
+			LED_RED_CLR
+			LED_BLUE_CLR
 			UARTprintf("200ms LED\n");
 			flag2 = 0;
 			break;
@@ -106,6 +112,7 @@ int main (void)
 
 			case 3:
 			//600 ms checkself
+			device_checkself();
 			UARTprintf("600 ms checkself\n");
 			flag2 = 0;
 			break;
