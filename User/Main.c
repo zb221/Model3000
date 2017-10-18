@@ -15,9 +15,20 @@
 #include "Peripherals_LPC2194.h"
 #include "AD7738.h"
 #include "DAC8568.h"
+#include "Command.h"
 #include "app.h"
 
 /*-------------------------Global variable region----------------------*/
+//extern int flag1, flag2;
+extern unsigned char flag_command;
+extern unsigned char flag_function;
+extern unsigned char rcv_buf[100];
+extern volatile unsigned char rcv_new;
+extern unsigned int rcv_cnt;
+extern unsigned char cmd_tmp[CMD_LEN];
+extern unsigned char cmd_buf[CMD_LEN];
+
+unsigned char flag_screen=0;
 extern int flag1, flag2, flag3;
 
 /***********************************************************
@@ -49,11 +60,73 @@ Description: main function for Model3000 project.
 ***********************************************************/
 int main (void)  
 {
+//	unsigned char i;
+//	unsigned char tmp[100];
+	unsigned char a;
 	FrecInit();
 	init_peripherals();
-
+	UARTprintf("model3000 test\n");
+	
 	while (1)  
 	{
+		
+		if(rcv_new==1)//���Դ����շ�
+		{
+		  rcv_new=0;
+			UART0_SendData(rcv_buf,rcv_cnt);
+			//UARTprintf("\n");
+			//������յ�����
+			a=get_true_char_stream(cmd_tmp,rcv_buf);
+			UART0_SendData(cmd_tmp,a);
+			UARTprintf("\n");
+			UARTprintf("a=%d\n",a);
+			memset(rcv_buf,0,rcv_cnt);
+			rcv_cnt=0;
+		}
+		if(findcmdfunction(cmd_tmp)==1)
+		{
+			memset(cmd_tmp,0,a);
+			flag_screen=1;
+			UARTprintf("guanbihuixian\n");
+		}
+		switch(flag_command){
+			case 1:
+			{
+			alarm_arg();			
+			}
+			break;
+			case 2:
+			
+			break;
+			case 3:
+			break;
+			case 4:
+			break;
+			case 5:
+			break;
+			case 6:
+			break;
+			case 7:
+			break;
+			case 8:
+			break;
+			case 9:
+			break;
+			case 10:
+			break;
+			case 11:
+			break;
+			case 12:
+			break;
+			case 13:
+			break;
+			case 14:
+			break;
+			case 15:
+			break;
+			default:
+			break;			
+		}
 		switch (flag1)  {
 			case 1:
 			//capture oil temp;

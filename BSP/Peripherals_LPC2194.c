@@ -10,6 +10,7 @@
 #include "Peripherals_LPC2194.h"
 #include "config.h"
 #include "stdarg.h"
+#include "Command.h"
 
 /***********************************************************
 Description: General define.
@@ -29,6 +30,7 @@ Author: zhuobin
 Date: 2017/10/10
 ***********************************************************/
 int count1 = 0, count2 = 0, count3 = 0, flag1 = 0, flag2 = 0, flag3 = 0;
+
 unsigned char rcv_buf[100];
 volatile unsigned char rcv_new;
 unsigned int rcv_cnt;
@@ -102,9 +104,9 @@ void FrecInit(void)
 	#if (Fcco / Fcclk) == 16
 	PLLCFG = ((Fcclk / Fosc) - 1) | (3 << 5);
 	 #endif
-	PLLFEED = 0xaa;//·¢ËÍPLLÀ¡ËÍÐòÁÐ
+	PLLFEED = 0xaa;//å‘é€PLLé¦ˆé€åºåˆ—
 	PLLFEED = 0x55;
-	while((PLLSTAT & (1 << 10)) == 0);//µÈ´ýPLLËø¶¨
+	while((PLLSTAT & (1 << 10)) == 0);//ç­‰å¾…PLLé”å®š
 	PLLCON = 3;
 	PLLFEED = 0xaa;
 	PLLFEED = 0x55; 
@@ -120,38 +122,44 @@ Description: serial default interrupt.
 
 __irq void IRQ_UART0(void)
 {
-	volatile unsigned char i;
+		volatile unsigned char i;
 
-	do{
+		do{
 		switch(U0IIR&0x0e)
 		{
-			case 0x04://½ÓÊÕÊý¾Ý¿ÉÓÃ
-			for(i=0;i<7;i++)
-			{
-				rcv_buf[rcv_cnt++]=U0RBR;				
-			}
-			break;
-			
-			case 0x0c://½ÓÊÕ³¬Ê±
-			while((U0LSR&0x01)!=0)//U0RBR°üº¬ÓÐÐ§Êý¾Ý
-			{
-				rcv_buf[rcv_cnt++]=U0RBR;
-			}
-			rcv_new=1;
-			break;
-			
-			case 0x02://THREÖÐ¶Ï
-			break;
-			
-			case 0x06://½ÓÊÕÏß×´Ì¬
-			i=U0LSR;
-			break;
-			
-			default:				 
-			break;	
-		}			 			 
-	}while((U0IIR&0x01)==0);//Ã»ÓÐ¹ÒÆðµÄÖÐ¶Ï
-	VICVectAddr=0;
+		case 0x04://æŽ¥æ”¶æ•°æ®å¯ç”¨
+		for(i=0;i<7;i++)
+		{
+		rcv_buf[rcv_cnt++]=U0RBR;				
+		}
+		break;
+		case 0x0c://æŽ¥æ”¶è¶…æ—¶
+		while((U0LSR&0x01)!=0)//U0RBRåŒ…å«æœ‰æ•ˆæ•°æ®
+		{
+		rcv_buf[rcv_cnt++]=U0RBR;
+		}
+		break;
+		case 0x02://THREä¸­æ–­
+		break;
+		case 0x06://æŽ¥æ”¶çº¿çŠ¶æ€
+		i=U0LSR;
+		break;
+		default:				 
+		break;	
+		}
+		}while((U0IIR&0x01)==0);//æ²¡æœ‰æŒ‚èµ·çš„ä¸­æ–­
+	if(0x0A==rcv_buf[rcv_cnt-1] && 0x0D==rcv_buf[rcv_cnt-2])
+	{
+		rcv_new=1;
+	}
+	else
+	{
+		if(rcv_cnt>=CMD_LEN)
+		{
+		rcv_cnt=0;
+		}
+	}
+		VICVectAddr=0;
 }
 
 
@@ -168,7 +176,9 @@ void init_serial (void)
 	unsigned short Fdiv;
   PINSEL0 |= 0x00050005;                /* Enable UART0 UART1             */
   U1LCR = 0x83;                         /* 8 bits, no Parity, 1 Stop bit     */
-  U1DLL = 39;                          /* 19200 Baud Rate @ 12MHz VPB Clock  */
+	Fdiv=(Fpclk/16)/19200;								/* 19200 Baud Rate @ 12MHz VPB Clock  */	
+  U1DLM=Fdiv/256;
+  U1DLL=Fdiv%256;                     
   U1LCR = 0x03;                         /* DLAB = 0                          */
 
 	U0FCR = 0x81;                          /* FIFO enable 8 character trigger   */
@@ -179,8 +189,8 @@ void init_serial (void)
   U0IER=0x00000001;                      /* enable uart0 irq   */
   VICIntEnable |= 0x00000040;            
 		 
-  U0LCR=0x83;
-  Fdiv=(Fpclk/16)/19200;									
+
+  U0LCR=0x83;								
   U0DLM=Fdiv/256;
   U0DLL=Fdiv%256;
   U0LCR=0x03;	                           /* DLAB = 0          */
@@ -195,12 +205,12 @@ Description: serial init.
 ***********************************************************/
 /* implementation of putchar (also used by printf function to output data)    */
 int sendchar (int ch)  {                 /* Write character to Serial Port    */
-	if (ch == '\n')  {
-		while (!(U1LSR & 0x20));
-		U1THR = CR;                          /* output CR */
-	}
-	while (!(U1LSR & 0x20));
-	return (U1THR = ch);
+  if (ch == '\n')  {
+    while (!(U0LSR & 0x20));
+    U0THR = CR;                          /* output CR */
+  }
+  while (!(U0LSR & 0x20));
+  return (U0THR = ch);
 }
 
 /***********************************************************
@@ -256,8 +266,6 @@ void UARTprintf(const char *fmt,...)
 	va_end(ap);
 	///EA=1;	
 }
-
-
 /***********************************************************
 Function: .
 Input: none
@@ -472,7 +480,7 @@ Description: .
 ***********************************************************/
 void init_timer(void)
 {
-	T0MR0 = 11999;                               /* 1mSec = 15.000-1 counts     */
+	T0MR0 = 12000-1;                               /* 1mSec = 15.000-1 counts     */
 	T0MCR = 3;                                   /* Interrupt and Reset on MR0  */
 	T0TCR = 1;                                   /* Timer0 Enable               */
 	VICVectAddr0 = (unsigned long)TC0_IR;        /* set interrupt vector in 0   */
