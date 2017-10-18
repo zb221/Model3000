@@ -13,6 +13,14 @@
 void DelayNS (unsigned int uiDly);
 void FrecInit(void);
 
+/*-------------------------------------------------LED-----------------------------------------------------------*/
+#define		LED_RED_SET		IO1SET|=(1<<17);
+#define		LED_RED_CLR		IO1CLR|=(1<<17);
+#define		LED_BLUE_SET		IO1SET|=(1<<18);
+#define		LED_BLUE_CLR		IO1CLR|=(1<<18);
+
+void LED_init(void);
+	
 /*------------------------------------------------------------------Serial--------------------------------------------------------------*/
 void init_serial (void);          /* initialize serial interface       */
 int  sendchar (int ch);           /* write character to serial port    */

@@ -16,6 +16,7 @@
 #include "AD7738.h"
 #include "DAC8568.h"
 #include "Command.h"
+#include "app.h"
 
 /*-------------------------Global variable region----------------------*/
 //extern int flag1, flag2;
@@ -40,6 +41,7 @@ Description: setup the timer counter 0 interrupt.
 ***********************************************************/
 void init_peripherals(void)
 {
+	LED_init();
 	init_serial();
 	init_timer();
 	init_PWM();
@@ -68,12 +70,12 @@ int main (void)
 	while (1)  
 	{
 		
-		if(rcv_new==1)//²âÊÔ´®¿ÚÊÕ·¢
+		if(rcv_new==1)//ï¿½ï¿½ï¿½Ô´ï¿½ï¿½ï¿½ï¿½Õ·ï¿½
 		{
 		  rcv_new=0;
 			UART0_SendData(rcv_buf,rcv_cnt);
 			//UARTprintf("\n");
-			//´¦Àí½ÓÊÕµÄÊý×é
+			//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Õµï¿½ï¿½ï¿½ï¿½ï¿½
 			a=get_true_char_stream(cmd_tmp,rcv_buf);
 			UART0_SendData(cmd_tmp,a);
 			UARTprintf("\n");
@@ -165,6 +167,10 @@ int main (void)
 		switch (flag2)  {
 			case 1:
 			//200ms LED
+			LED_RED_SET
+			LED_BLUE_SET
+			LED_RED_CLR
+			LED_BLUE_CLR
 			UARTprintf("200ms LED\n");
 			flag2 = 0;
 			break;
@@ -179,6 +185,7 @@ int main (void)
 
 			case 3:
 			//600 ms checkself
+			device_checkself();
 			UARTprintf("600 ms checkself\n");
 			flag2 = 0;
 			break;

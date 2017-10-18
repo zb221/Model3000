@@ -53,6 +53,22 @@ void DelayNS (unsigned int uiDly)
     }
 } 
 
+/***********************************************************
+Function:	LED init.
+Input:	none
+Output: none
+Author: megzheng
+Date: 2017/10/13
+Description: .
+***********************************************************/
+void LED_init(void)
+{
+	IO1DIR |= (1<<17); /*RED*/
+	IO1SET |= (1<<17);
+	
+	IO1DIR|=(1<<18);	/*BLUE*/
+	IO1SET|=(1<<18);
+}
 
 /***********************************************************
 Function:	setup system clock.
@@ -88,9 +104,9 @@ void FrecInit(void)
 	#if (Fcco / Fcclk) == 16
 	PLLCFG = ((Fcclk / Fosc) - 1) | (3 << 5);
 	 #endif
-	PLLFEED = 0xaa;//·¢ËÍPLLÀ¡ËÍÐòÁÐ
+	PLLFEED = 0xaa;//å‘é€PLLé¦ˆé€åºåˆ—
 	PLLFEED = 0x55;
-	while((PLLSTAT & (1 << 10)) == 0);//µÈ´ýPLLËø¶¨
+	while((PLLSTAT & (1 << 10)) == 0);//ç­‰å¾…PLLé”å®š
 	PLLCON = 3;
 	PLLFEED = 0xaa;
 	PLLFEED = 0x55; 
@@ -111,27 +127,27 @@ __irq void IRQ_UART0(void)
 		do{
 		switch(U0IIR&0x0e)
 		{
-		case 0x04://½ÓÊÕÊý¾Ý¿ÉÓÃ
+		case 0x04://æŽ¥æ”¶æ•°æ®å¯ç”¨
 		for(i=0;i<7;i++)
 		{
 		rcv_buf[rcv_cnt++]=U0RBR;				
 		}
 		break;
-		case 0x0c://½ÓÊÕ³¬Ê±
-		while((U0LSR&0x01)!=0)//U0RBR°üº¬ÓÐÐ§Êý¾Ý
+		case 0x0c://æŽ¥æ”¶è¶…æ—¶
+		while((U0LSR&0x01)!=0)//U0RBRåŒ…å«æœ‰æ•ˆæ•°æ®
 		{
 		rcv_buf[rcv_cnt++]=U0RBR;
 		}
 		break;
-		case 0x02://THREÖÐ¶Ï
+		case 0x02://THREä¸­æ–­
 		break;
-		case 0x06://½ÓÊÕÏß×´Ì¬
+		case 0x06://æŽ¥æ”¶çº¿çŠ¶æ€
 		i=U0LSR;
 		break;
 		default:				 
 		break;	
 		}
-		}while((U0IIR&0x01)==0);//Ã»ÓÐ¹ÒÆðµÄÖÐ¶Ï
+		}while((U0IIR&0x01)==0);//æ²¡æœ‰æŒ‚èµ·çš„ä¸­æ–­
 	if(0x0A==rcv_buf[rcv_cnt-1] && 0x0D==rcv_buf[rcv_cnt-2])
 	{
 		rcv_new=1;
