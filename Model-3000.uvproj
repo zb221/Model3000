@@ -434,13 +434,19 @@
               <FilePath>.\User\Main.c</FilePath>
             </File>
             <File>
-
               <FileName>Command.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\User\Command.c</FilePath>
+            </File>
+            <File>
               <FileName>app.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\User\app.c</FilePath>
+            </File>
+            <File>
+              <FileName>parameter.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\User\parameter.h</FilePath>
             </File>
           </Files>
         </Group>

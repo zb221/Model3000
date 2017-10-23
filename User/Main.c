@@ -9,7 +9,8 @@
 #include <ctype.h>                      /* character functions               */
 #include <LPC21xx.H>                    /* LPC21xx definitions               */
 #include <string.h>
-
+#include <stdlib.h>
+#include <string.h>
 #include "main.h"                    /* global project definition file    */
 #include "config.h"
 #include "Peripherals_LPC2194.h"
@@ -27,9 +28,9 @@ extern volatile unsigned char rcv_new;
 extern unsigned int rcv_cnt;
 extern unsigned char cmd_tmp[CMD_LEN];
 extern unsigned char cmd_buf[CMD_LEN];
-
-unsigned char flag_screen=0;
+extern unsigned char flag_screen;
 extern int flag1, flag2, flag3;
+extern unsigned char a;
 
 /***********************************************************
 Function:	init peripherals.
@@ -60,22 +61,21 @@ Description: main function for Model3000 project.
 ***********************************************************/
 int main (void)  
 {
-//	unsigned char i;
+	unsigned char i;
 //	unsigned char tmp[100];
-	unsigned char a;
-	FrecInit();
+//	unsigned char a;
+ 	FrecInit();
 	init_peripherals();
 	UARTprintf("model3000 test\n");
 	
 	while (1)  
 	{
 		
-		if(rcv_new==1)//���Դ����շ�
+		if(rcv_new==1)
 		{
 		  rcv_new=0;
 			UART0_SendData(rcv_buf,rcv_cnt);
 			//UARTprintf("\n");
-			//������յ�����
 			a=get_true_char_stream(cmd_tmp,rcv_buf);
 			UART0_SendData(cmd_tmp,a);
 			UARTprintf("\n");
@@ -86,27 +86,31 @@ int main (void)
 		if(findcmdfunction(cmd_tmp)==1)
 		{
 			memset(cmd_tmp,0,a);
+			a=0;
 			flag_screen=1;
 			UARTprintf("guanbihuixian\n");
 		}
 		switch(flag_command){
 			case 1:
-			{
 			alarm_arg();			
-			}
 			break;
 			case 2:
-			
+			config_arg_d1();
 			break;
 			case 3:
+			da_arg();
 			break;
 			case 4:
+			db_arg();
 			break;
 			case 5:
+			dx_arg();
 			break;
 			case 6:
+			gg_arg();
 			break;
 			case 7:
+			aop_arg();
 			break;
 			case 8:
 			break;
@@ -124,88 +128,117 @@ int main (void)
 			break;
 			case 15:
 			break;
+			case 16:
+			config_arg_d0();
+			break;
+			case 17:
+			config_arg_d2();
+			break;
+			case 18:
+			config_arg_d3();
+			break;
 			default:
+			memset(cmd_tmp,0,strlen(cmd_tmp));
+			a=0;
 			break;			
 		}
-		switch (flag1)  {
-			case 1:
-			//capture oil temp;
-			ADC7738_acquisition(1);
-			ADC7738_acquisition_output(1);
-			flag1 = 0;
-			UARTprintf("capture oil temp\n");
-			break;
+//		switch (flag1)  {
+//			case 1:
+//			//capture oil temp;
+//			ADC7738_acquisition(1);
+//			ADC7738_acquisition_output(1);
+//			flag1 = 0;
+//			if(flag_screen==0)
+//			{
+//			UARTprintf("capture oil temp\n");			
+//			}
+//			break;
 
-			case 2:
-			//set 50 temp;
-			DAC8568_INIT_SET(50,0xF000);
-			flag1 = 0;
-			UARTprintf("set 50 temp\n");
-			break;
+//			case 2:
+//			//set 50 temp;
+//			DAC8568_INIT_SET(50,0xF000);
+//			flag1 = 0;
+//			UARTprintf("set 50 temp\n");
+//			break;
 
-			case 3:
-			//capture Temperature_of_resistance and Hydrogen_Resistance;
-			ADC7738_acquisition(1);
-			ADC7738_acquisition_output(1);
-			ADC7738_acquisition(2);
-			ADC7738_acquisition_output(2);
-			flag1 = 0;
-			UARTprintf("capture Temperature_of_resistance and Hydrogen_Resistance\n");
-			break;
+//			case 3:
+//			//capture Temperature_of_resistance and Hydrogen_Resistance;
+//			ADC7738_acquisition(1);
+//			ADC7738_acquisition_output(1);
+//			ADC7738_acquisition(2);
+//			ADC7738_acquisition_output(2);
+//			flag1 = 0;
+//			UARTprintf("capture Temperature_of_resistance and Hydrogen_Resistance\n");
+//			break;
 
-			case 4:
-			//Stop heating;
-			DAC8568_INIT_SET(0,0);
-			flag1 = 0;
-			UARTprintf("Stop heating\n");
-			break;
+//			case 4:
+//			//Stop heating;
+//			DAC8568_INIT_SET(0,0);
+//			flag1 = 0;
+//			UARTprintf("Stop heating\n");
+//			break;
 
-			default:                                 /* Error Handling              */
-			break;
-		}
+//			default:                                 /* Error Handling              */
+//			break;
+//		}
 
-		switch (flag2)  {
-			case 1:
-			//200ms LED
-			LED_RED_SET
-			LED_BLUE_SET
-			LED_RED_CLR
-			LED_BLUE_CLR
-			UARTprintf("200ms LED\n");
-			flag2 = 0;
-			break;
+//		switch (flag2)  {
+//			case 1:
+//			//200ms LED
+//			LED_RED_SET
+//			LED_BLUE_SET
+//			LED_RED_CLR
+//			LED_BLUE_CLR
+//			if(flag_screen==0)
+//			{
+//			UARTprintf("200ms LED\n");			
+//			}
+//			flag2 = 0;
+//			break;
 
-			case 2:
-			//300ms ADC
-			UARTprintf("300ms ADC\n");
-			ADC7738_acquisition(1);
-			ADC7738_acquisition(2);
-			flag2 = 0;
-			break;
+//			case 2:
+//			//300ms ADC
+//			if(flag_screen==0)
+//			{
+//			UARTprintf("300ms ADC\n");			
+//			}				
+//			ADC7738_acquisition(1);
+//			ADC7738_acquisition(2);
+//			flag2 = 0;
+//			break;
 
-			case 3:
-			//600 ms checkself
-			device_checkself();
-			UARTprintf("600 ms checkself\n");
-			flag2 = 0;
-			break;
+//			case 3:
+//			//600 ms checkself
+//			device_checkself();
+//			if(flag_screen==0)
+//      {
+//			UARTprintf("600 ms checkself\n");			
+//			}				
+//			flag2 = 0;
+//			break;
 
-			case 4:
-			//800ms DS1390 
-			UARTprintf("800ms DS1390\n");
-			flag2 = 0;
-			break;
+//			case 4:
+//			//800ms DS1390
+//			if(flag_screen==0)
+//      {
+//			UARTprintf("800ms DS1390\n");			
+//			}				
+//			flag2 = 0;
+//			break;
 
-			default:                                 /* Error Handling              */
-			break;
-		}
+//			default:                                 /* Error Handling              */
+//			break;
+//		}
 
-		if (flag3 == 1)
-		{
-			//30min FLASH
-			UARTprintf("30min FLASH\n");
-			flag3 = 0;
-		}
+//		if (flag3 == 1)
+//		{
+//			//30min FLASH
+//			if(flag_screen==0)
+//			{
+//			UARTprintf("30min FLASH\n");			
+//			}
+//			flag3 = 0;
+//		}
 	}
 }
 
