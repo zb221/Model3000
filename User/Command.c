@@ -25,8 +25,9 @@ unsigned char flag_relay2;//relay 2 status flag
 unsigned char flag_relay3;//relay 3 status flag
 unsigned char flag_chaoshi;//防止一直卡在某命令的某个步骤中，超过一定大小就使步骤归0
 unsigned char flag_done;//命令行输入设置数字，如果都是数字为0，不是为1，提示需要重新输入
-unsigned char flag_relay_done;//relay设置限制跳转标志位
-unsigned char a;
+unsigned char flag_relay_done;//判断设置的是哪个relay的功能，relay设置限制跳转标志位
+unsigned char a;//cmd_tmp的长度
+unsigned int readlog_number;//读取报警信息数量
 //*****************************************************************************/
 //cmd catalogue
 //*****************************************************************************/  
@@ -122,8 +123,7 @@ unsigned char findcmdfunction(unsigned char *tmp)
 	 {
 		//相应处理函数标志位置位
 		flag_command=cmd_list[i].max_args; 
-		cmd_list[i].handle();
-		UARTprintf("flag_command=%d\n",flag_command);
+		//UARTprintf("flag_command=%d\n",flag_command);
 		return 1;
 	 }
 	}
@@ -303,6 +303,7 @@ void alarm_arg(void)//还需增加将继电器状态值存入E2P中
 		a=0;
 			break;
 		case 6:
+			UARTprintf("\n...Wait...SAVED  Done......\r\n\r\n");
 			flag_function=0;
 		  flag_command=0;
 		  flag_screen=0;
@@ -1125,7 +1126,7 @@ void gg_arg(void)
 		break;
 	}
 }
-void aop_arg(void)
+void aop_arg(void)//h
 {
 	unsigned char i;
 	switch(flag_function){
@@ -1165,9 +1166,479 @@ void aop_arg(void)
 		flag_chaoshi=0;
 		break;
 		case 3:
-		
+		UARTprintf("Enter new LowH2Range: ");
+		flag_function++;
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;
 		break;
 		case 4:
+		if(strlen(cmd_tmp)>0)
+		{
+			  for(i=0;i<a;i++)
+				{
+				  if((cmd_tmp[i]>=0x30)&&(cmd_tmp[i]<=0x39)==0)
+					{
+	          flag_done=1;
+						UARTprintf("not a illegal interger\n");
+						flag_chaoshi++;
+						break;				
+					}
+					else
+					{
+					  flag_done=0;
+					}
+				}
+				if(flag_done==0)
+				{
+					run_parameter.h2_ppm_report_low_l16.hilo=atof(cmd_tmp)*20;
+					flag_function++;
+				}
+		}
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;
+		break;
+		case 5:
+		UARTprintf("Enter new HighH2Range: ");
+		flag_function++;		
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;
+		break;
+		case 6:
+		if(strlen(cmd_tmp)>0)
+		{
+			  for(i=0;i<a;i++)
+				{
+				  if((cmd_tmp[i]>=0x30)&&(cmd_tmp[i]<=0x39)==0)
+					{
+	          flag_done=1;
+						UARTprintf("not a illegal interger\n");
+						flag_chaoshi++;
+						break;				
+					}
+					else
+					{
+					  flag_done=0;
+					}
+				}
+				if(flag_done==0)
+				{
+					run_parameter.h2_ppm_report_high_l16.hilo=atof(cmd_tmp)*20;
+					UARTprintf("New hydrogen reporting range(in oil LowH2Range-HighH2Range): %0.4f - %0.4f%% H2\n",
+					(run_parameter.h2_ppm_report_low_l16.hilo/20.F),(run_parameter.h2_ppm_report_high_l16.hilo/20.F));		
+					UARTprintf("...Wait...SAVED - Done\n");
+					flag_function=2;
+				}
+		}
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;
+		break;
+		default:
+		flag_command=0;
+		break;
+	}
+
+}
+void aoerr_arg(void)//i
+{
+	unsigned char i;
+	switch(flag_function){
+		case 0:
+    UARTprintf("DAC range is %0.2fmA to %0.2fmA(LowH2Current-HighH2Current), error output is %0.2fmA, not ready output is %0.2fmA\n",
+		run_parameter.h2_ppm_out_current_low.hilo,
+		run_parameter.h2_ppm_out_current_high.hilo,
+		run_parameter.h2_ppm_error_out_current.hilo,
+		run_parameter.h2_ppm_no_ready_out_current.hilo);		
+    UARTprintf("Change (Y/N)?");
+		flag_function++;
+		flag_chaoshi++;
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;
+		break;
+		case 1:
+		if(strlen(cmd_tmp)>0)
+		{
+				switch(cmd_tmp[0]){
+					case 0x79://y             
+						flag_function=3;
+					break;
+					case 0x6e://n            
+						flag_function++;
+						UARTprintf("\n...Wait...SAVED  Done......\r\n\r\n");
+					break;
+					default:
+						UARTprintf("not a illegal interger\n");
+					  flag_chaoshi++;
+					break;				
+				}
+		}
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;		
+		break;
+		case 2:
+		flag_function=0;
+		flag_command=0;
+		flag_screen=0;	
+		flag_chaoshi=0;
+		break;
+		case 3:
+		UARTprintf("Enter new low H2 output current: ");
+		flag_function++;		
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;
+		break;
+		case 4:
+		if(strlen(cmd_tmp)>0)
+		{
+			  for(i=0;i<a;i++)
+				{
+				  if((cmd_tmp[i]>=0x30)&&(cmd_tmp[i]<=0x39)==0)
+					{
+	          flag_done=1;
+						UARTprintf("not a illegal interger\n");
+						flag_chaoshi++;
+						break;				
+					}
+					else
+					{
+					  flag_done=0;
+					}
+				}
+				if(flag_done==0)
+				{
+					run_parameter.h2_ppm_out_current_low.hilo=atof(cmd_tmp);
+					flag_function++;
+				}
+		}
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;		
+		break;
+		case 5:
+		UARTprintf("Enter new high H2 output current: ");
+		flag_function++;		
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;
+		break;
+		case 6:
+		if(strlen(cmd_tmp)>0)
+		{
+			  for(i=0;i<a;i++)
+				{
+				  if((cmd_tmp[i]>=0x30)&&(cmd_tmp[i]<=0x39)==0)
+					{
+	          flag_done=1;
+						UARTprintf("not a illegal interger\n");
+						flag_chaoshi++;
+						break;				
+					}
+					else
+					{
+					  flag_done=0;
+					}
+				}
+				if(flag_done==0)
+				{
+					run_parameter.h2_ppm_out_current_high.hilo=atof(cmd_tmp);
+					flag_function++;
+				}
+		}
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;			
+		break;
+		case 7:
+		UARTprintf("Enter new error H2 output current: ");
+		flag_function++;		
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;
+		break;
+		case 8:
+		if(strlen(cmd_tmp)>0)
+		{
+			  for(i=0;i<a;i++)
+				{
+				  if((cmd_tmp[i]>=0x30)&&(cmd_tmp[i]<=0x39)==0)
+					{
+	          flag_done=1;
+						UARTprintf("not a illegal interger\n");
+						flag_chaoshi++;
+						break;				
+					}
+					else
+					{
+					  flag_done=0;
+					}
+				}
+				if(flag_done==0)
+				{
+					run_parameter.h2_ppm_error_out_current.hilo=atof(cmd_tmp);
+					flag_function++;
+				}
+		}
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;			
+		break;
+		case 9:
+		UARTprintf("Enter new not ready H2 output current: ");
+		flag_function++;		
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;
+		break;
+		case 10:
+		if(strlen(cmd_tmp)>0)
+		{
+			  for(i=0;i<a;i++)
+				{
+				  if((cmd_tmp[i]>=0x30)&&(cmd_tmp[i]<=0x39)==0)
+					{
+	          flag_done=1;
+						UARTprintf("not a illegal interger\n");
+						flag_chaoshi++;
+						break;				
+					}
+					else
+					{
+					  flag_done=0;
+					}
+				}
+				if(flag_done==0)
+				{
+					run_parameter.h2_ppm_no_ready_out_current.hilo=atof(cmd_tmp);
+					flag_function=2;
+					UARTprintf("New DAC range is %0.2fmA to %0.2fmA(LowH2Current-HighH2Current), error output is %0.2fmA, not ready output is %0.2fmA\n",
+					run_parameter.h2_ppm_out_current_low.hilo,
+					run_parameter.h2_ppm_out_current_high.hilo,
+					run_parameter.h2_ppm_error_out_current.hilo,
+					run_parameter.h2_ppm_no_ready_out_current.hilo);
+					UARTprintf("\n...Wait...SAVED  Done......\r\n\r\n");
+				}
+		}
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;			
+		break;
+		default:
+		flag_command=0;
+		break;
+	}
+}
+void install_arg(void)//is
+{
+	unsigned char i;	
+	switch(flag_function){
+		case 0:
+		UARTprintf("Erase All Data Log\r\n");	
+		UARTprintf("...wait...\r\n");
+		flag_function++;
+		flag_chaoshi++;
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;
+		break;
+		case 1:
+    UARTprintf("System time is 20%d-%d-%d %d:%d:%d Change (Y/N)?",
+		run_parameter.realtime.year,run_parameter.realtime.month,
+    run_parameter.realtime.day,run_parameter.realtime.hour,
+    run_parameter.realtime.minute,run_parameter.realtime.second);
+		flag_function++;
+		flag_chaoshi++;
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;
+		break;
+		case 2:
+		if(strlen(cmd_tmp)>0)
+		{
+				switch(cmd_tmp[0]){
+					case 0x79://y             
+						flag_function=4;
+					break;
+					case 0x6e://n            
+						flag_function++;						
+					break;
+					default:
+						UARTprintf("not a illegal interger\n");
+					  flag_chaoshi++;
+					break;				
+				}
+		}
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;
+		break;	
+		case 3:
+		flag_function=0;
+		flag_command=0;
+		flag_screen=0;	
+		flag_chaoshi=0;
+		break;
+		case 4:
+		UARTprintf("Enter Year: ");
+		flag_function++;
+		flag_chaoshi++;
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;
+		break;
+		case 5:
+		if(strlen(cmd_tmp)>0)
+		{
+			  for(i=0;i<a;i++)
+				{
+				  if((cmd_tmp[i]>=0x30)&&(cmd_tmp[i]<=0x39)==0)
+					{
+	          flag_done=1;
+						UARTprintf("not a illegal interger\n");
+						flag_chaoshi++;
+						break;				
+					}
+					else
+					{
+					  flag_done=0;
+					}
+				}
+				if(flag_done==0)
+				{
+					run_parameter.realtime.year=atoi(cmd_tmp);
+					flag_function++;
+				}
+		}
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;
+		break;
+		case 6:
+		UARTprintf("Enter Month: ");
+		flag_function++;
+		flag_chaoshi++;
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;	
+		break;
+		case 7:
+		if(strlen(cmd_tmp)>0)
+		{
+			  for(i=0;i<a;i++)
+				{
+				  if((cmd_tmp[i]>=0x30)&&(cmd_tmp[i]<=0x39)==0)
+					{
+	          flag_done=1;
+						UARTprintf("not a illegal interger\n");
+						flag_chaoshi++;
+						break;				
+					}
+					else
+					{
+					  flag_done=0;
+					}
+				}
+				if(flag_done==0)
+				{
+					run_parameter.realtime.month=atoi(cmd_tmp);
+					flag_function++;
+				}
+		}
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;	
+		break;
+		case 8:
+		UARTprintf("Enter Day: ");
+		flag_function++;
+		flag_chaoshi++;
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;
+		break;
+		case 9:
+		if(strlen(cmd_tmp)>0)
+		{
+			  for(i=0;i<a;i++)
+				{
+				  if((cmd_tmp[i]>=0x30)&&(cmd_tmp[i]<=0x39)==0)
+					{
+	          flag_done=1;
+						UARTprintf("not a illegal interger\n");
+						flag_chaoshi++;
+						break;				
+					}
+					else
+					{
+					  flag_done=0;
+					}
+				}
+				if(flag_done==0)
+				{
+					run_parameter.realtime.day=atoi(cmd_tmp);
+					flag_function++;
+				}
+		}
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;
+		break;
+		case 10:
+		UARTprintf("Enter Hour: ");
+		flag_function++;
+		flag_chaoshi++;
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;					
+		break;
+		case 11:
+		if(strlen(cmd_tmp)>0)
+		{
+			  for(i=0;i<a;i++)
+				{
+				  if((cmd_tmp[i]>=0x30)&&(cmd_tmp[i]<=0x39)==0)
+					{
+	          flag_done=1;
+						UARTprintf("not a illegal interger\n");
+						flag_chaoshi++;
+						break;				
+					}
+					else
+					{
+					  flag_done=0;
+					}
+				}
+				if(flag_done==0)
+				{
+					run_parameter.realtime.hour=atoi(cmd_tmp);
+					flag_function++;
+				}
+		}
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;		
+		break;
+		case 12:
+		UARTprintf("Enter Minute: ");
+		flag_function++;
+		flag_chaoshi++;
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;			
+		break;
+		case 13:
+		if(strlen(cmd_tmp)>0)
+		{
+			  for(i=0;i<a;i++)
+				{
+				  if((cmd_tmp[i]>=0x30)&&(cmd_tmp[i]<=0x39)==0)
+					{
+	          flag_done=1;
+						UARTprintf("not a illegal interger\n");
+						flag_chaoshi++;
+						break;				
+					}
+					else
+					{
+					  flag_done=0;
+					}
+				}
+				if(flag_done==0)
+				{
+					run_parameter.realtime.minute=atoi(cmd_tmp);
+					flag_function++;
+				}
+		}
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;
+		break;
+		case 14:
+		UARTprintf("Enter Second: ");
+		flag_function++;
+		flag_chaoshi++;
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;		
+		break;
+		case 15:
 				if(strlen(cmd_tmp)>0)
 		{
 			  for(i=0;i<a;i++)
@@ -1186,49 +1657,664 @@ void aop_arg(void)
 				}
 				if(flag_done==0)
 				{
-					run_parameter.field_calibration_date.day=atoi(cmd_tmp);
-					flag_function=7;
+					run_parameter.realtime.second=atoi(cmd_tmp);
+					flag_function=3;
+					UARTprintf("Change time to 20%d-%d-%d %d:%d:%d ",
+					run_parameter.realtime.year,run_parameter.realtime.month,
+					run_parameter.realtime.day,run_parameter.realtime.hour,
+					run_parameter.realtime.minute,run_parameter.realtime.second);
 					UARTprintf("\n...Wait...SAVED  Done......\r\n\r\n");
 				}
 		}
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;
+		break;
+		default:
+		flag_command=0;
+		break;						
+	}		
+}
+void date_arg(void)//rs
+{
+unsigned char i;	
+	switch(flag_function){
+		case 0:
+    UARTprintf("System time is 20%d-%d-%d %d:%d:%d Change (Y/N)?",
+		run_parameter.realtime.year,run_parameter.realtime.month,
+    run_parameter.realtime.day,run_parameter.realtime.hour,
+    run_parameter.realtime.minute,run_parameter.realtime.second);
+		flag_function++;
+		flag_chaoshi++;
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;
+		break;
+		case 1:
+		if(strlen(cmd_tmp)>0)
+		{
+				switch(cmd_tmp[0]){
+					case 0x79://y             
+					flag_function=3;
+					break;
+					case 0x6e://n
+					UARTprintf("No change - Done\n");
+					flag_function++;						
+					break;
+					default:
+					UARTprintf("not a illegal interger\n");
+					flag_chaoshi++;
+					break;				
+				}
+		}
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;
+		break;	
+		case 2:
+		flag_function=0;
+		flag_command=0;
+		flag_screen=0;	
+		flag_chaoshi=0;
+		break;
+		case 3:
+		UARTprintf("Enter Year: ");
+		flag_function++;
+		flag_chaoshi++;
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;
+		break;
+		case 4:
+		if(strlen(cmd_tmp)>0)
+		{
+			  for(i=0;i<a;i++)
+				{
+				  if((cmd_tmp[i]>=0x30)&&(cmd_tmp[i]<=0x39)==0)
+					{
+	          flag_done=1;
+						UARTprintf("not a illegal interger\n");
+						flag_chaoshi++;
+						break;				
+					}
+					else
+					{
+					  flag_done=0;
+					}
+				}
+				if(flag_done==0)
+				{
+					run_parameter.realtime.year=atoi(cmd_tmp);
+					flag_function++;
+				}
+		}
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;
 		break;
 		case 5:
+		UARTprintf("Enter Month: ");
+		flag_function++;
+		flag_chaoshi++;
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;	
 		break;
 		case 6:
+		if(strlen(cmd_tmp)>0)
+		{
+			  for(i=0;i<a;i++)
+				{
+				  if((cmd_tmp[i]>=0x30)&&(cmd_tmp[i]<=0x39)==0)
+					{
+	          flag_done=1;
+						UARTprintf("not a illegal interger\n");
+						flag_chaoshi++;
+						break;				
+					}
+					else
+					{
+					  flag_done=0;
+					}
+				}
+				if(flag_done==0)
+				{
+					run_parameter.realtime.month=atoi(cmd_tmp);
+					flag_function++;
+				}
+		}
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;	
+		break;
+		case 7:
+		UARTprintf("Enter Day: ");
+		flag_function++;
+		flag_chaoshi++;
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;
+		break;
+		case 8:
+		if(strlen(cmd_tmp)>0)
+		{
+			  for(i=0;i<a;i++)
+				{
+				  if((cmd_tmp[i]>=0x30)&&(cmd_tmp[i]<=0x39)==0)
+					{
+	          flag_done=1;
+						UARTprintf("not a illegal interger\n");
+						flag_chaoshi++;
+						break;				
+					}
+					else
+					{
+					  flag_done=0;
+					}
+				}
+				if(flag_done==0)
+				{
+					run_parameter.realtime.day=atoi(cmd_tmp);
+					flag_function++;
+				}
+		}
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;
+		break;
+		case 9:
+		UARTprintf("Enter Hour: ");
+		flag_function++;
+		flag_chaoshi++;
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;					
+		break;
+		case 10:
+		if(strlen(cmd_tmp)>0)
+		{
+			  for(i=0;i<a;i++)
+				{
+				  if((cmd_tmp[i]>=0x30)&&(cmd_tmp[i]<=0x39)==0)
+					{
+	          flag_done=1;
+						UARTprintf("not a illegal interger\n");
+						flag_chaoshi++;
+						break;				
+					}
+					else
+					{
+					  flag_done=0;
+					}
+				}
+				if(flag_done==0)
+				{
+					run_parameter.realtime.hour=atoi(cmd_tmp);
+					flag_function++;
+				}
+		}
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;		
+		break;
+		case 11:
+		UARTprintf("Enter Minute: ");
+		flag_function++;
+		flag_chaoshi++;
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;			
+		break;
+		case 12:
+		if(strlen(cmd_tmp)>0)
+		{
+			  for(i=0;i<a;i++)
+				{
+				  if((cmd_tmp[i]>=0x30)&&(cmd_tmp[i]<=0x39)==0)
+					{
+	          flag_done=1;
+						UARTprintf("not a illegal interger\n");
+						flag_chaoshi++;
+						break;				
+					}
+					else
+					{
+					  flag_done=0;
+					}
+				}
+				if(flag_done==0)
+				{
+					run_parameter.realtime.minute=atoi(cmd_tmp);
+					flag_function++;
+				}
+		}
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;
+		break;
+		case 13:
+		UARTprintf("Enter Second: ");
+		flag_function++;
+		flag_chaoshi++;
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;		
+		break;
+		case 14:
+				if(strlen(cmd_tmp)>0)
+		{
+			  for(i=0;i<a;i++)
+				{
+				  if((cmd_tmp[i]>=0x30)&&(cmd_tmp[i]<=0x39)==0)
+					{
+	          flag_done=1;
+						UARTprintf("not a illegal interger\n");
+						flag_chaoshi++;
+						break;				
+					}
+					else
+					{
+					  flag_done=0;
+					}
+				}
+				if(flag_done==0)
+				{
+					run_parameter.realtime.second=atoi(cmd_tmp);
+					flag_function=2;
+					UARTprintf("Change time to 20%d-%d-%d %d:%d:%d ",
+					run_parameter.realtime.year,run_parameter.realtime.month,
+					run_parameter.realtime.day,run_parameter.realtime.hour,
+					run_parameter.realtime.minute,run_parameter.realtime.second);
+					UARTprintf("\n...Wait...SAVED  Done......\r\n\r\n");
+				}
+		}
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;
+		break;
+		default:
+		flag_command=0;
+		break;						
+	}		
+}
+void record_arg(void)//t
+{
+	unsigned char i;
+	switch(flag_function){
+		case 0:
+		UARTprintf("Trace Functions:\r\n\
+		c = clear log\r\n\
+		d = display log\r\n\
+		e = exit\r\n\
+		Select function: ");
+		flag_function++;
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;
+		break;
+		case 1:
+		if(strlen(cmd_tmp)>0)
+		{
+				switch(cmd_tmp[0]){
+					case 0x63://c            
+					flag_function++;
+					break;
+					case 0x64://d            
+					flag_function=5;						
+					break;
+					case 0x65://e
+					UARTprintf("Exit...\n");
+					flag_function=4;
+					break;
+					default:
+					UARTprintf("not a illegal interger\n");
+					flag_chaoshi++;
+					break;				
+				}
+		}
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;		
+		break;
+		case 2:
+		UARTprintf("Erase the Data Log (Y/N)?");
+		flag_function++;
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;		
+		break;
+		case 3:  
+		if(strlen(cmd_tmp)>0)
+		{
+				switch(cmd_tmp[0]){
+					case 0x79://y             
+					flag_function++;
+					//delete
+					UARTprintf("All clear\n");
+					break;
+					case 0x6e://n            
+					flag_function++;	
+					UARTprintf("exit\n");
+					break;
+					default:
+					UARTprintf("not a illegal interger\n");
+					flag_chaoshi++;
+					break;				
+				}
+		}
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;			
+		break;
+		case 4:
+		flag_function=0;
+		flag_command=0;
+		flag_screen=0;	
+		flag_chaoshi=0;				
+		break;
+		case 5:  //d命令处理
+		UARTprintf("Enter Number of entries to show (max.999 alarm log): ");
+		flag_function++;
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;	
+		break;
+		case 6:
+		if(strlen(cmd_tmp)>0)
+		{
+			  for(i=0;i<a;i++)
+				{
+				  if((cmd_tmp[i]>=0x30)&&(cmd_tmp[i]<=0x39)==0)
+					{
+	          flag_done=1;
+						UARTprintf("not a illegal interger\n");
+						flag_chaoshi++;
+						break;				
+					}
+					else
+					{
+					  flag_done=0;
+					}
+				}
+				if(flag_done==0)
+				{
+					readlog_number=atoi(cmd_tmp);
+					flag_function++;
+				}
+		}
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;			
+		break;
+		case 7:
+    UARTprintf("Begin Log Data - RS232\r\n\r\n");
+    UARTprintf("TimeStamp             ");
+    UARTprintf("H2DG  ");
+    UARTprintf("OilTemp  ");
+    UARTprintf("DayROCppm  ");
+    UARTprintf("Msg    \r\n");	
+		//从存储中打印数据
+		UARTprintf("\r\nEnd Log Data - RS232\n");	
+		flag_function=4;
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;	
 		break;
 		default:
 		flag_command=0;
 		break;
 	}
-
 }
-void aoerr_arg(void)
+void clear_arg(void)//x
 {
-  UARTprintf("aoerro_arg");
+	unsigned char i;	
+	switch(flag_function){
+		case 0:
+		UARTprintf("Clear field calibration values (Y/N)?");
+		flag_function++;
+		flag_chaoshi++;
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;
+		break;
+		case 1:
+		if(strlen(cmd_tmp)>0)
+		{
+				switch(cmd_tmp[0]){
+					case 0x79://y
+            //清除油中氢校准数据和产品配置
+					UARTprintf("Returns to last factory calibration data\n");
+					UARTprintf("Done - Wait......\n");					
+					flag_function++;
+					break;
+					case 0x6e://n 
+						UARTprintf("No change - Done\n");
+						flag_function++;						
+					break;
+					default:
+						UARTprintf("not a illegal interger\n");
+					  flag_chaoshi++;
+					break;				
+				}
+		}
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;		
+		break;
+		case 2:
+		flag_function=0;
+		flag_command=0;
+		flag_screen=0;	
+		flag_chaoshi=0;		
+		break;
+		default:
+		flag_command=0;
+		break;
+	}
 }
-void install_arg(void)
+void ci_arg(void)//ci
 {
-  UARTprintf("install_arg");
+	unsigned char i;
+	switch(flag_function){
+		case 0:
+		UARTprintf("Calibrate 4-20mA output (Y/N)?");	
+		flag_function++;
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;
+		break;
+		case 1:
+		if(strlen(cmd_tmp)>0)
+		{
+				switch(cmd_tmp[0]){
+					case 0x79://y
+					flag_function=3;
+					break;
+					case 0x6e://n 
+						UARTprintf("No change - Done\n");
+						flag_function++;						
+					break;
+					default:
+						UARTprintf("not a illegal interger\n");
+					  flag_chaoshi++;
+					break;				
+				}
+		}
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;		
+		break;
+		case 2:
+		flag_function=0;
+		flag_command=0;
+		flag_screen=0;	
+		flag_chaoshi=0;			
+		break;
+		case 3:
+		UARTprintf("Set to 3.000mA, Enter actual value: ");	
+		flag_function++;
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;		
+		break;
+		case 4:
+		if(strlen(cmd_tmp)>0)
+		{
+			  for(i=0;i<a;i++)
+				{
+				  if((cmd_tmp[i]>=0x30)&&(cmd_tmp[i]<=0x39)==0)
+					{
+	          flag_done=1;
+						UARTprintf("not a illegal interger\n");
+						flag_chaoshi++;
+						break;				
+					}
+					else
+					{
+					  flag_done=0;
+					}
+				}
+				if(flag_done==0)
+				{
+					run_parameter.modbus_id=atof(cmd_tmp);//此parameter有待修改
+					flag_function++;
+				}
+		}
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;	
+		break;
+		case 5:
+		UARTprintf("Set to 19.000mA, Enter actual value: ");
+		flag_function++;
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;				
+		break;
+		case 6:
+		if(strlen(cmd_tmp)>0)
+		{
+			  for(i=0;i<a;i++)
+				{
+				  if((cmd_tmp[i]>=0x30)&&(cmd_tmp[i]<=0x39)==0)
+					{
+	          flag_done=1;
+						UARTprintf("not a illegal interger\n");
+						flag_chaoshi++;
+						break;				
+					}
+					else
+					{
+					  flag_done=0;
+					}
+				}
+				if(flag_done==0)
+				{
+					run_parameter.modbus_id=atof(cmd_tmp);//此parameter有待修改
+					UARTprintf("Test the output\n");
+					flag_function++;
+				}
+		}
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;			
+		break;
+		case 7:
+		UARTprintf("Set to 3.000mA, Is this good (Y/N)?");
+		flag_function++;
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;				
+		break;
+		case 8:
+		if(strlen(cmd_tmp)>0)
+		{
+				switch(cmd_tmp[0]){
+					case 0x79://y
+					flag_function++;
+					break;
+					case 0x6e://n 
+					flag_function=3;						
+					break;
+					default:
+						UARTprintf("not a illegal interger\n");
+					  flag_chaoshi++;
+					break;				
+				}
+		}
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;	
+		break;
+		case 9:
+		UARTprintf("Set to 19.000mA, Is this good (Y/N)?");
+		flag_function++;
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;			
+		break;
+		case 10:
+		if(strlen(cmd_tmp)>0)
+		{
+				switch(cmd_tmp[0]){
+					case 0x79://y
+					UARTprintf("\n...Wait...SAVED  Done......\r\n\r\n");
+					flag_function=2;
+					break;
+					case 0x6e://n 
+					flag_function=3;						
+					break;
+					default:
+					UARTprintf("not a illegal interger\n");
+					flag_chaoshi++;
+					break;				
+				}
+		}
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;		
+		break;
+		default:
+		flag_command=0;
+		break;
+	}
 }
-void date_arg(void)
+void setmid_arg(void)//mi
 {
-	UARTprintf("date_arg");
-}
-void record_arg(void)
-{
-	UARTprintf("record_arg");
-}
-void clear_arg(void)
-{
-	UARTprintf("clear_arg");
-}
-void ci_arg(void)
-{
-	UARTprintf("clear_arg");
-}
-void setmid_arg(void)
-{
-	UARTprintf("clear_arg");
+	unsigned char i;	
+	switch(flag_function){
+		case 0:
+		UARTprintf("Modbus ID is %d Change (Y/N)?",run_parameter.modbus_id);	
+		flag_function++;
+		flag_chaoshi++;
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;
+		break;
+		case 1:
+		if(strlen(cmd_tmp)>0)
+		{
+				switch(cmd_tmp[0]){
+					case 0x79://y
+					UARTprintf("Set Modbus ID to: ");		
+					flag_function=3;
+					break;
+					case 0x6e://n 
+						UARTprintf("No change - Done\n");
+						flag_function++;						
+					break;
+					default:
+						UARTprintf("not a illegal interger\n");
+					  flag_chaoshi++;
+					break;				
+				}
+		}
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;		
+		break;
+		case 2:
+		flag_function=0;
+		flag_command=0;
+		flag_screen=0;	
+		flag_chaoshi=0;		
+		break;
+		case 3:
+		if(strlen(cmd_tmp)>0)
+		{
+			  for(i=0;i<a;i++)
+				{
+				  if((cmd_tmp[i]>=0x30)&&(cmd_tmp[i]<=0x39)==0)
+					{
+	          flag_done=1;
+						UARTprintf("not a illegal interger\n");
+						flag_chaoshi++;
+						break;				
+					}
+					else
+					{
+					  flag_done=0;
+					}
+				}
+				if(flag_done==0)
+				{
+					run_parameter.modbus_id=atoi(cmd_tmp);
+					UARTprintf("New Modbus ID is %d\r\n",run_parameter.modbus_id);
+					UARTprintf("\n...SAVED  Done......\r\n\r\n");
+					flag_function=2;
+				}
+		}
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;		
+		break;
+		default:
+		flag_command=0;
+		break;
+	}
 }
 void cf_arg(void)
 {

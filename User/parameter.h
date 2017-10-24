@@ -931,8 +931,9 @@ union
 		unsigned char character19;
 		}transformer_id_sstr;
 		char transformer_id_str[20];
-}transformer_id;		
-		unsigned short reserved_parameter76;//231
+}transformer_id;
+    unsigned short modbus_id;
+//	unsigned short reserved_parameter76;//231
 		unsigned short reserved_parameter77;//232
 		unsigned short reserved_parameter78;//233
 		unsigned short reserved_parameter79;//234
