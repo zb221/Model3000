@@ -328,7 +328,7 @@ Description: SPI 1 can send max 16BIT data one time.
 unsigned char SPI1_SendDate(unsigned char date)
 {
 	S1SPDR = date;			//Send date
-
+	
 	while ((S1SPSR & 0x80) == 0);
 
 	return (S1SPDR);
@@ -346,7 +346,7 @@ void SPI0_INIT(void)
 {
 	PINSEL0 = (PINSEL0 & 0xFFFF00FF) | 0x15<<8;                        /* SPI0 PIN SEL*/
 	S0SPCR = 0x00|(0 << 3)|(1 << 4)|(1 << 5)|(0 << 6)|(0 << 7);  /* Master mode*/
-	S0SPCCR = SPI_CLK;                                                            /* SPI Clock Counter: PCLK / SnSPCCR=15MHz/12*/
+	S0SPCCR = SPI0_CLK;                                                            /* SPI Clock Counter: PCLK / SnSPCCR=15MHz/12*/
 }
 
 /***********************************************************
@@ -359,9 +359,9 @@ Description: .
 ***********************************************************/
 void SPI1_INIT(void)
 {
-	PINSEL1 = (PINSEL1 & 0xFFFFFF03)| 0x10<<2|0x10<<4|0x10<<6;  /* SPI1 PIN SEL*/
-	S1SPCR = 0x00|(0 << 3)|(1 << 4)|(1 << 5)|(0 << 6)|(0 << 7);      /* Master mode*/
-	S1SPCCR = 0x00 | 0x1E;                                                          /* SPI Clock Counter: PCLK / SnSPCCR*/
+	PINSEL1 |= (0x2<<2)|(0x2<<4)|(0x2<<6);		/* SPI1 PIN SEL*/
+	S1SPCR = 0x00|(0 << 3)|(1 << 4)|(1 << 5)|(0 << 6)|(0 << 7);		/* Master mode*/
+	S1SPCCR = SPI1_CLK;																					/* SPI Clock Counter: PCLK / SnSPCCR*/
 }
 
 /***********************************************************

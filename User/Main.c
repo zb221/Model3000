@@ -17,6 +17,7 @@
 #include "DAC8568.h"
 #include "Command.h"
 #include "app.h"
+#include "M25P16_FLASH.h"
 
 /*-------------------------Global variable region----------------------*/
 //extern int flag1, flag2;
@@ -46,8 +47,10 @@ void init_peripherals(void)
 	init_timer();
 	init_PWM();
 	SPI0_INIT();
+	SPI1_INIT();
 	AD7738_CS_INIT();
 	DAC8568_CS_INIT();
+	M25P16_CS_INIT();
 }
 
 /***********************************************************
@@ -60,16 +63,16 @@ Description: main function for Model3000 project.
 ***********************************************************/
 int main (void)  
 {
-//	unsigned char i;
-//	unsigned char tmp[100];
+	unsigned char buffer;
 	unsigned char a;
 	FrecInit();
 	init_peripherals();
 	UARTprintf("model3000 test\n");
 	
+//	M25P16_TEST();
+	
 	while (1)  
 	{
-		
 		if(rcv_new==1)//���Դ����շ�
 		{
 		  rcv_new=0;

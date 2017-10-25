@@ -9,7 +9,7 @@
 #define __M25P16_FLASH_h
 
 void M25P16_CS_INIT(void);
-
+void M25P16_TEST(void);
 
 
 #endif
