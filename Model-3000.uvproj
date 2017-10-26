@@ -473,6 +473,11 @@
               <FileType>1</FileType>
               <FilePath>.\BSP\M25P16_FLASH.c</FilePath>
             </File>
+            <File>
+              <FileName>e25LC512.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\BSP\e25LC512.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

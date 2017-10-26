@@ -20,7 +20,6 @@
 #include "M25P16_FLASH.h"
 
 /*-------------------------Global variable region----------------------*/
-//extern int flag1, flag2;
 extern unsigned char flag_command;
 extern unsigned char flag_function;
 extern unsigned char rcv_buf[100];
@@ -32,6 +31,15 @@ extern unsigned char cmd_buf[CMD_LEN];
 unsigned char flag_screen=0;
 extern int flag1, flag2, flag3;
 
+extern unsigned char MODEL_TYPE;
+extern float OilTemp;
+extern float PcbTemp;
+extern float H2_SENSE_Resistance;
+int temperature = 70;
+
+const char print_menu[] = 
+	"\n"
+	"OilTemp    H2_SENSE_Resistance    PcbTemp\n";
 /***********************************************************
 Function:	init peripherals.
 Input:	none
@@ -50,7 +58,6 @@ void init_peripherals(void)
 	SPI1_INIT();
 	AD7738_CS_INIT();
 	DAC8568_CS_INIT();
-	M25P16_CS_INIT();
 }
 
 /***********************************************************
@@ -70,7 +77,8 @@ int main (void)
 	UARTprintf("model3000 test\n");
 	
 //	M25P16_TEST();
-	
+	DAC8568_INIT_SET(temperature,0xF000);
+
 	while (1)  
 	{
 		if(rcv_new==1)//���Դ����շ�
@@ -130,37 +138,61 @@ int main (void)
 			default:
 			break;			
 		}
+
 		switch (flag1)  {
 			case 1:
-			//capture oil temp;
-			ADC7738_acquisition(1);
-			ADC7738_acquisition_output(1);
+			/* 1-4min capture 3min oil temp */
 			flag1 = 0;
-			UARTprintf("capture oil temp\n");
+			UARTprintf("1-4min capture 3min oil temp\n");
 			break;
 
 			case 2:
-			//set 50 temp;
+			/* 4-1H4min set 50 temp, keep 1H  */
 			DAC8568_INIT_SET(50,0xF000);
 			flag1 = 0;
-			UARTprintf("set 50 temp\n");
+			UARTprintf("4-1H4min set 50 temp, keep 1H\n");
 			break;
 
 			case 3:
-			//capture Temperature_of_resistance and Hydrogen_Resistance;
-			ADC7738_acquisition(1);
-			ADC7738_acquisition_output(1);
-			ADC7738_acquisition(2);
-			ADC7738_acquisition_output(2);
+			/* 1H4min-1H7min stop heating, capture 3min oil temp */
+			DAC8568_INIT_SET(0,0);
 			flag1 = 0;
-			UARTprintf("capture Temperature_of_resistance and Hydrogen_Resistance\n");
+			UARTprintf("1H4min-1H7min stop heating, capture 3min oil temp\n");
 			break;
 
 			case 4:
-			//Stop heating;
+			/* 1H7min-2H7min set 50 temp and keep 1H */
+			DAC8568_INIT_SET(50,0xF000);
+			flag1 = 0;
+			UARTprintf("1H7min-2H7min set 50 temp and keep 1H\n");
+			break;
+
+			case 5:
+			/* 2H7min-2H10min stop heating and capture oil temp 3min */
 			DAC8568_INIT_SET(0,0);
 			flag1 = 0;
-			UARTprintf("Stop heating\n");
+			UARTprintf("2H7min-2H10min stop heating and capture oil temp 3min\n");
+			break;
+
+			case 6:
+			/* 2H10min-3H40min set 70 temp and keep 1.5H */
+			DAC8568_INIT_SET(70,0xF000);
+			flag1 = 0;
+			UARTprintf("2H10min-3H40min set 70 temp and keep 1.5H\n");
+			break;
+
+			case 7:
+			/* 3H40min-4H10min set 50 temp and keep 0.5H */
+			DAC8568_INIT_SET(50,0xF000);
+			flag1 = 0;
+			UARTprintf("3H40min-4H10min set 50 temp and keep 0.5H\n");
+			break;
+
+			case 8:
+			/* 4H10min-4H13min stop heating and capture oil temp 3min */
+			DAC8568_INIT_SET(0,0);
+			flag1 = 0;
+			UARTprintf("4H10min-4H13min stop heating and capture oil temp 3min\n");
 			break;
 
 			default:                                 /* Error Handling              */
@@ -169,34 +201,40 @@ int main (void)
 
 		switch (flag2)  {
 			case 1:
-			//200ms LED
+			/*200ms LED*/
 			LED_RED_SET
 			LED_BLUE_SET
 			LED_RED_CLR
 			LED_BLUE_CLR
-			UARTprintf("200ms LED\n");
 			flag2 = 0;
+//			UARTprintf("200ms LED\n");
 			break;
 
 			case 2:
-			//300ms ADC
-			UARTprintf("300ms ADC\n");
+			/*300ms ADC*/
 			ADC7738_acquisition(1);
+			ADC7738_acquisition_output(1);
 			ADC7738_acquisition(2);
+			ADC7738_acquisition_output(2);
+			ADC7738_acquisition(3);
+			ADC7738_acquisition_output(3);
+			UARTprintf(print_menu);
+			UARTprintf("%.3f     %.3f          %.3f\n",OilTemp,H2_SENSE_Resistance,PcbTemp);
 			flag2 = 0;
+//			UARTprintf("300ms ADC\n");
 			break;
 
 			case 3:
-			//600 ms checkself
+			/*600 ms checkself*/
 			device_checkself();
-			UARTprintf("600 ms checkself\n");
 			flag2 = 0;
+//			UARTprintf("600 ms checkself\n");
 			break;
 
 			case 4:
-			//800ms DS1390 
-			UARTprintf("800ms DS1390\n");
+			/*800ms DS1390 */
 			flag2 = 0;
+//			UARTprintf("800ms DS1390\n");
 			break;
 
 			default:                                 /* Error Handling              */
@@ -205,9 +243,9 @@ int main (void)
 
 		if (flag3 == 1)
 		{
-			//30min FLASH
-			UARTprintf("30min FLASH\n");
+			/*30min FLASH*/
 			flag3 = 0;
+//			UARTprintf("30min FLASH\n");
 		}
 	}
 }
