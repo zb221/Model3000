@@ -444,9 +444,9 @@
               <FilePath>.\User\app.c</FilePath>
             </File>
             <File>
-              <FileName>parameter.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\User\parameter.h</FilePath>
+              <FileName>ModBus.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\User\ModBus.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -472,6 +472,11 @@
               <FileName>Peripherals_LPC2194.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\BSP\Peripherals_LPC2194.c</FilePath>
+            </File>
+            <File>
+              <FileName>DS1390.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\BSP\DS1390.c</FilePath>
             </File>
           </Files>
         </Group>

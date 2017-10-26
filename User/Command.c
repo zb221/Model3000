@@ -26,6 +26,7 @@ unsigned char flag_relay3;//relay 3 status flag
 unsigned char flag_chaoshi;//防止一直卡在某命令的某个步骤中，超过一定大小就使步骤归0
 unsigned char flag_done;//命令行输入设置数字，如果都是数字为0，不是为1，提示需要重新输入
 unsigned char flag_relay_done;//判断设置的是哪个relay的功能，relay设置限制跳转标志位
+unsigned char flag_mode=1;//mode flag
 unsigned char a;//cmd_tmp的长度
 unsigned int readlog_number;//读取报警信息数量
 //*****************************************************************************/
@@ -2316,9 +2317,96 @@ void setmid_arg(void)//mi
 		break;
 	}
 }
-void cf_arg(void)
+void cf_arg(void)//configuration
 {
-	UARTprintf("clear_arg");
+	unsigned char i;
+	switch(flag_function)
+	{
+		case 0:
+		UARTprintf("0 - Exit\n\
+		1 - Normal\n\
+		2 - Debug\n\
+		3 - Calibration\n\
+		4 - set temperature\n\
+		Select function: ");
+		flag_function++;
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;
+		break;
+		case 1:
+		if(strlen(cmd_tmp)>0)
+		{
+				switch(cmd_tmp[0]){
+					case 0x30://0
+					UARTprintf("Exit.....\n");		
+					flag_function++;
+					break;
+					case 0x31://n 
+					UARTprintf("change mode to normal - exit\n");
+					flag_mode=1;
+					flag_function++;						
+					break;
+					case 0x32:
+					UARTprintf("change mode to debug - exit\n");
+					flag_mode=2;
+					flag_function++;
+					break;
+					case 0x33:
+					UARTprintf("change mode to calibration - exit\n");
+					flag_mode=3;
+					flag_function++;
+					break;
+					case 0x34:
+					UARTprintf("Please input the temperature you want:");
+					flag_function=3;
+					break;
+					default:
+					UARTprintf("not a illegal interger\n");
+					flag_chaoshi++;
+					break;				
+				}
+		}
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;
+		break;
+		case 2:
+		flag_function=0;
+		flag_command=0;
+		flag_screen=0;	
+		flag_chaoshi=0;		
+		break;
+		case 3:	
+		if(strlen(cmd_tmp)>0)
+		{
+			  for(i=0;i<a;i++)
+				{
+				  if((cmd_tmp[i]>=0x30)&&(cmd_tmp[i]<=0x39)==0)
+					{
+	          flag_done=1;
+						UARTprintf("not a illegal interger\n");
+						flag_chaoshi++;
+						break;				
+					}
+					else
+					{
+					  flag_done=0;
+					}
+				}
+				if(flag_done==0)
+				{
+					run_parameter.modbus_id=atoi(cmd_tmp);
+					UARTprintf("now heat temperature is %d\r\n",run_parameter.modbus_id);
+					UARTprintf("\n...SAVED  Done......exit\r\n\r\n");
+					flag_function=2;
+				}
+		}
+		memset(cmd_tmp,0,strlen(cmd_tmp));
+		a=0;		
+		break;
+		default:
+		flag_command=0;
+		break;
+	}
 }
 	
 	

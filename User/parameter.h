@@ -14,6 +14,66 @@ typedef struct
 	{
 		struct
 		{
+			unsigned short recept_ok				 :1;				//1  ????????
+			unsigned short recept_data_error :1;				//1  ?????????
+			unsigned short recept_crc_error  :1;				//1  ????crc????
+			unsigned short recept_write			 :1;				//1  ????????only	 write			
+			}ubit;
+		unsigned short all;	
+		
+		}flag;
+	union
+	{
+		struct
+		{			
+			unsigned char lo;
+			unsigned char hi;		
+		
+			}ubit;
+		unsigned short hi_lo;	
+		
+		}start_address;
+	union
+	{
+		struct
+		{
+			unsigned char lo;				
+			unsigned char hi;	
+		
+			}ubit;
+		unsigned short hi_lo;	
+		
+		}register_count;
+	union
+	{
+		struct
+		{							
+			unsigned char hi;
+			unsigned char lo;
+		
+			}ubit;
+		unsigned short hi_lo;	
+		
+		}recept_crc;
+			
+	unsigned char recept_point;//?????????
+	unsigned char recept_data_buffer[8];//???????
+	unsigned char recept_function_code;//03 ??????;06????
+	unsigned short calculate_crc;//?????????CEC?
+	unsigned char send_buffer[260];
+	unsigned char spi_flash_buffer[256];//flash ????
+	unsigned short function_point;			    //1  ????????only	 write
+	unsigned char Alarm_data_buffer[8];
+}USER_PARAMETER;
+//VARIABLE_EXT  
+USER_PARAMETER  user_parameter;	
+
+typedef struct
+{
+	union
+	{
+		struct
+		{
 			unsigned char lo;
 			unsigned char hi;	
 			}ubit;	
