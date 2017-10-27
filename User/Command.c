@@ -14,6 +14,7 @@
 #include "Peripherals_LPC2194.h"
 #include "Command.h"
 #include "parameter.h"
+#include "DAC8568.h"
 
 unsigned char cmd_tmp[CMD_LEN];
 unsigned char cmd_buf[CMD_LEN];
@@ -29,6 +30,8 @@ unsigned char flag_relay_done;//判断设置的是哪个relay的功能，relay设置限制跳转标
 unsigned char flag_mode=1;//mode flag
 unsigned char a;//cmd_tmp的长度
 unsigned int readlog_number;//读取报警信息数量
+extern int temperature;
+extern unsigned char MODEL_TYPE;
 //*****************************************************************************/
 //cmd catalogue
 //*****************************************************************************/  
@@ -2328,6 +2331,8 @@ void cf_arg(void)//configuration
 		2 - Debug\n\
 		3 - Calibration\n\
 		4 - set temperature\n\
+		5 - turn off the screen\n\
+		6 - turn on the screen\n\
 		Select function: ");
 		flag_function++;
 		memset(cmd_tmp,0,strlen(cmd_tmp));
@@ -2343,25 +2348,36 @@ void cf_arg(void)//configuration
 					break;
 					case 0x31://n 
 					UARTprintf("change mode to normal - exit\n");
-					flag_mode=1;
+					MODEL_TYPE=1;
 					flag_function++;						
 					break;
 					case 0x32:
 					UARTprintf("change mode to debug - exit\n");
-					flag_mode=2;
+					MODEL_TYPE=2;
 					flag_function++;
 					break;
 					case 0x33:
 					UARTprintf("change mode to calibration - exit\n");
-					flag_mode=3;
+					MODEL_TYPE=3;
 					flag_function++;
 					break;
 					case 0x34:
 					UARTprintf("Please input the temperature you want:");
 					flag_function=3;
 					break;
+					case 0x35:
+					UARTprintf("\n.... Done......exit\r\n\r\n");
+					flag_screen=1;
+					flag_function++;
+					break;
+					case 0x36:
+					UARTprintf("\n.... Done......exit\r\n\r\n");
+					flag_screen=0;
+					flag_function++;
+					break;						
 					default:
 					UARTprintf("not a illegal interger\n");
+					flag_screen=0;
 					flag_chaoshi++;
 					break;				
 				}
@@ -2372,7 +2388,6 @@ void cf_arg(void)//configuration
 		case 2:
 		flag_function=0;
 		flag_command=0;
-		flag_screen=0;	
 		flag_chaoshi=0;		
 		break;
 		case 3:	
@@ -2394,9 +2409,10 @@ void cf_arg(void)//configuration
 				}
 				if(flag_done==0)
 				{
-					run_parameter.modbus_id=atoi(cmd_tmp);
-					UARTprintf("now heat temperature is %d\r\n",run_parameter.modbus_id);
+					temperature=atoi(cmd_tmp);
+					UARTprintf("now heat temperature is %d\r\n",temperature);
 					UARTprintf("\n...SAVED  Done......exit\r\n\r\n");
+					DAC8568_INIT_SET(temperature,0xF000);
 					flag_function=2;
 				}
 		}
