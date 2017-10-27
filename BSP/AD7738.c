@@ -7,6 +7,7 @@
 
 #include <LPC21xx.H>                     /* LPC21xx definitions               */
 #include <stdio.h>
+#include <math.h>
 #include "Peripherals_LPC2194.h"
 #include "AD7738.h"
 #include "Cubic.h"
@@ -279,6 +280,23 @@ void Hydrogen_Resistance_Parameter(unsigned char A,unsigned char B,unsigned char
 }
 
 /***********************************************************
+Function:	 PCB TEMP.
+Input: three char data of 24bit data.
+Output: none
+Author: zhuobin
+Date: 2017/10/10
+Description: .
+***********************************************************/
+void PCB_temp_Parameter(unsigned char A,unsigned char B,unsigned char C)
+{
+	/* m*t*t+n*t+1-R/1000=0  n=0.0038623139728, m=-0.00000065314932626*/
+	float n = 0.0038623139728, m = -0.00000065314932626, R = 0, PT1000_current = 0.125;
+	
+	R = ((data0<<16|data1<<8|data2)/AD7738_resolution-2500)/PT1000_current;
+	PcbTemp = (-n + sqrt(n*n-4*m*(1-R/1000)))/(2*m);
+}
+
+/***********************************************************
 Function:	 AD7738 acquisition channel DATA.
 Input: channel.
 Output: none
@@ -291,7 +309,7 @@ void ADC7738_acquisition(unsigned char channel)
 	unsigned char flag = 0;
 	unsigned int temp = 0, count1 = 0;
 
-	for (count1=0;count1<20;count1++){
+	for (count1=0;count1<10;count1++){
 		/*--------------------------------------------set channel register of AD7738--------------------------------------------*/
 		AD7738_write(channel_setup_0 + channel,0<<7|AINx_AINx|0<<4|Channel_Continuous_conversion_disable|NP_25);	/*Channel_1 Setup Registers:BUF_OFF<<7|COM1|COM0|Stat|Channel_CCM|RNG2_0*/
 		AD7738_write(channel_conv_time_0 + channel,Chop_Enable|FW);	/*channel coversion time*/
@@ -306,7 +324,7 @@ void ADC7738_acquisition(unsigned char channel)
 		temp += (data0<<16|data1<<8|data2);
 	}
 	/*---------------------control the temp of sense-------------------------*/
-	temp = temp/20;
+	temp = temp/10;
 	data0 = (temp>>16)&0xff;
 	data1 = (temp>>8)&0xff;
 	data2 = (temp>>0)&0xff;
@@ -333,7 +351,7 @@ void ADC7738_acquisition_output(unsigned char channel)
 		break;
 
 		case 3:
-		PcbTemp = (data0<<16|data1<<8|data2)/AD7738_resolution-2500;
+		PCB_temp_Parameter(data0,data1,data2);
 		break;
 
 		default: break;

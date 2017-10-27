@@ -208,11 +208,11 @@ Description: serial init.
 /* implementation of putchar (also used by printf function to output data)    */
 int sendchar (int ch)  {                 /* Write character to Serial Port    */
   if (ch == '\n')  {
-    while (!(U1LSR & 0x20));
-    U1THR = CR;                          /* output CR */
+    while (!(U0LSR & 0x20));
+    U0THR = CR;                          /* output CR */
   }
-  while (!(U1LSR & 0x20));
-  return (U1THR = ch);
+  while (!(U0LSR & 0x20));
+  return (U0THR = ch);
 }
 
 /***********************************************************

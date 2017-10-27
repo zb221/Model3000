@@ -62,14 +62,24 @@ Author: zhuobin
 Date: 2017/10/10
 Description: .
 ***********************************************************/
-void DAC_SET_Chanel_Din(float temperature,int *DAC_DIN)
+void DAC_SET_Chanel_Din(float temperature,int *DAC_DIN, unsigned char type)
 {
-	float DAC_Din_Temp_slope = 0, x = 0, y = 0;
-
-	Linear_slope(&DAC_Din_Temp_slope, &x, &y, 2);
-
-	*DAC_DIN = (temperature - (y-(DAC_Din_Temp_slope*x)))/DAC_Din_Temp_slope;
-//	UARTprintf("*DAC_DIN=%d\n",*DAC_DIN);
+	float DAC_Din_Sense_Temp_slope = 0, x = 0, y = 0;
+	float DAC_Din_PCB_Temp_slope = 0, m = 0, n = 0;
+	
+	switch (type){
+		case DAC_temp:
+		Linear_slope(&DAC_Din_Sense_Temp_slope, &x, &y, DAC_temp);
+		*DAC_DIN = (temperature - (y-(DAC_Din_Sense_Temp_slope*x)))/DAC_Din_Sense_Temp_slope;
+		break;
+		case PCB_TEMP:
+		Linear_slope(&DAC_Din_PCB_Temp_slope, &m, &n, PCB_TEMP);
+		*DAC_DIN = (temperature - (n-(DAC_Din_PCB_Temp_slope*m)))/DAC_Din_PCB_Temp_slope;
+		break;
+		
+		default:
+			break;
+	}
 }
 
 /***********************************************************
@@ -82,15 +92,30 @@ Description: .
 ***********************************************************/
 void DAC8568_INIT_SET(float temperature,float current)
 {
-	int DAC_Din = 0;
-	DAC_SET_Chanel_Din(temperature,&DAC_Din);     /* set want temp value */
+	int DAC_G_Din = 0;
+	DAC_SET_Chanel_Din(temperature,&DAC_G_Din,DAC_temp);     /* set sense want temp value */
 	
 	DAC8568_SET(0x0,0x9,0x0,0xA000,0);		        /* Power up internal reference all the time regardless DAC states */
 	
 	DAC8568_SET(0x0,0x3,0x2,current,0);		       /* DAC-C */
-	DAC8568_SET(0x0,0x3,0x6,DAC_Din,0);		       /* DAC-G */
-
-//	DAC8568_SET(0x0,0x3,0x5,0x1000,0);		/*DAC-F*/
-//	DAC8568_SET(0x0,0x3,0x7,11336,0);		/*DAC-H*/
+	DAC8568_SET(0x0,0x3,0x6,DAC_G_Din,0);		       /* DAC-G */
 }
 
+/***********************************************************
+Function:	DAC8568 PCB temp control.
+Input: PCB control temperature and current want to be set
+Output: none
+Author: zhuobin
+Date: 2017/10/10
+Description: .
+***********************************************************/
+void DAC8568_PCB_TEMP_SET(float PCB_temp,float current)
+{
+	int DAC_H_Din = 0;
+	DAC_SET_Chanel_Din(PCB_temp,&DAC_H_Din,PCB_TEMP);     /* set PCB want temp value */
+	
+	DAC8568_SET(0x0,0x9,0x0,0xA000,0);		        /* Power up internal reference all the time regardless DAC states */
+
+	DAC8568_SET(0x0,0x3,0x5,current,0);		/*DAC-F*/
+	DAC8568_SET(0x0,0x3,0x7,DAC_H_Din,0);		/*DAC-H*/
+}

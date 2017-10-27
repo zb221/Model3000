@@ -21,9 +21,10 @@
 #define ERR  -2
 #endif
 
-#define Temp_Res 0
-#define Hydrogen_Res 1
-#define DAC_temp 2
+#define Temp_Res			0
+#define Hydrogen_Res	1
+#define DAC_temp			2
+#define PCB_TEMP			3
 
 float Cubic_main(float value,unsigned char type);
 void Linear_slope(float *slope, float *x, float *y, unsigned char type);
