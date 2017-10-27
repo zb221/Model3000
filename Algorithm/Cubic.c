@@ -26,6 +26,9 @@ float Temp_R[] = {91.366,96.190,101.087,106.101,111.456};
 float DAC_Din[] =  {38864,39083,39421,39754,40247,40960,41600};
 float Din_temp[] = {35.080,43.085,58.520,75.125,96.450,128.450,157.625};
 
+float PCB_TEMP_Din[] =  {11336,11536};
+float PCB_TEMP_SET[] = {41.336,45.835};
+
 typedef struct SPLINE    
 { 
     float x[MAXNUM+1];    
@@ -212,6 +215,7 @@ void Linear_slope(float *slope, float *x, float *y, unsigned char type)
 			*x = Temp[0];
 			*y = Temp_R[0];
 			break;
+
 		case DAC_temp:
 			if (sizeof(DAC_Din)/sizeof(DAC_Din[0]) != sizeof(Din_temp)/sizeof(Din_temp[0]))
 				printf("input data ERROR!\n");
@@ -224,6 +228,20 @@ void Linear_slope(float *slope, float *x, float *y, unsigned char type)
 			*slope = *slope/(number-1);
 			*x = DAC_Din[0];
 			*y = Din_temp[0];
+			break;
+			
+		case PCB_TEMP:
+			if (sizeof(PCB_TEMP_Din)/sizeof(PCB_TEMP_Din[0]) != sizeof(PCB_TEMP_SET)/sizeof(PCB_TEMP_SET[0]))
+				printf("input data ERROR!\n");
+			else{
+				number = sizeof(PCB_TEMP_SET)/sizeof(PCB_TEMP_SET[0]);
+			}
+			for (i=0;i<number-1;i++){
+				*slope += (PCB_TEMP_SET[i+1] - PCB_TEMP_SET[i])/(PCB_TEMP_Din[i+1] - PCB_TEMP_Din[i]);
+			}
+			*slope = *slope/(number-1);
+			*x = PCB_TEMP_Din[0];
+			*y = PCB_TEMP_SET[0];
 			break;
 
 			default: break;

@@ -9,8 +9,9 @@
 
 void DAC8568_CS_INIT(void);
 void DAC8568_SET(unsigned char PB,unsigned char CB,unsigned char AB,unsigned short DB,unsigned char FB);
-void DAC_SET_Chanel_Din(float temperature,int *DAC_DIN);
+void DAC_SET_Chanel_Din(float temperature,int *DAC_DIN, unsigned char type);
 void DAC8568_INIT_SET(float temperature,float current);
+void DAC8568_PCB_TEMP_SET(float PCB_temp,float current);
 
 #endif
 

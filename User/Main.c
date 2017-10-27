@@ -40,6 +40,7 @@ extern float OilTemp;
 extern float PcbTemp;
 extern float H2_SENSE_Resistance;
 int temperature = 70;
+int PCB_temp = 50;
 
 const char print_menu[] = 
 	"\n"
@@ -118,6 +119,7 @@ int main (void)
 	
 //	M25P16_TEST();
 	DAC8568_INIT_SET(temperature,0xF000);
+	DAC8568_PCB_TEMP_SET(PCB_temp,0x1000);
 
 	while (1)  
 	{
@@ -275,8 +277,6 @@ int main (void)
 			/*200ms LED*/
 			LED_RED_SET
 			LED_BLUE_SET
-			LED_RED_CLR
-			LED_BLUE_CLR
 			if(flag_screen==0)
 			{
         UARTprintf("200ms LED\n");			
@@ -312,6 +312,8 @@ int main (void)
 
 			case 4:
 			/*800ms DS1390 */
+			LED_RED_CLR
+			LED_BLUE_CLR
 			if(flag_screen==0)
       {
 			UARTprintf("800ms DS1390\n");			
