@@ -107,7 +107,11 @@ float AD7738_resolution_NP_0625 = 8388607/625;
 float Current_of_Temperature_resistance = 5;
 float Current_of_Hydrogen_Resistance = 0.75;
 
+/*-------------------------Global variable region----------------------*/
 unsigned char data0 = 0, data1 = 0, data2 = 0;
+float OilTemp = 0;
+float PcbTemp = 0;
+float H2_SENSE_Resistance = 0;
 
 /***********************************************************
 Function:	 AD7738 CS pin init.
@@ -180,11 +184,11 @@ void AD7738_read_channel_data(unsigned char Register,unsigned char *buf0,unsigne
 	*buf2 = 0;
 	
 	IOCLR0 = IOCLR0 | 0x1<<20;           /* CS1/SSEL1 set LOW*/
-	
+
 	SPI0_SendDate(1<<6|(0x3F & Register));
-	
+
  	*buf0 = SPI0_SendDate(0xFF);
-	
+
 	*buf1 = SPI0_SendDate(0xFF);
 	
 	*buf2 = SPI0_SendDate(0xFF);
@@ -246,18 +250,16 @@ Date: 2017/10/10
 Description: .
 ***********************************************************/
 void Temperature_of_resistance_Parameter(unsigned char A,unsigned char B,unsigned char C)
-{
+{	
 	float resistance = 0;
-	float Temperature = 0;
+
 	float Temp_resistance_slope = 0, x = 0, y = 0;
 
 	Linear_slope(&Temp_resistance_slope, &x, &y, Temp_Res);
 	
-	resistance = (A<<16|B<<8|C)/AD7738_resolution_NP_125/Current_of_Temperature_resistance;
+	resistance = ((A<<16|B<<8|C)/AD7738_resolution-2500)/Current_of_Temperature_resistance;
 
-	Temperature = (resistance-(y-Temp_resistance_slope*x))/Temp_resistance_slope;
-
-	UARTprintf("%.3f\n",Temperature);
+	OilTemp = (resistance-(y-Temp_resistance_slope*x))/Temp_resistance_slope;
 }
 
 /***********************************************************
@@ -270,14 +272,10 @@ Description: .
 ***********************************************************/
 void Hydrogen_Resistance_Parameter(unsigned char A,unsigned char B,unsigned char C)
 {
-	float resistance = 0;
-
-	resistance = (A<<16|B<<8|C)/AD7738_resolution_NP_125/Current_of_Hydrogen_Resistance;
+	H2_SENSE_Resistance = ((A<<16|B<<8|C)/AD7738_resolution-2500)/Current_of_Hydrogen_Resistance;
 	
 //	Temp = Cubic_main(resistance,Hydrogen_Res);
 //	R = Hydrogen_resistance_slope*temperature + (645-65*Hydrogen_resistance_slope);
-	
-	UARTprintf("%.3f \n",resistance);
 }
 
 /***********************************************************
@@ -293,29 +291,26 @@ void ADC7738_acquisition(unsigned char channel)
 	unsigned char flag = 0;
 	unsigned int temp = 0, count1 = 0;
 
-	data0 = 0;
-	data1 = 0;
-	data2 = 0;
+	for (count1=0;count1<20;count1++){
+		/*--------------------------------------------set channel register of AD7738--------------------------------------------*/
+		AD7738_write(channel_setup_0 + channel,0<<7|AINx_AINx|0<<4|Channel_Continuous_conversion_disable|NP_25);	/*Channel_1 Setup Registers:BUF_OFF<<7|COM1|COM0|Stat|Channel_CCM|RNG2_0*/
+		AD7738_write(channel_conv_time_0 + channel,Chop_Enable|FW);	/*channel coversion time*/
+		AD7738_write(channel_mode_0 + channel,Single_Conversion_Mode|1<<4|0<<3|0<<2|BIT24|1);
 
-	for (count1=0;count1<1;count1++){
-	/*--------------------------------------------set channel register of AD7738--------------------------------------------*/
-	AD7738_write(channel_setup_0 + channel,0<<7|AINx_AINx|0<<4|Channel_Continuous_conversion_disable|NP_125);	/*Channel_1 Setup Registers:BUF_OFF<<7|COM1|COM0|Stat|Channel_CCM|RNG2_0*/
-	AD7738_write(channel_conv_time_0 + channel,Chop_Enable|FW);	/*channel coversion time*/
-	AD7738_write(channel_mode_0 + channel,Single_Conversion_Mode|1<<4|0<<3|0<<2|BIT24|1);
-
-	flag = 0;
-	while(!((flag>>channel)&0x1)){
-		AD7738_read(ADC_STATUS_REG,&flag);
-	}
-	AD7738_read_channel_data(channel_data_0 + channel,&data0,&data1,&data2);
-	temp += (data0<<16|data1<<8|data2);
+		flag = 0;
+		while(!((flag>>channel)&0x1)){
+			AD7738_read(ADC_STATUS_REG,&flag);
+		}
+		
+		AD7738_read_channel_data(channel_data_0 + channel,&data0,&data1,&data2);
+		temp += (data0<<16|data1<<8|data2);
 	}
 	/*---------------------control the temp of sense-------------------------*/
-	temp = temp/1;
+	temp = temp/20;
 	data0 = (temp>>16)&0xff;
 	data1 = (temp>>8)&0xff;
 	data2 = (temp>>0)&0xff;
-	
+
 }
 
 /***********************************************************
@@ -330,17 +325,15 @@ void ADC7738_acquisition_output(unsigned char channel)
 {
 	switch (channel){
 		case 1:
-		UARTprintf("%d ->%.3fmv ",(data0<<16|data1<<8|data2),(data0<<16|data1<<8|data2)/AD7738_resolution_NP_125);
 		Temperature_of_resistance_Parameter(data0,data1,data2);
 		break;
 
 		case 2:
-		UARTprintf("%d ->%.3fmv ",(data0<<16|data1<<8|data2),(data0<<16|data1<<8|data2)/AD7738_resolution_NP_125);
 		Hydrogen_Resistance_Parameter(data0,data1,data2);
 		break;
 
 		case 3:
-		UARTprintf("%d ->%.3fmv \n",(data0<<16|data1<<8|data2),(data0<<16|data1<<8|data2)/AD7738_resolution_NP_125);
+		PcbTemp = (data0<<16|data1<<8|data2)/AD7738_resolution-2500;
 		break;
 
 		default: break;

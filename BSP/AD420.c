@@ -21,7 +21,7 @@ void AD420_SPI_SET(void)
 /*---------------------------------SPI0-----------------------------------------------*/
 	PINSEL0 = (PINSEL0 & 0xFFFF00FF) | 0x15<<8; /*SPI0 PIN SEL*/
 	S0SPCR = BitEnable_X | CPHA_first | CPOL_high | MSTR_master | LSBF_MSB_first | SPI_interrupt_disable | BITS_16;
-	S0SPCCR = SPI_CLK;
+	S0SPCCR = SPI0_CLK;
 }
 
 /***********************************************************

@@ -35,6 +35,8 @@ unsigned char rcv_buf[100];
 volatile unsigned char rcv_new;
 unsigned int rcv_cnt;
 
+unsigned char MODEL_TYPE = 1;
+
 
 /***********************************************************
 Function: Delay .
@@ -206,11 +208,11 @@ Description: serial init.
 /* implementation of putchar (also used by printf function to output data)    */
 int sendchar (int ch)  {                 /* Write character to Serial Port    */
   if (ch == '\n')  {
-    while (!(U0LSR & 0x20));
-    U0THR = CR;                          /* output CR */
+    while (!(U1LSR & 0x20));
+    U1THR = CR;                          /* output CR */
   }
-  while (!(U0LSR & 0x20));
-  return (U0THR = ch);
+  while (!(U1LSR & 0x20));
+  return (U1THR = ch);
 }
 
 /***********************************************************
@@ -328,7 +330,7 @@ Description: SPI 1 can send max 16BIT data one time.
 unsigned char SPI1_SendDate(unsigned char date)
 {
 	S1SPDR = date;			//Send date
-
+	
 	while ((S1SPSR & 0x80) == 0);
 
 	return (S1SPDR);
@@ -355,7 +357,7 @@ void SPI0_INIT(void)
 {
 	PINSEL0 = (PINSEL0 & 0xFFFF00FF) | 0x15<<8;                        /* SPI0 PIN SEL*/
 	S0SPCR = 0x00|(0 << 3)|(1 << 4)|(1 << 5)|(0 << 6)|(0 << 7);  /* Master mode*/
-	S0SPCCR = SPI_CLK;                                                            /* SPI Clock Counter: PCLK / SnSPCCR=15MHz/12*/
+	S0SPCCR = SPI0_CLK;                                                            /* SPI Clock Counter: PCLK / SnSPCCR=15MHz/12*/
 }
 
 /***********************************************************
@@ -368,9 +370,9 @@ Description: .
 ***********************************************************/
 void SPI1_INIT(void)
 {
-	PINSEL1 = (PINSEL1 & 0xFFFFFF03)| 0x02<<2|0x02<<4|0x02<<6;  /* SPI1 PIN SEL*/
-	S1SPCR = 0x00|(0 << 3)|(1 << 4)|(1 << 5)|(0 << 6)|(0 << 7);      /* Master mode*/
-	S1SPCCR = 0x00 | 0x1E;                                                          /* SPI Clock Counter: PCLK / SnSPCCR*/
+	PINSEL1 |= (0x2<<2)|(0x2<<4)|(0x2<<6);		/* SPI1 PIN SEL*/
+	S1SPCR = 0x00|(0 << 3)|(1 << 4)|(1 << 5)|(0 << 6)|(0 << 7);		/* Master mode*/
+	S1SPCCR = SPI1_CLK;																					/* SPI Clock Counter: PCLK / SnSPCCR*/
 }
 
 /***********************************************************
@@ -420,35 +422,61 @@ __irq void TC0_IR (void)
 	count1++;
 	count2++;
 	count3++;
-	switch (count1){
-		case 10000://capture oil temp
-		flag1 = 1;
-		break;
 
-		case 20000://set 50 temp
-		flag1 = 2;
-		break;
+	switch (MODEL_TYPE){
+		case 1:	/*normal model*/
+			switch (count1){
+				case 60000:	/* 1-4min capture 3min oil temp */
+				flag1 = 1;
+				break;
 
-		case 30000://capture Temperature_of_resistance and Hydrogen_Resistance;Stop heating
-		flag1 = 3;
-		break;
+				case 240000:	/* 4-1H4min set 50 temp, keep 1H  */
+				flag1 = 2;
+				break;
 
-		case 40000://stop heating
-		flag1 = 4;
-		break;
+				case 3840000: /* 1H4min-1H7min stop heating, capture 3min oil temp and capture Temperature_of_resistance and Hydrogen_Resistance */
+				flag1 = 3;
+				break;
 
-		case 50000://capture oil temp
-		flag1 = 5;
-		break;
+				case 4020000: /* 1H7min-2H7min set 50 temp and keep 1H */
+				flag1 = 4;
+				break;
 
-		case 60000://capture oil temp
-		count1 = 0;
-		break;
+				case 7620000: /* 2H7min-2H10min stop heating and capture oil temp 3min */
+				flag1 = 5;
+				break;
+
+				case 7800000: /* 2H10min-3H40min set 70 temp and keep 1.5H */
+				flag1 = 6;
+				break;
+
+				case 13200000: /* 3H40min-4H10min set 50 temp and keep 0.5H */
+				flag1 = 7;
+				break;		
+
+				case 15000000: /* 4H10min-4H13min stop heating and capture oil temp 3min */
+				flag1 = 8;
+				break;	
+				
+				case 15180000: /* 4H13min reset count1 */
+				count1 = 0;
+				break;
+
+				default:
+				break;
+			}
+			break;
+		case 2:	/*debug model*/
+			
+			break;
+		case 3:	/*calibrate model*/
+			
+			break;
 
 		default:
 		break;
 	}
-
+	
 	switch (count2){
 		case 200:
 		flag2 = 1;//200ms LED
@@ -470,9 +498,14 @@ __irq void TC0_IR (void)
 		break;
 	}
 
-	if (count3 == 30000){
-		flag3 = 1;//30min FLASH
+	switch (count3){
+		case 30000:
+		flag3 = 1; /* 30min FLASH */
 		count3 = 0;
+		break;
+
+		default:
+		break;
 	}
 
 	T0IR = 1;                                    /* Clear interrupt flag        */
@@ -489,7 +522,7 @@ Description: .
 ***********************************************************/
 void init_timer(void)
 {
-	T0MR0 = 12000-1;                               /* 1mSec = 15.000-1 counts     */
+	T0MR0 = 12000-1;                               /* 1mSec = 12.000-1 counts     */
 	T0MCR = 3;                                   /* Interrupt and Reset on MR0  */
 	T0TCR = 1;                                   /* Timer0 Enable               */
 	VICVectAddr0 = (unsigned long)TC0_IR;        /* set interrupt vector in 0   */

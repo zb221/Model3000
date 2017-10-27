@@ -54,10 +54,11 @@ void init_PWM (void);
 #define BITS_16				(0<<8)
 
 /*----------SPI Clock Counter Register (S0SPCCR)----------------------------------
-SPI CLK = PCLK / SnSPCCR value; PCLK = 15MHZ
+SPI CLK = PCLK / SnSPCCR value; PCLK = 12MHZ
 In Master mode, this register must be an even number greater than or equal to 8.
 ----------------------------------------------------------------------------*/
-#define SPI_CLK		0x1E
+#define SPI0_CLK		0x1E
+#define SPI1_CLK		0x8
 
 void SPI0_INIT(void);
 void SPI1_INIT(void);
