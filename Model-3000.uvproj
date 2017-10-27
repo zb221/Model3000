@@ -443,11 +443,6 @@
               <FileType>1</FileType>
               <FilePath>.\User\app.c</FilePath>
             </File>
-            <File>
-              <FileName>ModBus.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\User\ModBus.c</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>

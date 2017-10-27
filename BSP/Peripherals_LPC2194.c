@@ -334,6 +334,15 @@ unsigned char SPI1_SendDate(unsigned char date)
 	return (S1SPDR);
 }
 
+unsigned char Spi1_read_data(void)//spi 写数据
+{
+	unsigned char i;
+	S1SPDR=0xff;
+	while((S1SPSR&0x80)==0);
+	i=S1SPDR;
+	return i;
+	}
+
 /***********************************************************
 Function: Initialize SPI 0 interface.
 Input: none
@@ -359,7 +368,7 @@ Description: .
 ***********************************************************/
 void SPI1_INIT(void)
 {
-	PINSEL1 = (PINSEL1 & 0xFFFFFF03)| 0x10<<2|0x10<<4|0x10<<6;  /* SPI1 PIN SEL*/
+	PINSEL1 = (PINSEL1 & 0xFFFFFF03)| 0x02<<2|0x02<<4|0x02<<6;  /* SPI1 PIN SEL*/
 	S1SPCR = 0x00|(0 << 3)|(1 << 4)|(1 << 5)|(0 << 6)|(0 << 7);      /* Master mode*/
 	S1SPCCR = 0x00 | 0x1E;                                                          /* SPI Clock Counter: PCLK / SnSPCCR*/
 }

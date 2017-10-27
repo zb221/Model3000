@@ -60,8 +60,11 @@ return(tdata);
 void Write1390(unsigned char ucAddr, unsigned char ucDa)	
 {
 	DS1390_CS_L;	
-	DS1390InputByte(ucAddr);       
-	DS1390InputByte(ucDa);       	
+//	DS1390InputByte(ucAddr);       
+//	DS1390InputByte(ucDa);
+  DS1390_Delay(1);	
+	SPI1_SendDate(ucAddr);
+	SPI1_SendDate(ucDa);
 	DS1390_CS_H;
 } 
 
@@ -69,8 +72,11 @@ unsigned char Read1390(unsigned char ucAddr)
 {
 	unsigned char ucData;
 	DS1390_CS_L;		
-	DS1390InputByte(ucAddr & 0x0F);       
-	ucData = DS1390OutputByte();          
+//	DS1390InputByte(ucAddr & 0x0F);  
+	DS1390_Delay(1);
+	SPI1_SendDate(ucAddr & 0x0F);
+	ucData=Spi1_read_data();
+	//ucData = DS1390OutputByte();          
 	DS1390_CS_H;
 	return(ucData);
 }
@@ -90,7 +96,7 @@ void DS1390_GetTime(REALTIMEINFO *Time)
 	Temp = Read1390(REG_HOUR);	
 	Low_4 = Temp & 0x0F;
 	High_4  = (Temp & 0x70) >> 4;
-    Time->SpecificTime.hour = High_4 * 10 + Low_4;
+	Time->SpecificTime.hour = High_4 * 10 + Low_4;
 	Temp = Read1390(REG_DAY);		
 	Low_4 = Temp & 0x0F;
 	High_4  = (Temp & 0x70) >> 4;
@@ -101,7 +107,7 @@ void DS1390_GetTime(REALTIMEINFO *Time)
 	Time->SpecificTime.month = High_4 * 10 + Low_4;
 	Temp = Read1390(REG_YEAR);	
 	Low_4 = Temp & 0x0F;
-    High_4  = (Temp & 0x70) >> 4;
+	High_4  = (Temp & 0x70) >> 4;
 	Time->SpecificTime.year = High_4 * 10 + Low_4;
 }
 
@@ -121,8 +127,7 @@ void Initial_DS1390(void)
 		Write1390(REG_MIN,0x43);
 		Write1390(REG_SEC,0x30);
 		Write1390(REG_STATUS,0x00); 
-	}
-	
+	}	
 }
 
 void DS1390_AdjustTime(REALTIMEINFO *Time)

@@ -19,6 +19,7 @@
 #include "Command.h"
 #include "parameter.h"
 #include "Modbus.h"
+#include "DS1390.h"
 REALTIMEINFO	RealTime_Modbus;     //??????
 
 //ºê¶¨ÒåStop   hugo add 
@@ -431,9 +432,9 @@ void AT25df16_read_data(unsigned char *pbuffer,unsigned short data_count,unsigne
 		}add;
 	
 	add.temp_address=start_address;
-	AT25_CS_L;// ??AT25
+	AT25_CS_L;
 	Delay_us(10);
-	Spi_write_data(0x03);//??????
+	Spi_write_data(0x03);
 		
 	Spi_write_data(add.t.addhigh);
 	Spi_write_data(add.t.addmid);
@@ -538,9 +539,9 @@ void Data_Analysis(unsigned char data)//hugo add
 	switch(user_parameter.recept_point)
 	{
 		case 0:
-						if(run_parameter.uint_id.ubit.lo==data)
+						if(run_parameter.unit_id.ubit.lo==data)
 							{
-								user_parameter.recept_data_buffer[user_parameter.recept_point]=run_parameter.uint_id.ubit.lo;
+								user_parameter.recept_data_buffer[user_parameter.recept_point]=run_parameter.unit_id.ubit.lo;
 								user_parameter.recept_point=1;
 								}
 						else
@@ -672,7 +673,7 @@ void Data_Ack_Processor(void)//hugo add
 	switch(user_parameter.recept_function_code)
 	{
 		case 0x03://?
-							user_parameter.send_buffer[0]=run_parameter.uint_id.ubit.lo;
+							user_parameter.send_buffer[0]=run_parameter.unit_id.ubit.lo;
 							user_parameter.send_buffer[1]=user_parameter.recept_function_code;
 							user_parameter.send_buffer[2]=(user_parameter.register_count.hi_lo<<1)+0;
 							temp_point_count=user_parameter.register_count.hi_lo;
@@ -683,7 +684,7 @@ void Data_Ack_Processor(void)//hugo add
 							if((temp_vp>temp_vmax)||(temp_point_count>125))
 								{
 									//????
-												user_parameter.send_buffer[0]=run_parameter.uint_id.ubit.lo;
+												user_parameter.send_buffer[0]=run_parameter.unit_id.ubit.lo;
 												user_parameter.send_buffer[1]=0x83;
 												user_parameter.send_buffer[2]=0x02;	
 												user_parameter.calculate_crc=crc16(user_parameter.send_buffer, 3);
@@ -720,7 +721,7 @@ void Data_Ack_Processor(void)//hugo add
 							break;
 							
 		case 0x06://?
-							user_parameter.send_buffer[0]=run_parameter.uint_id.ubit.lo;
+							user_parameter.send_buffer[0]=run_parameter.unit_id.ubit.lo;
 							user_parameter.send_buffer[1]=user_parameter.recept_function_code;
 							user_parameter.send_buffer[2]=user_parameter.start_address.ubit.hi;
 							user_parameter.send_buffer[3]=user_parameter.start_address.ubit.lo;
@@ -749,7 +750,7 @@ void Data_Ack_Processor(void)//hugo add
 							else
 								{
 									//??????
-												user_parameter.send_buffer[0]=run_parameter.uint_id.ubit.lo;
+												user_parameter.send_buffer[0]=run_parameter.unit_id.ubit.lo;
 												user_parameter.send_buffer[1]=0x86;
 												user_parameter.send_buffer[2]=0x02;
 												user_parameter.calculate_crc=crc16(user_parameter.send_buffer, 3);
@@ -776,7 +777,7 @@ void Data_Ack_Processor(void)//hugo add
 							break;
 		default:
 						//????
-						user_parameter.send_buffer[0]=run_parameter.uint_id.ubit.lo;
+						user_parameter.send_buffer[0]=run_parameter.unit_id.ubit.lo;
 						user_parameter.send_buffer[1]=0x83;
 						user_parameter.send_buffer[2]=0x01;
 						user_parameter.calculate_crc=crc16(user_parameter.send_buffer, 3);
