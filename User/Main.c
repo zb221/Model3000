@@ -43,7 +43,16 @@ int temperature = 70;
 
 const char print_menu[] = 
 	"\n"
-	"OilTemp    H2_SENSE_Resistance    PcbTemp\n";
+	"TimeStamp            PcbTemp  H2AG.ppm  OilTemp  H2DG.ppm  H2G.ppm  H2SldAv  DayROC  WeekROC  MonthROC  Message  \r\n";
+const char debug_menu[] =
+	"\n"
+	"TimeStamp            PcbTemp  H2AG.ppm  OilTemp  H2DG.ppm  H2G.ppm  H2SldAv  DayROC  WeekROC  MonthROC  SensorTemp  H2Resistor  TemResistor  Message  \r\n";\
+const char *message_menu[]=
+{"wait",
+"wait ramp_up",
+"wait avg",
+"htr_off",
+"woff ramp_down"};
 /***********************************************************
 Function:	init peripherals.
 Input:	none
@@ -64,6 +73,30 @@ void init_peripherals(void)
 	DAC8568_CS_INIT();
 	Initial_DS1390();
 }
+/***********************************************************
+Function:	serial print data.
+Input:	none
+Output: none
+Author: zhuobin
+Date: 2017/10/27
+Description: setup the timer counter 0 interrupt.
+***********************************************************/
+void command_print(void)
+{
+	DS1390_GetTime(&CurrentTime);
+	UARTprintf("%d/%d/%d %d:%d:%d  ",CurrentTime.SpecificTime.year+2000,CurrentTime.SpecificTime.month,
+	CurrentTime.SpecificTime.day,CurrentTime.SpecificTime.hour,CurrentTime.SpecificTime.min,CurrentTime.SpecificTime.sec);
+	UARTprintf("%.3f     %.3f          %.3f    ",OilTemp,H2_SENSE_Resistance,PcbTemp);
+	if(temperature>=50)
+	{
+	UARTprintf(message_menu[1]);
+	}
+	else
+	{
+	UARTprintf(message_menu[0]);	
+	}
+	UARTprintf("\r\n");
+}
 
 /***********************************************************
 Function:	Main function.
@@ -81,14 +114,14 @@ int main (void)
 	FrecInit();
 
 	init_peripherals();
-	UARTprintf("model3000 test\n");
+	UARTprintf(print_menu);
 	
 //	M25P16_TEST();
 	DAC8568_INIT_SET(temperature,0xF000);
 
 	while (1)  
 	{
-		if(rcv_new==1)//���Դ����շ�
+		if(rcv_new==1)
 		{
 		rcv_new=0;
 		UART0_SendData(rcv_buf,rcv_cnt);
@@ -99,9 +132,7 @@ int main (void)
 		//UARTprintf("a=%d\n",a);
 		memset(rcv_buf,0,rcv_cnt);
 		rcv_cnt=0;
-		DS1390_GetTime(&CurrentTime);
-		UARTprintf("%d,%d,%d,%d,%d,%d\n",CurrentTime.SpecificTime.year+2000,CurrentTime.SpecificTime.month,
-		CurrentTime.SpecificTime.day,CurrentTime.SpecificTime.hour,CurrentTime.SpecificTime.min,CurrentTime.SpecificTime.sec);
+		
 		}
 
 		if(flag_command==0)
@@ -255,19 +286,18 @@ int main (void)
 
 			case 2:
 			/*300ms ADC*/
-			if(flag_screen==0)
-			{
-			UARTprintf("300ms ADC\n");			
-			}
 			ADC7738_acquisition(1);
 			ADC7738_acquisition_output(1);
 			ADC7738_acquisition(2);
 			ADC7738_acquisition_output(2);
 			ADC7738_acquisition(3);
 			ADC7738_acquisition_output(3);
-			UARTprintf(print_menu);
-			UARTprintf("%.3f     %.3f          %.3f\n",OilTemp,H2_SENSE_Resistance,PcbTemp);
+			if(flag_screen==0)
+			{
+			UARTprintf("300ms ADC\n");			
+			}
 			flag2 = 0;
+			command_print();
 			break;
 
 			case 3:
