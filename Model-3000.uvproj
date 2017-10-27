@@ -469,6 +469,9 @@
               <FilePath>.\BSP\Peripherals_LPC2194.c</FilePath>
             </File>
             <File>
+              <FileName>DS1390.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\BSP\DS1390.c</FilePath>
               <FileName>M25P16_FLASH.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\BSP\M25P16_FLASH.c</FilePath>

@@ -1,0 +1,8 @@
+
+#ifndef __MODBUS_H__
+#define __MODBUS_H__
+
+#define EN_485_DE					(1<<16)
+#define EN_AT25xx					(1<<25)
+
+#endif

@@ -30,6 +30,7 @@ void sendstring(char *string);
 void Uart1_SentByte(unsigned char data);
 void UARTprintf(const char *fmt,...);
 void UART0_SendData(unsigned char *sendbuf,unsigned int len);
+unsigned char Spi1_read_data(void);
 
 /*------------------------------------------------------------------PWM--------------------------------------------------------------*/
 void init_PWM (void);

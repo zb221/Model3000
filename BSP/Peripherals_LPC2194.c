@@ -336,6 +336,15 @@ unsigned char SPI1_SendDate(unsigned char date)
 	return (S1SPDR);
 }
 
+unsigned char Spi1_read_data(void)//spi 写数据
+{
+	unsigned char i;
+	S1SPDR=0xff;
+	while((S1SPSR&0x80)==0);
+	i=S1SPDR;
+	return i;
+	}
+
 /***********************************************************
 Function: Initialize SPI 0 interface.
 Input: none

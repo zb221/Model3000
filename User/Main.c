@@ -9,7 +9,8 @@
 #include <ctype.h>                      /* character functions               */
 #include <LPC21xx.H>                    /* LPC21xx definitions               */
 #include <string.h>
-
+#include <stdlib.h>
+#include <string.h>
 #include "main.h"                    /* global project definition file    */
 #include "config.h"
 #include "Peripherals_LPC2194.h"
@@ -17,6 +18,7 @@
 #include "DAC8568.h"
 #include "Command.h"
 #include "app.h"
+#include "DS1390.h"
 #include "M25P16_FLASH.h"
 
 /*-------------------------Global variable region----------------------*/
@@ -27,9 +29,11 @@ extern volatile unsigned char rcv_new;
 extern unsigned int rcv_cnt;
 extern unsigned char cmd_tmp[CMD_LEN];
 extern unsigned char cmd_buf[CMD_LEN];
-
-unsigned char flag_screen=0;
+extern unsigned char flag_screen;
 extern int flag1, flag2, flag3;
+extern unsigned char a;
+extern REALTIMEINFO CurrentTime;
+extern unsigned char flag_mode;
 
 extern unsigned char MODEL_TYPE;
 extern float OilTemp;
@@ -58,6 +62,7 @@ void init_peripherals(void)
 	SPI1_INIT();
 	AD7738_CS_INIT();
 	DAC8568_CS_INIT();
+	Initial_DS1390();
 }
 
 /***********************************************************
@@ -70,9 +75,11 @@ Description: main function for Model3000 project.
 ***********************************************************/
 int main (void)  
 {
+	unsigned char i;
 	unsigned char buffer;
 	unsigned char a;
 	FrecInit();
+
 	init_peripherals();
 	UARTprintf("model3000 test\n");
 	
@@ -83,59 +90,89 @@ int main (void)
 	{
 		if(rcv_new==1)//���Դ����շ�
 		{
-		  rcv_new=0;
-			UART0_SendData(rcv_buf,rcv_cnt);
-			//UARTprintf("\n");
-			//������յ�����
-			a=get_true_char_stream(cmd_tmp,rcv_buf);
-			UART0_SendData(cmd_tmp,a);
-			UARTprintf("\n");
-			UARTprintf("a=%d\n",a);
-			memset(rcv_buf,0,rcv_cnt);
-			rcv_cnt=0;
+		rcv_new=0;
+		UART0_SendData(rcv_buf,rcv_cnt);
+		//UARTprintf("\n");
+		a=get_true_char_stream(cmd_tmp,rcv_buf);
+		//UART0_SendData(cmd_tmp,a);
+		//UARTprintf("\n");
+		//UARTprintf("a=%d\n",a);
+		memset(rcv_buf,0,rcv_cnt);
+		rcv_cnt=0;
+		DS1390_GetTime(&CurrentTime);
+		UARTprintf("%d,%d,%d,%d,%d,%d\n",CurrentTime.SpecificTime.year+2000,CurrentTime.SpecificTime.month,
+		CurrentTime.SpecificTime.day,CurrentTime.SpecificTime.hour,CurrentTime.SpecificTime.min,CurrentTime.SpecificTime.sec);
 		}
-		if(findcmdfunction(cmd_tmp)==1)
+
+		if(flag_command==0)
 		{
-			memset(cmd_tmp,0,a);
-			flag_screen=1;
-			UARTprintf("guanbihuixian\n");
+			if(findcmdfunction(cmd_tmp)==1)
+			{
+				memset(cmd_tmp,0,a);
+				a=0;
+				flag_screen=1;
+				UARTprintf("guanbihuixian\n");
+			}		
 		}
+
 		switch(flag_command){
 			case 1:
-			{
 			alarm_arg();			
-			}
 			break;
 			case 2:
-			
+			config_arg_d1();
 			break;
 			case 3:
+			da_arg();
 			break;
 			case 4:
+			db_arg();
 			break;
 			case 5:
+			dx_arg();
 			break;
 			case 6:
+			gg_arg();
 			break;
 			case 7:
+			aop_arg();
 			break;
 			case 8:
+			aoerr_arg();
 			break;
 			case 9:
+			install_arg();
 			break;
 			case 10:
+			date_arg();
 			break;
 			case 11:
+			record_arg();
 			break;
 			case 12:
+			clear_arg();
 			break;
 			case 13:
+			ci_arg();
 			break;
 			case 14:
+			setmid_arg();
 			break;
 			case 15:
+			cf_arg();
+			break;
+			case 16:
+			config_arg_d0();
+			break;
+			case 17:
+			config_arg_d2();
+			break;
+			case 18:
+			config_arg_d3();
 			break;
 			default:
+			memset(cmd_tmp,0,strlen(cmd_tmp));
+			a=0;
 			break;			
 		}
 
@@ -143,7 +180,10 @@ int main (void)
 			case 1:
 			/* 1-4min capture 3min oil temp */
 			flag1 = 0;
-			UARTprintf("1-4min capture 3min oil temp\n");
+			if(flag_screen==0)
+			{
+        UARTprintf("1-4min capture 3min oil temp\n");	
+			}
 			break;
 
 			case 2:
@@ -206,12 +246,19 @@ int main (void)
 			LED_BLUE_SET
 			LED_RED_CLR
 			LED_BLUE_CLR
+			if(flag_screen==0)
+			{
+        UARTprintf("200ms LED\n");			
+			}
 			flag2 = 0;
-//			UARTprintf("200ms LED\n");
 			break;
 
 			case 2:
 			/*300ms ADC*/
+			if(flag_screen==0)
+			{
+			UARTprintf("300ms ADC\n");			
+			}
 			ADC7738_acquisition(1);
 			ADC7738_acquisition_output(1);
 			ADC7738_acquisition(2);
@@ -221,20 +268,25 @@ int main (void)
 			UARTprintf(print_menu);
 			UARTprintf("%.3f     %.3f          %.3f\n",OilTemp,H2_SENSE_Resistance,PcbTemp);
 			flag2 = 0;
-//			UARTprintf("300ms ADC\n");
 			break;
 
 			case 3:
 			/*600 ms checkself*/
 			device_checkself();
+			if(flag_screen==0)
+      {
+			UARTprintf("600 ms checkself\n");			
+			}				
 			flag2 = 0;
-//			UARTprintf("600 ms checkself\n");
 			break;
 
 			case 4:
 			/*800ms DS1390 */
+			if(flag_screen==0)
+      {
+			UARTprintf("800ms DS1390\n");			
+			}
 			flag2 = 0;
-//			UARTprintf("800ms DS1390\n");
 			break;
 
 			default:                                 /* Error Handling              */
@@ -244,8 +296,11 @@ int main (void)
 		if (flag3 == 1)
 		{
 			/*30min FLASH*/
+			if(flag_screen==0)
+			{
+			UARTprintf("30min FLASH\n");			
+			}
 			flag3 = 0;
-//			UARTprintf("30min FLASH\n");
 		}
 	}
 }
