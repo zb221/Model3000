@@ -57,7 +57,7 @@ void init_PWM (void);
 SPI CLK = PCLK / SnSPCCR value; PCLK = 12MHZ
 In Master mode, this register must be an even number greater than or equal to 8.
 ----------------------------------------------------------------------------*/
-#define SPI0_CLK		0x1E
+#define SPI0_CLK		0xC
 #define SPI1_CLK		0x8
 
 void SPI0_INIT(void);

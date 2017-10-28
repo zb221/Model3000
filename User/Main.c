@@ -20,6 +20,7 @@
 #include "app.h"
 #include "DS1390.h"
 #include "M25P16_FLASH.h"
+#include "e25LC512.h"
 
 /*-------------------------Global variable region----------------------*/
 extern unsigned char flag_command;
@@ -39,8 +40,9 @@ extern unsigned char MODEL_TYPE;
 extern float OilTemp;
 extern float PcbTemp;
 extern float H2_SENSE_Resistance;
-int temperature = 70;
-int PCB_temp = 50;
+
+int temperature = 100;	/*sense temperature*/
+int PCB_temp = 30;	/*PCB control temperature*/
 
 const char print_menu[] = 
 	"\n"
@@ -49,11 +51,11 @@ const char debug_menu[] =
 	"\n"
 	"TimeStamp            PcbTemp  H2AG.ppm  OilTemp  H2DG.ppm  H2G.ppm  H2SldAv  DayROC  WeekROC  MonthROC  SensorTemp  H2Resistor  TemResistor  Message  \r\n";\
 const char *message_menu[]=
-{"wait",
-"wait ramp_up",
-"wait avg",
-"htr_off",
-"woff ramp_down"};
+	{"wait",
+	"wait ramp_up",
+	"wait avg",
+	"htr_off",
+	"woff ramp_down"};
 /***********************************************************
 Function:	init peripherals.
 Input:	none
@@ -73,6 +75,7 @@ void init_peripherals(void)
 	AD7738_CS_INIT();
 	DAC8568_CS_INIT();
 	Initial_DS1390();
+	M25P16_CS_INIT();
 }
 /***********************************************************
 Function:	serial print data.
@@ -117,9 +120,11 @@ int main (void)
 	init_peripherals();
 	UARTprintf(print_menu);
 	
-//	M25P16_TEST();
 	DAC8568_INIT_SET(temperature,0xF000);
 	DAC8568_PCB_TEMP_SET(PCB_temp,0x1000);
+	
+	M25P16_TEST();
+	LC512_TEST();
 
 	while (1)  
 	{
@@ -279,7 +284,7 @@ int main (void)
 			LED_BLUE_SET
 			if(flag_screen==0)
 			{
-        UARTprintf("200ms LED\n");			
+       //UARTprintf("200ms LED\n");			
 			}
 			flag2 = 0;
 			break;
@@ -294,7 +299,7 @@ int main (void)
 			ADC7738_acquisition_output(3);
 			if(flag_screen==0)
 			{
-			UARTprintf("300ms ADC\n");			
+			//UARTprintf("300ms ADC\n");			
 			}
 			flag2 = 0;
 			command_print();
@@ -305,7 +310,7 @@ int main (void)
 			device_checkself();
 			if(flag_screen==0)
       {
-			UARTprintf("600 ms checkself\n");			
+			//UARTprintf("600 ms checkself\n");			
 			}				
 			flag2 = 0;
 			break;
@@ -316,7 +321,7 @@ int main (void)
 			LED_BLUE_CLR
 			if(flag_screen==0)
       {
-			UARTprintf("800ms DS1390\n");			
+			//UARTprintf("800ms DS1390\n");			
 			}
 			flag2 = 0;
 			break;

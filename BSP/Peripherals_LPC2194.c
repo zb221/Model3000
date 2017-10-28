@@ -357,7 +357,7 @@ void SPI0_INIT(void)
 {
 	PINSEL0 = (PINSEL0 & 0xFFFF00FF) | 0x15<<8;                        /* SPI0 PIN SEL*/
 	S0SPCR = 0x00|(0 << 3)|(1 << 4)|(1 << 5)|(0 << 6)|(0 << 7);  /* Master mode*/
-	S0SPCCR = SPI0_CLK;                                                            /* SPI Clock Counter: PCLK / SnSPCCR=15MHz/12*/
+	S0SPCCR = SPI0_CLK;                                         /* SPI Clock Counter: PCLK / SnSPCCR=12MHz/12*/
 }
 
 /***********************************************************
