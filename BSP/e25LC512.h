@@ -32,6 +32,7 @@
 #define CE			0xc7
 #define RDID		0xab
 #define DPD			0xb9
+
 #define LC512_CS_H			{	IO0DIR|=(1<<7);IO0SET|=(1<<7); }		//P0.7
 #define LC512_CS_L			{	IO0DIR|=(1<<7);IO0CLR|=(1<<7); }		//0.7
 #define LC512_SI_H			{	IO0DIR|=(1<<19);IO0SET|=(1<<19); }	//P0.19
@@ -40,13 +41,7 @@
 #define LC512_SCK_L			{	IO0DIR|=(1<<17);IO0CLR|=(1<<17); }	//
 #define LC512_SO_IN			( IO0PIN&(1<<18) )										//P0.18
 
-VARIABLE_EXT void delay_ms(unsigned int n);
-VARIABLE_EXT void SPI_byte_write(const unsigned int dat);
-VARIABLE_EXT char  SPI_byte_read(unsigned char dat);
-VARIABLE_EXT void SPI_nbyte_write(const unsigned int address, const unsigned char *dat, unsigned int num);
-VARIABLE_EXT void SPI_nbyte_read(unsigned int address, unsigned char *dat, unsigned int num);
-VARIABLE_EXT void EE25LC_Erase_Sector(char sector_addr);
-void RW_Status(void);
-VARIABLE_EXT int  LC512_Init(void);
+void delay_ms(unsigned int n);
+void LC512_TEST(void);
 #endif
 

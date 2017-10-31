@@ -309,7 +309,7 @@ void ADC7738_acquisition(unsigned char channel)
 	unsigned char flag = 0;
 	unsigned int temp = 0, count1 = 0;
 
-	for (count1=0;count1<10;count1++){
+	for (count1=0;count1<2;count1++){
 		/*--------------------------------------------set channel register of AD7738--------------------------------------------*/
 		AD7738_write(channel_setup_0 + channel,0<<7|AINx_AINx|0<<4|Channel_Continuous_conversion_disable|NP_25);	/*Channel_1 Setup Registers:BUF_OFF<<7|COM1|COM0|Stat|Channel_CCM|RNG2_0*/
 		AD7738_write(channel_conv_time_0 + channel,Chop_Enable|FW);	/*channel coversion time*/
@@ -324,7 +324,7 @@ void ADC7738_acquisition(unsigned char channel)
 		temp += (data0<<16|data1<<8|data2);
 	}
 	/*---------------------control the temp of sense-------------------------*/
-	temp = temp/10;
+	temp = temp/2;
 	data0 = (temp>>16)&0xff;
 	data1 = (temp>>8)&0xff;
 	data2 = (temp>>0)&0xff;

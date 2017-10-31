@@ -70,7 +70,7 @@ Author: zhuobin
 Date: 2017/10/10
 Description: 16 Mbit, low voltage, Serial Flash memory with 50 MHz SPI bus interface.
 ***********************************************************/
-void M25P16_erase_4Kmap(unsigned int block_address)//4K擦除  0~511
+void M25P16_erase_map(unsigned int block_address, unsigned char erase_type)
 {
 	unsigned char ic_status;
 	union
@@ -85,7 +85,7 @@ void M25P16_erase_4Kmap(unsigned int block_address)//4K擦除  0~511
 		unsigned int temp_address;
 	}add;
 	
-	block_address *= 4096;
+//	block_address *= 4096;
 	add.temp_address = block_address;
 	
 	IOCLR0 |= 0x1<<25;		/* set CS low */
@@ -104,13 +104,19 @@ void M25P16_erase_4Kmap(unsigned int block_address)//4K擦除  0~511
 	SPI1_SendDate(0x02);	/* Page Program */
 	IOSET0 |= 0x1<<25;		/* Set CS Hight */	
 	
-	IOCLR0 |= 0x1<<25;		/* set CS low*/
-	SPI1_SendDate(0xD8);	//发写块擦除命令
-	SPI1_SendDate(add.t.addhigh);
-	SPI1_SendDate(add.t.addmid);
-	SPI1_SendDate(add.t.addlow);
-	IOSET0 |= 0x1<<25;		/* Set CS Hight*/
-
+	if (erase_type == SE){
+		IOCLR0 |= 0x1<<25;		/* set CS low*/
+		SPI1_SendDate(0xD8);	//Sector Erase
+		SPI1_SendDate(add.t.addhigh);
+		SPI1_SendDate(add.t.addmid);
+		SPI1_SendDate(add.t.addlow);
+		IOSET0 |= 0x1<<25;		/* Set CS Hight*/
+	}else if (erase_type == BE){
+		IOCLR0 |= 0x1<<25;		/* set CS low*/
+		SPI1_SendDate(0xC7);	//Bulk Erase
+		IOSET0 |= 0x1<<25;		/* Set CS Hight*/
+	}
+	
 	do
 	{
 		IOCLR0 |= 0x1<<25;		/* set CS low*/
@@ -259,7 +265,7 @@ void M25P16_write_data_anywhere(unsigned short data_count,unsigned int start_add
 				{
 					return;
 					}
-			M25P16_erase_4Kmap(integer_after);//擦除下一个4K区间
+				M25P16_erase_map(integer_after,SE);//擦除下一个4K区间
 			}
 			
 	temp_address=start_address+data_count;
@@ -278,13 +284,22 @@ void M25P16_write_data_anywhere(unsigned short data_count,unsigned int start_add
 
 void M25P16_TEST(void)
 {
+	UARTprintf("flash test start\n");
+	
 	M25P16_reset();
 	M25P16_read_ID(ID_buffer);
 	
 	int i = 0, page = 0, flag = 0;
 	
-	M25P16_erase_4Kmap(0);
-	
+	/*SE test*/
+	M25P16_erase_map(0x1F1234,SE);
+	spi_flash_buffer[0] = 18;
+	M25P16_write_data_anywhere(1,0x1FFF6);
+	M25P16_read_data_anywhere(1,0x1FFF6);
+	UARTprintf("buffer[0] = %d\n",buffer[0]);
+		
+	/*write and read all 16Mbit*/
+	M25P16_erase_map(0,BE);
 	for (page=0;page<8192;page++){
 		flag = 0;
 		for (i=0;i<256;i++)
@@ -302,7 +317,8 @@ void M25P16_TEST(void)
 				flag++;
 			}
 		}
-		if (flag == 0)
-		UARTprintf("page=%d data compare ok\n",page);
+//		if (flag == 0)
+//		UARTprintf("page=%d data compare ok\n",page);
 		}
+	UARTprintf("flash test over\n");
 }

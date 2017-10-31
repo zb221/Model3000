@@ -16,16 +16,22 @@ Date: 2017/10/10
 ***********************************************************/
 #define  MAXNUM  50   
 
+/*The relationship between H2 and H2_resistance*/
 float H2[] = {0.5,0.8,1.0,2.0,4.0,6.0,8.0,10.0,15.0,20.0,30,40,60,80,100};
 float OHM[] = {607.732,608.799,609.422,611.832,615.097,617.59,619.734,621.5,625.587,628.711,634.544,639.727,648.659,656.587,663.789};
 
+/*The relationship between temperature_resistance/H2_resistance and temperature*/
 float Temp[] = {30,45,60,75,90};
-float Hydrogen_R[] = {556.448,567.663,578.720,589.298,600.106};
 float Temp_R[] = {91.366,96.190,101.087,106.101,111.456};
+//float Temp[] = {38.2,96.6};
+//float Temp_R[] = {157.4,187.5};
+float Hydrogen_R[] = {556.448,567.663,578.720,589.298,600.106};
 
+/*The relationship between temperature of sense_temperature_resistance and DAC Din*/
 float DAC_Din[] =  {38864,39083,39421,39754,40247,40960,41600};
 float Din_temp[] = {35.080,43.085,58.520,75.125,96.450,128.450,157.625};
 
+/*DAC8568 Din data - PCB temp control*/
 float PCB_TEMP_Din[] =  {11336,11536};
 float PCB_TEMP_SET[] = {41.336,45.835};
 
