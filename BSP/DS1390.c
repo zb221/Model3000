@@ -75,7 +75,7 @@ unsigned char Read1390(unsigned char ucAddr)
 //	DS1390InputByte(ucAddr & 0x0F);  
 	DS1390_Delay(1);
 	SPI1_SendDate(ucAddr & 0x0F);
-	ucData=Spi1_read_data();
+	ucData=SPI1_SendDate(0x00);
 	//ucData = DS1390OutputByte();          
 	DS1390_CS_H;
 	return(ucData);

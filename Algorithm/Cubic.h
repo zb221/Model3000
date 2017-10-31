@@ -22,7 +22,7 @@
 #endif
 
 #define Temp_Res			0
-#define Hydrogen_Res	1
+#define Hydrogen_Res		1
 #define DAC_temp			2
 #define PCB_TEMP			3
 
