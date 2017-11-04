@@ -31,18 +31,30 @@ extern unsigned int rcv_cnt;
 extern unsigned char cmd_tmp[CMD_LEN];
 extern unsigned char cmd_buf[CMD_LEN];
 extern unsigned char flag_screen;
-extern int flag1, flag2, flag3;
+extern int flag1, flag2, flag3, flag4;
 extern unsigned char a;
 extern REALTIMEINFO CurrentTime;
 extern unsigned char flag_mode;
 
 extern unsigned char MODEL_TYPE;
-extern float OilTemp;
-extern float PcbTemp;
-extern float H2_SENSE_Resistance;
 
-int temperature = 100;	/*sense temperature*/
-int PCB_temp = 30;	/*PCB control temperature*/
+/*Output Parameters*/
+extern float PcbTemp;
+float H2AG = 0;
+extern float OilTemp;
+extern float TempResistor;
+float H2DG = 0;
+float H2G = 0;
+float H2SldAv = 0;
+float DayROC = 0;
+float WeekROC = 0;
+float MonthROC = 0;
+float SensorTemp = 0;
+extern float H2Resistor;
+float TemResistor = 0;
+
+int temperature = 100;	/*sense default temperature*/
+int PCB_temp = 40;	/*PCB control default temperature*/
 
 const char print_menu[] = 
 	"\n"
@@ -62,7 +74,7 @@ Input:	none
 Output: none
 Author: zhuobin
 Date: 2017/10/10
-Description: setup the timer counter 0 interrupt.
+Description: all peripherals init should add here.
 ***********************************************************/
 void init_peripherals(void)
 {
@@ -88,9 +100,9 @@ Description: setup the timer counter 0 interrupt.
 void command_print(void)
 {
 	DS1390_GetTime(&CurrentTime);
-	UARTprintf("%d/%d/%d %d:%d:%d  ",CurrentTime.SpecificTime.year+2000,CurrentTime.SpecificTime.month,
+	UARTprintf("%d/%d/%d %d:%d:%d	",CurrentTime.SpecificTime.year+2000,CurrentTime.SpecificTime.month,
 	CurrentTime.SpecificTime.day,CurrentTime.SpecificTime.hour,CurrentTime.SpecificTime.min,CurrentTime.SpecificTime.sec);
-	UARTprintf("%.3f     %.3f          %.3f    ",OilTemp,H2_SENSE_Resistance,PcbTemp);
+	UARTprintf("%.3f    %.4f    %.4f    %.3f    ",OilTemp,TempResistor,H2Resistor,PcbTemp);
 	if(temperature>=50)
 	{
 	UARTprintf(message_menu[1]);
@@ -120,11 +132,11 @@ int main (void)
 	init_peripherals();
 	UARTprintf(print_menu);
 	
-	DAC8568_INIT_SET(temperature,0xF000);
-	DAC8568_PCB_TEMP_SET(PCB_temp,0x1000);
+	DAC8568_INIT_SET(temperature,0xF000);	/*DOUT-C = 2V*/
+//	DAC8568_PCB_TEMP_SET(PCB_temp,0x1000);
 	
-	M25P16_TEST();
-	LC512_TEST();
+//	M25P16_TEST();
+//	LC512_TEST();
 
 	while (1)  
 	{
@@ -226,7 +238,7 @@ int main (void)
 
 			case 2:
 			/* 4-1H4min set 50 temp, keep 1H  */
-			DAC8568_INIT_SET(50,0xF000);
+			DAC8568_INIT_SET(50,0x6668);
 			flag1 = 0;
 			UARTprintf("4-1H4min set 50 temp, keep 1H\n");
 			break;
@@ -240,7 +252,7 @@ int main (void)
 
 			case 4:
 			/* 1H7min-2H7min set 50 temp and keep 1H */
-			DAC8568_INIT_SET(50,0xF000);
+			DAC8568_INIT_SET(50,0x6668);
 			flag1 = 0;
 			UARTprintf("1H7min-2H7min set 50 temp and keep 1H\n");
 			break;
@@ -254,14 +266,14 @@ int main (void)
 
 			case 6:
 			/* 2H10min-3H40min set 70 temp and keep 1.5H */
-			DAC8568_INIT_SET(70,0xF000);
+			DAC8568_INIT_SET(70,0x6668);
 			flag1 = 0;
 			UARTprintf("2H10min-3H40min set 70 temp and keep 1.5H\n");
 			break;
 
 			case 7:
 			/* 3H40min-4H10min set 50 temp and keep 0.5H */
-			DAC8568_INIT_SET(50,0xF000);
+			DAC8568_INIT_SET(50,0x6668);
 			flag1 = 0;
 			UARTprintf("3H40min-4H10min set 50 temp and keep 0.5H\n");
 			break;
@@ -279,50 +291,15 @@ int main (void)
 
 		switch (flag2)  {
 			case 1:
-			/*200ms LED*/
 			LED_RED_SET
 			LED_BLUE_SET
-			if(flag_screen==0)
-			{
-       //UARTprintf("200ms LED\n");			
-			}
+			device_checkself();
 			flag2 = 0;
 			break;
 
 			case 2:
-			/*300ms ADC*/
-			ADC7738_acquisition(1);
-			ADC7738_acquisition_output(1);
-			ADC7738_acquisition(2);
-			ADC7738_acquisition_output(2);
-			ADC7738_acquisition(3);
-			ADC7738_acquisition_output(3);
-			if(flag_screen==0)
-			{
-			//UARTprintf("300ms ADC\n");			
-			}
-			flag2 = 0;
-			command_print();
-			break;
-
-			case 3:
-			/*600 ms checkself*/
-			device_checkself();
-			if(flag_screen==0)
-      {
-			//UARTprintf("600 ms checkself\n");			
-			}				
-			flag2 = 0;
-			break;
-
-			case 4:
-			/*800ms DS1390 */
 			LED_RED_CLR
 			LED_BLUE_CLR
-			if(flag_screen==0)
-      {
-			//UARTprintf("800ms DS1390\n");			
-			}
 			flag2 = 0;
 			break;
 
@@ -339,6 +316,19 @@ int main (void)
 			}
 			flag3 = 0;
 		}
+		
+		if (flag4 == 1)
+		{
+			/*2S command_print*/
+			ADC7738_acquisition_output(1);
+			ADC7738_acquisition_output(2);
+			ADC7738_acquisition_output(3);
+			command_print();
+			flag4 = 0;
+		}
+		ADC7738_acquisition(1);
+		ADC7738_acquisition(2);
+		ADC7738_acquisition(3);
 	}
 }
 
