@@ -17,185 +17,255 @@
 #include <LPC21xx.H>                     /* LPC21xx definitions */
 #include "e25LC512.h"
 #include "stdio.h"
+#include "Peripherals_LPC2194.h"
 
 char dat[255] = {0x3f,0x06,0x5b,0x4f,0x66,0x6d,0x7d,0x07,0x7f,0x6f,
 				0x77,0x7c,0x39,0x5e,0x79,0x71};//0~F????
 
-void delay_ms(unsigned int n)
+void Delay_us(unsigned short value)//hugo add
 {
-	unsigned int i, j;
-	for(i=0;i<n;++i)
-	for(j=0;j<10;++j);
-}
-
-//SPI???byte
-void SPI_byte_write(const unsigned int dat)
-{
-	char tmp = dat, i;
-
-	for(i=0;i<8;i++)
+	unsigned short k=1;
+	unsigned short i,j;
+	for(i=0;i<value;i++)
 	{
-		LC512_SCK_L;
-		if((tmp&0x80)==0x80)
-		{
-			LC512_SI_H;
+		k++;j++;k++;j++;
+		k++;j++;k++;j++;
+		k++;j++;k++;j++;
+		k++;j++;k++;j++;
 		}
-		else
-		{
-			LC512_SI_L;
-		}		
-		tmp <<= 1; //??????
-		LC512_SCK_H; //SCK????bit
-		delay_ms(1); //?????????
 	}
-}
 
-//SPI???byte
-char SPI_byte_read(unsigned char dat)
+void Delay_ms(unsigned short value)//hugo add
 {
-	char tmp = 0, i;
-
-	for(i=0;i<8;i++)
+	unsigned short i;
+	for(i=0;i<value;i++)
 	{
-		LC512_SCK_L;		
-		tmp <<= 1; //????
-		if(LC512_SO_IN!=0)
-		{
-			tmp |= 0x01;
-		}else{
-			tmp &= 0xFE;
-		}			
-		LC512_SCK_H;//SCK????bit
-		delay_ms(10);
-	}	
-	return tmp;
-}
-
-//SPI???byte	
-void SPI_nbyte_write(const unsigned int address, const unsigned char *dat, unsigned int num)
-{
-	char inst_wren = WREN, inst_write = WRITE;
-
-	unsigned int i;
-
-	LC512_CS_L;
-	delay_ms(1); 
-	SPI_byte_write(inst_wren); //???
-	LC512_CS_H;
-	delay_ms(1);
-
-	delay_ms(1);
-
-	LC512_CS_L;
-	delay_ms(1);
-	SPI_byte_write(inst_write); //???
-	delay_ms(1);	
-	SPI_byte_write(address/256);//???
-	SPI_byte_write(address%256);//???	
-	for(i=0;i<num;i++)
-	{		
-		SPI_byte_write(dat[i]);//???
-	}	
-	LC512_CS_H;
-	delay_ms(1);
-	RW_Status();	
-}
-
-//SPI???byte
-void SPI_nbyte_read(unsigned int address, unsigned char *dat, unsigned int num)
-{
-	char inst = READ;
-	unsigned int i;
-	LC512_CS_L;
-	delay_ms(1);
-	SPI_byte_write(inst); //???
-	delay_ms(1);	
-	SPI_byte_write(address/256);//???
-	SPI_byte_write(address%256);//???
-
-	for(i=0;i<num;i++){
-		dat[i]=SPI_byte_read(0);//???
+		Delay_us(1090);
+		}
 	}
+
+void e2prom512_write_enable(void)
+{
+	LC512_CS_L;
+	Delay_us(1);
+	SPI1_SendDate(WREN);
 	LC512_CS_H;
-	delay_ms(1000);	
+	Delay_ms(5);
 }
 
-void EE25LC_Erase_Sector(char sector_addr)
+void e2prom512_write_disable(void)
 {
-	char inst_wren = WREN, inst_write = SE;
-
-	unsigned int address;
-
-	address = (sector_addr*16*1024);
-
 	LC512_CS_L;
-	delay_ms(1); 
-	SPI_byte_write(inst_wren); //???
+	Delay_us(1);
+	SPI1_SendDate(WRDI);
 	LC512_CS_H;
-	delay_ms(1);
-
-	delay_ms(1);
-
-	LC512_CS_L;
-	delay_ms(1);
-	SPI_byte_write(inst_write); //???
-
-	SPI_byte_write(address/256);//???
-	SPI_byte_write(address%256);//???
-
-	LC512_CS_H;
-	delay_ms(1);	
-	RW_Status();		
+	Delay_ms(5);
 }
 
 void RW_Status(void)
 {
-	char inst_wren = WREN, inst_write = RDSR;//¶Á×´Ì¬¼Ä´æÆ÷
-
-	char R_status;	
+  char R_status;	
 
 	LC512_CS_L;
-	delay_ms(1); 
-	SPI_byte_write(inst_wren); //
+	Delay_us(1);
+	SPI1_SendDate(WREN); 
 	LC512_CS_H;
-	delay_ms(1);
-
+	Delay_us(1);
+		
 	LC512_CS_L;
-	delay_ms(1);
-	SPI_byte_write(inst_write); //	
-	delay_ms(1); 	
+	Delay_us(1);
+	SPI1_SendDate(RDSR); 	
+	Delay_us(1); 	
 	do
 	{		
-		R_status=SPI_byte_read(0);		
-		delay_ms(1);		
-	}while(R_status & 0x01);//´ýÐ¾Æ¬¿ÕÏ
-	LC512_CS_H;
+	 R_status=SPI1_SendDate(0);		
+	 Delay_us(1);		
+	}while(R_status & 0x01);//?????
+   LC512_CS_H;
 }
-
-
-
-int LC512_Init(void)
+	
+void e2prom512_byte_write(unsigned char value,unsigned short address)//?????????0~65535
 {
-	char inst_wren = WREN, inst_write = WRDI;//Ð´¸´Î»
-	delay_ms(300);	
-	LC512_CS_H;//Ò»¶¨ÒªÏÈÖÃ1ÉÏµç¼¤»î
-	delay_ms(300);
-
+	union
+	{
+		struct
+		{
+			unsigned char addlow;
+			unsigned char addhigh;
+		}t;
+			unsigned short temp_address;
+	}add;	
+	add.temp_address=address;
+	e2prom512_write_enable();
 	LC512_CS_L;
-	delay_ms(1); 
-	SPI_byte_write(inst_wren);	
+	Delay_us(1);
+	SPI1_SendDate(0x02);
+	SPI1_SendDate(add.t.addhigh);
+	SPI1_SendDate(add.t.addlow);
+	SPI1_SendDate(value);
 	LC512_CS_H;
-	delay_ms(1);
+	Delay_ms(5);
+	e2prom512_write_disable();	
+}
+ 	 
+unsigned char e2prom512_byte_read(unsigned short start_address)//?????????0~65535
+{
+	unsigned char temp_value;
+	union
+	{
+		struct
+		{
+			unsigned char addlow;
+			unsigned char addhigh;
+		}t;
+			unsigned short temp_address;
+		}add;
 
-	delay_ms(1);
-
+	add.temp_address=start_address;
 	LC512_CS_L;
-	delay_ms(1);
-	SPI_byte_write(inst_write);	
-	delay_ms(10);
+	Delay_us(1);
+	SPI1_SendDate(READ);
+	SPI1_SendDate(add.t.addhigh);
+	SPI1_SendDate(add.t.addlow);
+	temp_value=SPI1_SendDate(0x00);	
 	LC512_CS_H;
-
-	return 0;
+	return temp_value;
+	}
+void e2prom512_chip_erase(void)
+{
+	LC512_CS_L;
+	Delay_us(1);
+	SPI1_SendDate(CE);
+	LC512_CS_H;
+	Delay_ms(5);	
 }
 
+void e2prom512_page_erase(void)
+{
+	LC512_CS_L;
+	Delay_us(1);
+	SPI1_SendDate(PE);
+	LC512_CS_H;
+	Delay_ms(5);	
+}
+
+void e2prom512_sector_erase(void)
+{
+	LC512_CS_L;
+	Delay_us(1);
+	SPI1_SendDate(SE);
+	LC512_CS_H;
+	Delay_ms(5);	
+}
+
+void SPI_nbyte_write(const unsigned int address, const unsigned char *dat, unsigned int len)
+{
+  unsigned int i;
+	
+	e2prom512_write_enable();	
+	LC512_CS_L;
+	Delay_us(1);
+	SPI1_SendDate(WRITE);	
+	SPI1_SendDate(address/256);//???
+	SPI1_SendDate(address%256);//???	
+	for(i=0;i<len;i++)
+	{		
+		SPI1_SendDate(dat[i]);//???
+	}	
+	LC512_CS_H;
+  Delay_ms(5);
+  RW_Status();	
+}
+
+unsigned int e2prom512_write (
+                           const void *buffer,      /* Buffer to save */
+                           unsigned int len,       /* Buffer length */
+                           unsigned int address)   /* FLASH address to write */
+{
+  const unsigned char *s = buffer;
+	unsigned int temp_address,integer_before,integer_after;
+  	temp_address=address+len;
+	integer_before=address>>7;//cannot bigger than 128byte
+	integer_after=temp_address>>7;
+	if(integer_after>integer_before)//
+		{
+			SPI_nbyte_write(address,s,(integer_after<<7)-address);//
+			SPI_nbyte_write(integer_after<<7,&s[(integer_after<<7)-address],len-((integer_after<<7)-address));//
+		}
+	else
+		{
+			SPI_nbyte_write(address,s,len);//
+		}	 
+		
+		return 0;
+	
+}
+
+void e2prom512_read (
+                          unsigned char *buffer,            /* Buffer to fill */
+                          unsigned int len,       /* Bytes to read */
+                          unsigned int address)   /* FLASH address to read from */
+{
+  union
+	{
+		struct
+		{
+			unsigned char addlow;
+			unsigned char addhigh;
+		}t;
+			unsigned short temp_address;
+	}add;
+	add.temp_address=address;
+	
+	unsigned int i;
+	LC512_CS_L;
+	Delay_us(1);
+	SPI1_SendDate(READ); 
+	SPI1_SendDate(add.t.addhigh);
+	SPI1_SendDate(add.t.addlow);
+	
+	for(i=0;i<len;i++)
+	{
+		*buffer=SPI1_SendDate(0);
+		 buffer++;
+	}
+	LC512_CS_H;
+	Delay_us(1000);	
+
+}
+
+void Initial_e2prom(void)
+{
+	LC512_CS_H;
+	LC512_SI_H;
+	LC512_SCK_H;
+}
+
+void e2promtest(void)
+{
+ unsigned short i;
+ unsigned char temp[512];
+ unsigned char buffer[512];
+ 
+ for(i=0;i<256;i++)
+{
+  temp[i]=i;
+	//e2prom512_byte_write(temp[i],i);
+}
+ for(i=0;i<256;i++)
+{
+  temp[i+256]=i;
+	//e2prom512_byte_write(temp[i],i);
+}
+e2prom512_write(temp,128,0);
+e2prom512_write(temp+128,128,128);
+e2prom512_write(temp+256,128,256);
+e2prom512_write(temp+384,128,384);
+e2prom512_read(buffer,512,0); 
+for(i=0;i<512;i++)
+{
+	//buffer[i]=e2prom512_byte_read(i);
+	UARTprintf("test %d\n",buffer[i]);
+}
+}
 

@@ -20,6 +20,9 @@
 #include "app.h"
 #include "DS1390.h"
 #include "M25P16_FLASH.h"
+#include "e25LC512.h"
+#include "parameter.h"
+#include "ModBus.h"
 
 /*-------------------------Global variable region----------------------*/
 extern unsigned char flag_command;
@@ -49,11 +52,19 @@ const char debug_menu[] =
 	"\n"
 	"TimeStamp            PcbTemp  H2AG.ppm  OilTemp  H2DG.ppm  H2G.ppm  H2SldAv  DayROC  WeekROC  MonthROC  SensorTemp  H2Resistor  TemResistor  Message  \r\n";\
 const char *message_menu[]=
-{"wait",
-"wait ramp_up",
-"wait avg",
+{"rpt",
+"wait",
+"woff",
+"avg",
+"OVT"
 "htr_off",
-"woff ramp_down"};
+"warm_up",
+"ramp_up",
+"ramp_down",
+"PF",
+"R1",
+"R2",
+"R3"};
 /***********************************************************
 Function:	init peripherals.
 Input:	none
@@ -73,18 +84,19 @@ void init_peripherals(void)
 	AD7738_CS_INIT();
 	DAC8568_CS_INIT();
 	Initial_DS1390();
+	Initial_e2prom();
 }
 /***********************************************************
 Function:	serial print data.
 Input:	none
 Output: none
-Author: zhuobin
+Author: megzheng
 Date: 2017/10/27
 Description: setup the timer counter 0 interrupt.
 ***********************************************************/
 void command_print(void)
 {
-	DS1390_GetTime(&CurrentTime);
+	//DS1390_GetTime(&CurrentTime);
 	UARTprintf("%d/%d/%d %d:%d:%d  ",CurrentTime.SpecificTime.year+2000,CurrentTime.SpecificTime.month,
 	CurrentTime.SpecificTime.day,CurrentTime.SpecificTime.hour,CurrentTime.SpecificTime.min,CurrentTime.SpecificTime.sec);
 	UARTprintf("%.3f     %.3f          %.3f    ",OilTemp,H2_SENSE_Resistance,PcbTemp);
@@ -109,17 +121,19 @@ Description: main function for Model3000 project.
 ***********************************************************/
 int main (void)  
 {
-	unsigned char i;
-	unsigned char buffer;
-	unsigned char a;
+	//unsigned char i;
 	FrecInit();
 
 	init_peripherals();
+	Init_ModBus();
+	//LC512_Init();
 	UARTprintf(print_menu);
 	
-//	M25P16_TEST();
+	//M25P16_TEST();
+	//e2promtest();
 	DAC8568_INIT_SET(temperature,0xF000);
 	DAC8568_PCB_TEMP_SET(PCB_temp,0x1000);
+	
 
 	while (1)  
 	{
@@ -131,7 +145,7 @@ int main (void)
 		a=get_true_char_stream(cmd_tmp,rcv_buf);
 		//UART0_SendData(cmd_tmp,a);
 		//UARTprintf("\n");
-		//UARTprintf("a=%d\n",a);
+		UARTprintf("a=%d\n",a);
 		memset(rcv_buf,0,rcv_cnt);
 		rcv_cnt=0;
 		
@@ -282,6 +296,7 @@ int main (void)
         UARTprintf("200ms LED\n");			
 			}
 			flag2 = 0;
+			command_print();
 			break;
 
 			case 2:
@@ -297,7 +312,6 @@ int main (void)
 			UARTprintf("300ms ADC\n");			
 			}
 			flag2 = 0;
-			command_print();
 			break;
 
 			case 3:
@@ -314,6 +328,7 @@ int main (void)
 			/*800ms DS1390 */
 			LED_RED_CLR
 			LED_BLUE_CLR
+			DS1390_GetTime(&CurrentTime);
 			if(flag_screen==0)
       {
 			UARTprintf("800ms DS1390\n");			
@@ -334,6 +349,14 @@ int main (void)
 			}
 			flag3 = 0;
 		}
+		if(user_parameter.flag.ubit.recept_ok==1)
+		{			
+			Data_Ack_Processor();
+		}
+		if(user_parameter.flag.ubit.recept_write==1)
+		{
+			RW_ModBus_Data();
+		}	
 	}
 }
 
