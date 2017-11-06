@@ -4,6 +4,7 @@
 @		Author: megzheng.
 @		Date: 2017/10/16.
 ***********************************************/
+#define VARIABLE_GLOBALS
 #include <stdio.h>                      /* standard I/O .h-file              */
 #include <stdlib.h>
 #include <ctype.h>                      /* character functions               */
@@ -15,6 +16,7 @@
 #include "Command.h"
 #include "parameter.h"
 #include "DAC8568.h"
+#include "DS1390.h"
 
 unsigned char cmd_tmp[CMD_LEN];
 unsigned char cmd_buf[CMD_LEN];
@@ -32,6 +34,7 @@ unsigned char a;//cmd_tmp的长度
 unsigned int readlog_number;//读取报警信息数量
 extern int temperature;
 extern unsigned char MODEL_TYPE;
+extern REALTIMEINFO CurrentTime;
 //*****************************************************************************/
 //cmd catalogue
 //*****************************************************************************/  
@@ -165,6 +168,7 @@ Description:  .
 void alarm_arg(void)//还需增加将继电器状态值存入E2P中
 {
 	unsigned char i;
+	unsigned long int temp;
 	switch(flag_function){
 		case 0:
 		UARTprintf("Relay #1 Select mode:\n\
@@ -330,8 +334,17 @@ void alarm_arg(void)//还需增加将继电器状态值存入E2P中
 				}
 				if(flag_done==0)
 				{
-					run_parameter.h2_ppm_alarm_low_l16.hilo=atoi(cmd_tmp);
-					UARTprintf("relay h2 ppm low %d\n",run_parameter.h2_ppm_alarm_low_l16.hilo);
+//					temp=(short)(atof(cmd_tmp)*10000.F);//nongdu
+//					run_parameter.h2_ppm_alarm_low_l16.hilo=temp%256;
+//					run_parameter.h2_ppm_alarm_low_h16.hilo=temp/256;
+//					UARTprintf("relay h2 ppm low %d\n",temp);
+//					UARTprintf("relay h2 ppm low %d\n",run_parameter.h2_ppm_alarm_low_l16.hilo);
+//					UARTprintf("relay h2 ppm low %d\n",run_parameter.h2_ppm_alarm_low_h16.hilo);
+//					UARTprintf("\n...Wait...SAVED  Done......\r\n\r\n");
+					temp=atoi(cmd_tmp);
+					run_parameter.h2_ppm_alarm_low_l16.hilo=temp%65536;
+					run_parameter.h2_ppm_alarm_low_h16.hilo=temp/65536;					
+					UARTprintf("relay h2 ppm low  %d\n",temp);
 					UARTprintf("\n...Wait...SAVED  Done......\r\n\r\n");
 					if(flag_relay_done==1)
 					{
@@ -368,8 +381,9 @@ void alarm_arg(void)//还需增加将继电器状态值存入E2P中
 				}
 				if(flag_done==0)
 				{
-					run_parameter.h2_ppm_alarm_DRC.hilo=atoi(cmd_tmp);
-					UARTprintf("rate of change  %d\n",run_parameter.h2_ppm_alarm_DRC.hilo);
+					temp=atoi(cmd_tmp);
+					run_parameter.h2_ppm_alarm_DRC.hilo=temp;
+					UARTprintf("rate of change  %d\n",temp);
 					UARTprintf("\n...Wait...SAVED  Done......\r\n\r\n");
 					if(flag_relay_done==1)
 					{
@@ -397,6 +411,7 @@ void alarm_arg(void)//还需增加将继电器状态值存入E2P中
 					{
 	          flag_done=1;
 						UARTprintf("not a illegal interger\n");
+						flag_chaoshi++;
 						break;				
 					}
 					else
@@ -406,8 +421,9 @@ void alarm_arg(void)//还需增加将继电器状态值存入E2P中
 				}
 				if(flag_done==0)
 				{
-					run_parameter.OilTemp_Alarm_celsius.hilo=atoi(cmd_tmp);
-					UARTprintf("oil temperature  %d\n",run_parameter.OilTemp_Alarm_celsius.hilo);
+					temp=atoi(cmd_tmp);
+					run_parameter.OilTemp_Alarm_celsius.hilo=temp;
+					UARTprintf("oil temperature  %d\n",temp);
 					UARTprintf("\n...Wait...SAVED  Done......\r\n\r\n");
 					if(flag_relay_done==1)
 					{
@@ -646,10 +662,18 @@ Description:  .
 ***********************************************************/
 void da_arg(void)
 {
-		switch(flag_function){
-		case 0:						 
-    UARTprintf("Current H2 value is %u ppm H2\n",run_parameter.h2_ppm_l16.hilo/20);
+	unsigned long int temp;	
+	switch(flag_function){
+		case 0:	
+		temp=run_parameter.h2_ppm_l16.hilo+run_parameter.h2_ppm_h16.hilo*65536;
+    UARTprintf("Current H2 value is %u ppm H2\n",temp);
+		run_parameter.h2_ppm_calibration_gas_h16.hilo=temp/65536;
+		run_parameter.h2_ppm_calibration_gas_l16.hilo=temp%65536;
 		//存储数据到FLASH中
+		DS1390_GetTime(&CurrentTime);
+		run_parameter.calibration_date.year=CurrentTime.SpecificTime.year;
+		run_parameter.calibration_date.month=CurrentTime.SpecificTime.month;
+		run_parameter.calibration_date.day=CurrentTime.SpecificTime.day;
 		flag_function++;
 		flag_chaoshi++;	
 		memset(cmd_tmp,0,strlen(cmd_tmp));
@@ -676,7 +700,8 @@ Description:  .
 ***********************************************************/
 void db_arg(void)
 {
-	unsigned char i;	
+	unsigned char i;
+	unsigned long int temp;
 	switch(flag_function){
 		case 0:
 		UARTprintf("Enter actual hydrogen in ppm: ");
@@ -704,15 +729,18 @@ void db_arg(void)
 				}
 				if(flag_done==0)
 				{
-					run_parameter.h2_ppm_l16.hilo=atoi(cmd_tmp);
+					temp=atoi(cmd_tmp);
 					flag_function++;
 				}
 			}
 			memset(cmd_tmp,0,strlen(cmd_tmp));
+			run_parameter.h2_ppm_calibration_gas_h16.hilo=temp/65536;
+			run_parameter.h2_ppm_calibration_gas_l16.hilo=temp%65536;
+			//重新计算偏移量，让氢气浓度准确
 			a=0;
 		break;
 		case 2:
-		UARTprintf("Set hydrogen to %d ppm (Y/N)?",run_parameter.h2_ppm_l16.hilo);
+		UARTprintf("Set hydrogen to %d ppm (Y/N)?",temp);		
 		flag_function++;
 		flag_chaoshi++;
 		memset(cmd_tmp,0,strlen(cmd_tmp));
@@ -740,9 +768,9 @@ void db_arg(void)
 		case 4:
 		UARTprintf("Calibration Gas finished\n");	
 		UARTprintf("Cal. date is: %d-%d-%d (Y/N)?",
-		run_parameter.field_calibration_date.year,
-		run_parameter.field_calibration_date.month,
-		run_parameter.field_calibration_date.day); 
+		run_parameter.calibration_date.year,
+		run_parameter.calibration_date.month,
+		run_parameter.calibration_date.day); 
 		flag_function++;
 		break;
 		case 5:
@@ -766,9 +794,9 @@ void db_arg(void)
 		break;
 		case 6:
 		UARTprintf("Cal Message:......\n");    
-    UARTprintf("Cal. date : %d-%d-%d\r\n",run_parameter.field_calibration_date.year,
-		run_parameter.field_calibration_date.month,
-    run_parameter.field_calibration_date.day);
+    UARTprintf("Cal. date : %d-%d-%d\r\n",run_parameter.calibration_date.year,
+		run_parameter.calibration_date.month,
+    run_parameter.calibration_date.day);
 		flag_function++;
 		memset(cmd_tmp,0,strlen(cmd_tmp));
 		a=0;		
@@ -805,7 +833,7 @@ void db_arg(void)
 				}
 				if(flag_done==0)
 				{
-					run_parameter.field_calibration_date.year=atoi(cmd_tmp);
+					run_parameter.calibration_date.year=atoi(cmd_tmp);
 					flag_function++;
 				}
 		}
@@ -838,7 +866,7 @@ void db_arg(void)
 				}
 				if(flag_done==0)
 				{
-					run_parameter.field_calibration_date.month=atoi(cmd_tmp);
+					run_parameter.calibration_date.month=atoi(cmd_tmp);
 					flag_function++;
 				}
 		}
@@ -871,7 +899,7 @@ void db_arg(void)
 				}
 				if(flag_done==0)
 				{
-					run_parameter.field_calibration_date.day=atoi(cmd_tmp);
+					run_parameter.calibration_date.day=atoi(cmd_tmp);
 					flag_function=7;
 					UARTprintf("\n...Wait...SAVED  Done......\r\n\r\n");
 				}
@@ -888,6 +916,7 @@ void db_arg(void)
 void dx_arg(void)
 {
 	unsigned char i;	
+	unsigned long int temp;
 	switch(flag_function){
 		case 0:
 		UARTprintf("Enter actual hydrogen in ppm: ");
@@ -915,7 +944,10 @@ void dx_arg(void)
 				}
 				if(flag_done==0)
 				{
-					run_parameter.h2_ppm_l16.hilo=atoi(cmd_tmp);
+					temp=atoi(cmd_tmp);
+					run_parameter.h2_ppm_calibration_gas_h16.hilo=temp/65536;
+					run_parameter.h2_ppm_calibration_gas_l16.hilo=temp%65536;
+					//计算偏移量，存储FLASH
 					flag_function++;
 				}
 			}
@@ -923,7 +955,7 @@ void dx_arg(void)
 			a=0;
 		break;
 		case 2:
-		UARTprintf("Set hydrogen to %d ppm (Y/N)?",run_parameter.h2_ppm_l16.hilo);
+		UARTprintf("Set hydrogen to %d ppm (Y/N)?",temp);
 		flag_function++;
 		flag_chaoshi++;
 		memset(cmd_tmp,0,strlen(cmd_tmp));
@@ -951,9 +983,9 @@ void dx_arg(void)
 		case 4:
 		UARTprintf("Calibration Gas finished\n");	
 		UARTprintf("Cal. date is: %d-%d-%d (Y/N)?",
-		run_parameter.field_calibration_date.year,
-		run_parameter.field_calibration_date.month,
-		run_parameter.field_calibration_date.day); 
+		run_parameter.calibration_date.year,
+		run_parameter.calibration_date.month,
+		run_parameter.calibration_date.day); 
 		flag_function++;
 		break;
 		case 5:
@@ -977,9 +1009,9 @@ void dx_arg(void)
 		break;
 		case 6:
 		UARTprintf("Cal Message:......\n");    
-    UARTprintf("Cal. date : %d-%d-%d\r\n",run_parameter.field_calibration_date.year,
-		run_parameter.field_calibration_date.month,
-    run_parameter.field_calibration_date.day);
+    UARTprintf("Cal. date : %d-%d-%d\r\n",run_parameter.calibration_date.year,
+		run_parameter.calibration_date.month,
+    run_parameter.calibration_date.day);
 		flag_function++;
 		memset(cmd_tmp,0,strlen(cmd_tmp));
 		a=0;		
@@ -1016,7 +1048,7 @@ void dx_arg(void)
 				}
 				if(flag_done==0)
 				{
-					run_parameter.field_calibration_date.year=atoi(cmd_tmp);
+					run_parameter.calibration_date.year=atoi(cmd_tmp);
 					flag_function++;
 				}
 		}
@@ -1049,7 +1081,7 @@ void dx_arg(void)
 				}
 				if(flag_done==0)
 				{
-					run_parameter.field_calibration_date.month=atoi(cmd_tmp);
+					run_parameter.calibration_date.month=atoi(cmd_tmp);
 					flag_function++;
 				}
 		}
@@ -1082,7 +1114,7 @@ void dx_arg(void)
 				}
 				if(flag_done==0)
 				{
-					run_parameter.field_calibration_date.day=atoi(cmd_tmp);
+					run_parameter.calibration_date.day=atoi(cmd_tmp);
 					flag_function=7;
 					UARTprintf("\n...Wait...SAVED  Done......\r\n\r\n");
 				}
@@ -2063,7 +2095,7 @@ void clear_arg(void)//x
 		{
 				switch(cmd_tmp[0]){
 					case 0x79://y
-            //清除油中氢校准数据和产品配置
+            //清除油中氢校准数据和产品配置，读取出厂设置
 					UARTprintf("Returns to last factory calibration data\n");
 					UARTprintf("Done - Wait......\n");					
 					flag_function++;
@@ -2153,7 +2185,7 @@ void ci_arg(void)//ci
 				}
 				if(flag_done==0)
 				{
-					run_parameter.modbus_id=atof(cmd_tmp);//此parameter有待修改
+					run_parameter.h2_ppm_out_current_low.hilo=(short)(atof(cmd_tmp)*100);//此parameter有待修改
 					flag_function++;
 				}
 		}
@@ -2185,7 +2217,7 @@ void ci_arg(void)//ci
 				}
 				if(flag_done==0)
 				{
-					run_parameter.modbus_id=atof(cmd_tmp);//此parameter有待修改
+					run_parameter.h2_ppm_out_current_high.hilo=(short)(atof(cmd_tmp)*100);//此parameter有待修改
 					UARTprintf("Test the output\n");
 					flag_function++;
 				}
@@ -2269,12 +2301,12 @@ void setmid_arg(void)//mi
 					flag_function=3;
 					break;
 					case 0x6e://n 
-						UARTprintf("No change - Done\n");
-						flag_function++;						
+					UARTprintf("No change - Done\n");
+					flag_function++;						
 					break;
 					default:
-						UARTprintf("not a illegal interger\n");
-					  flag_chaoshi++;
+					UARTprintf("not a illegal interger\n");
+					flag_chaoshi++;
 					break;				
 				}
 		}

@@ -22,6 +22,9 @@ float OHM[] = {607.732,608.799,609.422,611.832,615.097,617.59,619.734,621.5,625.
 
 /*The relationship between temperature_resistance/H2_resistance and temperature*/
 float Temp[] = {30,45,60,75,90};
+
+//float Temp_R[] = {97.952,102.574,107.090,111.605,116.121};
+
 float Temp_R[] = {91.366,96.190,101.087,106.101,111.456};
 //float Temp_R[] = {97.952,102.574,107.090,111.605,116.121};	/*zsy*/
 //float Temp[] = {63.5,98};

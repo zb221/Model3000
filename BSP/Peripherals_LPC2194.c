@@ -177,20 +177,21 @@ void init_serial (void)
 {
 	unsigned short Fdiv;
   PINSEL0 |= 0x00050005;                /* Enable UART0 UART1             */
-  U1LCR = 0x83;                         /* 8 bits, no Parity, 1 Stop bit     */
+  U1FCR = 7;
+	U1LCR = 0x83;                         /* 8 bits, no Parity, 1 Stop bit     */
 	Fdiv=(Fpclk/16)/19200;								/* 19200 Baud Rate @ 12MHz VPB Clock  */	
   U1DLM=Fdiv/256;
   U1DLL=Fdiv%256;                     
   U1LCR = 0x03;                         /* DLAB = 0                          */
-
+  U1IER=0x00000001;
+	
 	U0FCR = 0x81;                          /* FIFO enable 8 character trigger   */
   VICIntSelect=0x00;        
   VICVectCntl1=0x26 | 6;
 	VICVectAddr1 = (unsigned long)IRQ_UART0;										   
   VICIntEnClr|=1<<6;  
-  U0IER=0x00000001;                      /* enable uart0 irq   */
   VICIntEnable |= 0x00000040;            
-		 
+  U0IER=0x00000001;                      /* enable uart0 irq   */		 
 
   U0LCR=0x83;								
   U0DLM=Fdiv/256;
@@ -522,6 +523,6 @@ void init_timer(void)
 	T0TCR = 1;                                   /* Timer0 Enable               */
 	VICVectAddr0 = (unsigned long)TC0_IR;        /* set interrupt vector in 0   */
 	VICVectCntl0 = 0x20 | 4;                     /* use it for Timer 0 Interrupt*/
-	VICIntEnable = 0x00000010;                   /* Enable Timer0 Interrupt     */
+	VICIntEnable |= 0x00000010;                   /* Enable Timer0 Interrupt     */
 	VICDefVectAddr = (unsigned long) DefISR;     /* un-assigned VIC interrupts  */
 }
