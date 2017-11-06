@@ -29,7 +29,7 @@ Description: Global variable region.
 Author: zhuobin
 Date: 2017/10/10
 ***********************************************************/
-int count1 = 0, count2 = 0, count3 = 0, flag1 = 0, flag2 = 0, flag3 = 0;
+int count1 = 0, count2 = 0, count3 = 0, count4 = 0, flag1 = 0, flag2 = 0, flag3 = 0 , flag4 = 0;
 
 unsigned char rcv_buf[100];
 volatile unsigned char rcv_new;
@@ -209,11 +209,11 @@ Description: serial init.
 /* implementation of putchar (also used by printf function to output data)    */
 int sendchar (int ch)  {                 /* Write character to Serial Port    */
   if (ch == '\n')  {
-    while (!(U0LSR & 0x20));
-    U0THR = CR;                          /* output CR */
+    while (!(U1LSR & 0x20));
+    U1THR = CR;                          /* output CR */
   }
-  while (!(U0LSR & 0x20));
-  return (U0THR = ch);
+  while (!(U1LSR & 0x20));
+  return (U1THR = ch);
 }
 
 /***********************************************************
@@ -337,15 +337,6 @@ unsigned char SPI1_SendDate(unsigned char date)
 	return (S1SPDR);
 }
 
-unsigned char Spi1_read_data(void)//spi 写数据
-{
-	unsigned char i;
-	S1SPDR=0xff;
-	while((S1SPSR&0x80)==0);
-	i=S1SPDR;
-	return i;
-	}
-
 /***********************************************************
 Function: Initialize SPI 0 interface.
 Input: none
@@ -358,7 +349,7 @@ void SPI0_INIT(void)
 {
 	PINSEL0 = (PINSEL0 & 0xFFFF00FF) | 0x15<<8;                        /* SPI0 PIN SEL*/
 	S0SPCR = 0x00|(0 << 3)|(1 << 4)|(1 << 5)|(0 << 6)|(0 << 7);  /* Master mode*/
-	S0SPCCR = SPI0_CLK;                                                            /* SPI Clock Counter: PCLK / SnSPCCR=15MHz/12*/
+	S0SPCCR = SPI0_CLK;                                         /* SPI Clock Counter: PCLK / SnSPCCR=12MHz/12*/
 }
 
 /***********************************************************
@@ -391,8 +382,8 @@ void init_PWM (void)
   
   PWMPCR = 0x1<<13;                         /* PWM channel 5 single edge control, output enabled */
   PWMMCR = 1<<1;                             /* PWMMR0/PWMMR5 On match with timer reset the counter */
-  PWMMR0 = 200;                               /* PWMMR0       */
-  PWMMR5 = 100;                               /* PWMMR5    */
+  PWMMR0 = 100;                               /* PWMMR0       */
+  PWMMR5 = 50;                               /* PWMMR5    */
   PWMLER = 0xF;                                /* enable shadow latch for match 1 - 3   */ 
   PWMTCR = 0x00000002;                    /* Reset counter and prescaler           */ 
   PWMTCR = 0x00000009;                    /* enable counter and PWM, release counter from reset */
@@ -423,6 +414,7 @@ __irq void TC0_IR (void)
 	count1++;
 	count2++;
 	count3++;
+	count4++;
 
 	switch (MODEL_TYPE){
 		case 1:	/*normal model*/
@@ -479,19 +471,12 @@ __irq void TC0_IR (void)
 	}
 	
 	switch (count2){
-		case 200:
-		flag2 = 1;//200ms LED
+		case 200://200ms
+		flag2 = 1;
 		break;
-		case 300:
-		flag2 = 2;//300ms ADC
-		break;
-		case 600:
-		flag2 = 3;//600 ms checkself
-		break;
-		case 800:
-		flag2 = 4;//800ms DS1390 
-		break;
-		case 1000:
+		
+		case 1000://1000ms
+		flag2 = 2;
 		count2 = 0;
 		break;
 
@@ -500,9 +485,19 @@ __irq void TC0_IR (void)
 	}
 
 	switch (count3){
-		case 30000:
+		case 1800000:
 		flag3 = 1; /* 30min FLASH */
 		count3 = 0;
+		break;
+
+		default:
+		break;
+	}
+	
+	switch (count4){
+		case 2000:
+		flag4 = 1;
+		count4 = 0;
 		break;
 
 		default:

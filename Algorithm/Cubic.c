@@ -16,16 +16,26 @@ Date: 2017/10/10
 ***********************************************************/
 #define  MAXNUM  50   
 
+/*The relationship between H2 and H2_resistance*/
 float H2[] = {0.5,0.8,1.0,2.0,4.0,6.0,8.0,10.0,15.0,20.0,30,40,60,80,100};
 float OHM[] = {607.732,608.799,609.422,611.832,615.097,617.59,619.734,621.5,625.587,628.711,634.544,639.727,648.659,656.587,663.789};
 
+/*The relationship between temperature_resistance/H2_resistance and temperature*/
 float Temp[] = {30,45,60,75,90};
-float Hydrogen_R[] = {556.448,567.663,578.720,589.298,600.106};
-float Temp_R[] = {97.952,102.574,107.090,111.605,116.121};
 
+//float Temp_R[] = {97.952,102.574,107.090,111.605,116.121};
+
+float Temp_R[] = {91.366,96.190,101.087,106.101,111.456};
+//float Temp_R[] = {97.952,102.574,107.090,111.605,116.121};	/*zsy*/
+//float Temp[] = {63.5,98};
+//float Temp_R[] = {164.7,182.3};
+float Hydrogen_R[] = {556.448,567.663,578.720,589.298,600.106};
+
+/*The relationship between temperature of sense_temperature_resistance and DAC Din*/
 float DAC_Din[] =  {38864,39083,39421,39754,40247,40960,41600};
 float Din_temp[] = {35.080,43.085,58.520,75.125,96.450,128.450,157.625};
 
+/*DAC8568 Din data - PCB temp control*/
 float PCB_TEMP_Din[] =  {11336,11536};
 float PCB_TEMP_SET[] = {41.336,45.835};
 
@@ -121,7 +131,7 @@ RESULT Spline3(pSPLINE pLine)
         pLine->a1[i] = (pLine->y[i] - M[i] * H[i] * H[i] / 6) / H[i];
         pLine->b3[i] = M[i+1] / (6 * H[i]);
         pLine->b1[i] = (pLine->y[i+1] - M[i+1] * H[i] * H[i] / 6) /H[i];
-//        printf("a3[%d]=%f,a1[%d]=%f: b3[%d]=%f,b1[%d]=%f\n",i,pLine->a3[i],i,pLine->a1[i],i,pLine->b3[i],i,pLine->b1[i]);
+//        UARTprintf("a3[%d]=%f,a1[%d]=%f: b3[%d]=%f,b1[%d]=%f\n",i,pLine->a3[i],i,pLine->a1[i],i,pLine->b3[i],i,pLine->b1[i]);
 
     }
 
@@ -145,7 +155,7 @@ float Cubic_main(float value,unsigned char type)
 	switch (type){
 		case Temp_Res:
 			if (sizeof(Temp)/sizeof(Temp[0]) != sizeof(Temp_R)/sizeof(Temp_R[0]))
-					printf("input data ERROR!\n");
+					UARTprintf("input data ERROR!\n");
 			else{
 					number = sizeof(Temp_R)/sizeof(Temp_R[0]);
 					line1.point_num = number;
@@ -158,7 +168,7 @@ float Cubic_main(float value,unsigned char type)
 			break;
 		case Hydrogen_Res:
 			if (sizeof(Temp)/sizeof(Temp[0]) != sizeof(Hydrogen_R)/sizeof(Hydrogen_R[0]))
-					printf("input data ERROR!\n");
+					UARTprintf("input data ERROR!\n");
 			else{
 					number = sizeof(Hydrogen_R)/sizeof(Hydrogen_R[0]);
 					line1.point_num = number;
@@ -184,7 +194,7 @@ float Cubic_main(float value,unsigned char type)
 	            Si = pLine1->a3[i]*pow((line1.x[i+1]-value),3) + pLine1->a1[i]*(line1.x[i+1]-value) + pLine1->b3[i]*pow((value-line1.x[i]),3) + pLine1->b1[i]*(value-line1.x[i]);
 	        }
 	    }
-	}else printf("value outside of temp. ");
+	}else UARTprintf("value outside of temp. ");
 
 	return Si;
 }
@@ -204,7 +214,7 @@ void Linear_slope(float *slope, float *x, float *y, unsigned char type)
 	switch (type){
 		case Temp_Res:
 			if (sizeof(Temp)/sizeof(Temp[0]) != sizeof(Temp_R)/sizeof(Temp_R[0]))
-				printf("input data ERROR!\n");
+				UARTprintf("input data ERROR!\n");
 			else{
 				number = sizeof(Temp_R)/sizeof(Temp_R[0]);
 			}
@@ -218,7 +228,7 @@ void Linear_slope(float *slope, float *x, float *y, unsigned char type)
 
 		case DAC_temp:
 			if (sizeof(DAC_Din)/sizeof(DAC_Din[0]) != sizeof(Din_temp)/sizeof(Din_temp[0]))
-				printf("input data ERROR!\n");
+				UARTprintf("input data ERROR!\n");
 			else{
 				number = sizeof(Din_temp)/sizeof(Din_temp[0]);
 			}
@@ -232,7 +242,7 @@ void Linear_slope(float *slope, float *x, float *y, unsigned char type)
 			
 		case PCB_TEMP:
 			if (sizeof(PCB_TEMP_Din)/sizeof(PCB_TEMP_Din[0]) != sizeof(PCB_TEMP_SET)/sizeof(PCB_TEMP_SET[0]))
-				printf("input data ERROR!\n");
+				UARTprintf("input data ERROR!\n");
 			else{
 				number = sizeof(PCB_TEMP_SET)/sizeof(PCB_TEMP_SET[0]);
 			}

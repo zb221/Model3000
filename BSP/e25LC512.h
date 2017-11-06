@@ -8,10 +8,10 @@
 #ifndef _e25LC512_H
 #define _e25LC512_H
 
-#define  EE_Sector0_addr   0//用于产品配置信息存储
-#define  EE_Sector1_addr   16384//用于原始数据存储
-#define  EE_Sector2_addr   32768//用于原始数据存储
-#define  EE_Sector3_addr   49152//用于报警记录存储
+#define  EE_Sector0_addr   0//鐢ㄤ簬浜у搧閰嶇疆淇℃伅瀛樺偍
+#define  EE_Sector1_addr   16384//鐢ㄤ簬鍘熷鏁版嵁瀛樺偍
+#define  EE_Sector2_addr   32768//鐢ㄤ簬鍘熷鏁版嵁瀛樺偍
+#define  EE_Sector3_addr   49152//鐢ㄤ簬鎶ヨ璁板綍瀛樺偍
 #define  EE_Max_addr       65535
 //#define  addr							 0x0000
 
@@ -26,6 +26,7 @@
 #define CE			0xc7
 #define RDID		0xab
 #define DPD			0xb9
+
 #define LC512_CS_H			{	IO0DIR|=(1<<7);IO0SET|=(1<<7); }		//P0.7
 #define LC512_CS_L			{	IO0DIR|=(1<<7);IO0CLR|=(1<<7); }		//0.7
 #define LC512_SI_H			{	IO0DIR|=(1<<19);IO0SET|=(1<<19); }	//P0.19

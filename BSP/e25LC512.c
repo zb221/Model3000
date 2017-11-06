@@ -1,5 +1,5 @@
 /***********************************************
-@		Description: This file is about AD7738 data.
+@		Description: This file is about 512 Kbit(64KB/65536 Byte) SPI Bus Serial EEPROM.
 			25LC256 pin  Name     Protoboard	
 							1        CS(NOT)     A3
 							2        SO          C4
@@ -9,12 +9,16 @@
 							6        SCK         C3
 							7        HOLD(NOT)   5v
 							8        Vcc         5v
+1. Byte and Page-level Write Operations:	128-byte page
+2. 16KB/Sector
+
 @		Copyright: Hydrogen Sense(Suzhou)  Technology Co.,Ltd. All rights reserved.
 @		Author: zhuobin.
 @		Date: 2017/10/25.
 
 ***********************************************/
 #include <LPC21xx.H>                     /* LPC21xx definitions */
+#include "Peripherals_LPC2194.h"
 #include "e25LC512.h"
 #include "stdio.h"
 #include "Peripherals_LPC2194.h"
@@ -268,4 +272,3 @@ for(i=0;i<512;i++)
 	UARTprintf("test %d\n",buffer[i]);
 }
 }
-
