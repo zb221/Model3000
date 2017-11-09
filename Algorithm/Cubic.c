@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <math.h>
 #include "Cubic.h"
+#include "Peripherals_LPC2194.h"
 
 /***********************************************************
 Description: Global variable region.
@@ -21,16 +22,19 @@ float H2[] = {0.5,0.8,1.0,2.0,4.0,6.0,8.0,10.0,15.0,20.0,30,40,60,80,100};
 float OHM[] = {607.732,608.799,609.422,611.832,615.097,617.59,619.734,621.5,625.587,628.711,634.544,639.727,648.659,656.587,663.789};
 
 /*The relationship between temperature_resistance/H2_resistance and temperature*/
-float Temp[] = {30,45,60,75,90};
-float Temp_R[] = {91.366,96.190,101.087,106.101,111.456};
+//float Temp[] = {30,45,60,75,90};
+//float Temp_R[] = {91.366,96.190,101.087,106.101,111.456};
 //float Temp_R[] = {97.952,102.574,107.090,111.605,116.121};	/*zsy*/
-//float Temp[] = {63.5,98};
-//float Temp_R[] = {164.7,182.3};
+float Temp[] = {10,30,50,70};	/* new sense */
+float Temp_R[] = {93.661,100.345,107.373,114.696};	/* new sense */
 float Hydrogen_R[] = {556.448,567.663,578.720,589.298,600.106};
 
 /*The relationship between temperature of sense_temperature_resistance and DAC Din*/
-float DAC_Din[] =  {38864,39083,39421,39754,40247,40960,41600};
-float Din_temp[] = {35.080,43.085,58.520,75.125,96.450,128.450,157.625};
+//float DAC_Din[] =  {38864,39083,39421,39754,40247,40960,41600};
+//float Din_temp[] = {35.080,43.085,58.520,75.125,96.450,128.450,157.625};
+
+float DAC_Din[] =  {39877,40000,40500};/* new sense */
+float Din_temp[] = {49,54.6,75.4};/* new sense */
 
 /*DAC8568 Din data - PCB temp control*/
 float PCB_TEMP_Din[] =  {11336,11536};

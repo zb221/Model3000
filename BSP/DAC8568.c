@@ -99,6 +99,7 @@ void DAC8568_INIT_SET(float temperature,float current)
 	
 	DAC8568_SET(0x0,0x3,0x2,current,0);		       /* DAC-C */
 	DAC8568_SET(0x0,0x3,0x6,DAC_G_Din,0);		       /* DAC-G */
+//	UARTprintf("DAC_G_Din=%d\n",DAC_G_Din);
 }
 
 /***********************************************************
