@@ -53,9 +53,8 @@ float WeekROC = 0;
 float MonthROC = 0;
 float SensorTemp = 0;
 extern float H2Resistor;
-float TemResistor = 0;
 
-int temperature = 100;	/*sense default temperature*/
+int temperature = 60;	/*sense default temperature*/
 int PCB_temp = 40;	/*PCB control default temperature*/
 
 const char print_menu[] = 
@@ -109,10 +108,10 @@ Description: setup the timer counter 0 interrupt.
 ***********************************************************/
 void command_print(void)
 {
-	//DS1390_GetTime(&CurrentTime);
-	UARTprintf("%d/%d/%d %d:%d:%d  ",CurrentTime.SpecificTime.year+2000,CurrentTime.SpecificTime.month,
+	DS1390_GetTime(&CurrentTime);
+	UARTprintf("%d/%d/%d %d:%d:%d",CurrentTime.SpecificTime.year+2000,CurrentTime.SpecificTime.month,
 	CurrentTime.SpecificTime.day,CurrentTime.SpecificTime.hour,CurrentTime.SpecificTime.min,CurrentTime.SpecificTime.sec);
-	UARTprintf("%.3f    %.4f    %.4f    %.3f    ",OilTemp,TempResistor,H2Resistor,PcbTemp);
+	UARTprintf("	%.3f	%.4f	%.4f	%.3f	",OilTemp,TempResistor,H2Resistor,PcbTemp);
 	if(temperature>=50)
 	{
 	UARTprintf(message_menu[1]);
@@ -141,26 +140,26 @@ int main (void)
 	Init_ModBus();
 	//LC512_Init();
 	UARTprintf(print_menu);
-	
-	//M25P16_TEST();
-	//e2promtest();
-	DAC8568_INIT_SET(temperature,0xF000);
+
+	DAC8568_INIT_SET(temperature,2*65536/5);	/*DOUT-C = xV*65536/5*/
 	DAC8568_PCB_TEMP_SET(PCB_temp,0x1000);
+	
+//	M25P16_TEST();
+//	LC512_TEST();
 
 	while (1)  
 	{
 		if(rcv_new==1)
 		{
-		rcv_new=0;
-		UART0_SendData(rcv_buf,rcv_cnt);
-		//UARTprintf("\n");
-		a=get_true_char_stream(cmd_tmp,rcv_buf);
-		//UART0_SendData(cmd_tmp,a);
-		//UARTprintf("\n");
-		UARTprintf("a=%d\n",a);
-		memset(rcv_buf,0,rcv_cnt);
-		rcv_cnt=0;
-		
+      rcv_new=0;
+      UART0_SendData(rcv_buf,rcv_cnt);
+      //UARTprintf("\n");
+      a=get_true_char_stream(cmd_tmp,rcv_buf);
+      //UART0_SendData(cmd_tmp,a);
+      //UARTprintf("\n");
+      UARTprintf("a=%d\n",a);
+      memset(rcv_buf,0,rcv_cnt);
+      rcv_cnt=0;
 		}
 
 		if(flag_command==0)
@@ -247,49 +246,56 @@ int main (void)
 
 			case 2:
 			/* 4-1H4min set 50 temp, keep 1H  */
-			DAC8568_INIT_SET(50,0x6668);
+			temperature = 50;
+			DAC8568_INIT_SET(temperature,2*65536/5);
 			flag1 = 0;
 			UARTprintf("4-1H4min set 50 temp, keep 1H\n");
 			break;
 
 			case 3:
 			/* 1H4min-1H7min stop heating, capture 3min oil temp */
-			DAC8568_INIT_SET(0,0);
+			temperature = 0;
+			DAC8568_INIT_SET(temperature,0);
 			flag1 = 0;
 			UARTprintf("1H4min-1H7min stop heating, capture 3min oil temp\n");
 			break;
 
 			case 4:
 			/* 1H7min-2H7min set 50 temp and keep 1H */
-			DAC8568_INIT_SET(50,0x6668);
+			temperature = 50;
+			DAC8568_INIT_SET(temperature,2*65536/5);
 			flag1 = 0;
 			UARTprintf("1H7min-2H7min set 50 temp and keep 1H\n");
 			break;
 
 			case 5:
 			/* 2H7min-2H10min stop heating and capture oil temp 3min */
-			DAC8568_INIT_SET(0,0);
+			temperature = 0;
+			DAC8568_INIT_SET(temperature,0);
 			flag1 = 0;
 			UARTprintf("2H7min-2H10min stop heating and capture oil temp 3min\n");
 			break;
 
 			case 6:
 			/* 2H10min-3H40min set 70 temp and keep 1.5H */
-			DAC8568_INIT_SET(70,0x6668);
+			temperature = 70;
+			DAC8568_INIT_SET(temperature,2*65536/5);
 			flag1 = 0;
 			UARTprintf("2H10min-3H40min set 70 temp and keep 1.5H\n");
 			break;
 
 			case 7:
 			/* 3H40min-4H10min set 50 temp and keep 0.5H */
-			DAC8568_INIT_SET(50,0x6668);
+			temperature = 50;
+			DAC8568_INIT_SET(temperature,2*65536/5);
 			flag1 = 0;
 			UARTprintf("3H40min-4H10min set 50 temp and keep 0.5H\n");
 			break;
 
 			case 8:
 			/* 4H10min-4H13min stop heating and capture oil temp 3min */
-			DAC8568_INIT_SET(0,0);
+			temperature = 0;
+			DAC8568_INIT_SET(temperature,0);
 			flag1 = 0;
 			UARTprintf("4H10min-4H13min stop heating and capture oil temp 3min\n");
 			break;
@@ -359,10 +365,16 @@ int main (void)
 		{			
 			Data_Ack_Processor();
 		}
+		
+		ADC7738_acquisition(1);
+		ADC7738_acquisition(2);
+		ADC7738_acquisition(3);
+
 		if(user_parameter.flag.ubit.recept_write==1)
 		{
 			RW_ModBus_Data();
 		}	
+
 	}
 }
 

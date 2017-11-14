@@ -498,6 +498,11 @@
               <FileType>1</FileType>
               <FilePath>.\Algorithm\Cubic.c</FilePath>
             </File>
+            <File>
+              <FileName>fitting.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Algorithm\fitting.c</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>

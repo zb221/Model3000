@@ -35,7 +35,7 @@ unsigned char rcv_buf[100];
 volatile unsigned char rcv_new;
 unsigned int rcv_cnt;
 
-unsigned char MODEL_TYPE = 1;
+unsigned char MODEL_TYPE = 3;
 
 
 /***********************************************************
@@ -427,7 +427,7 @@ __irq void TC0_IR (void)
 				flag1 = 2;
 				break;
 
-				case 3840000: /* 1H4min-1H7min stop heating, capture 3min oil temp and capture Temperature_of_resistance and Hydrogen_Resistance */
+				case 3840000: /* 1H4min-1H7min stop heating, capture 3min oil temp */
 				flag1 = 3;
 				break;
 
@@ -445,11 +445,11 @@ __irq void TC0_IR (void)
 
 				case 13200000: /* 3H40min-4H10min set 50 temp and keep 0.5H */
 				flag1 = 7;
-				break;		
+				break;	
 
 				case 15000000: /* 4H10min-4H13min stop heating and capture oil temp 3min */
 				flag1 = 8;
-				break;	
+				break;			
 				
 				case 15180000: /* 4H13min reset count1 */
 				count1 = 0;
@@ -460,7 +460,7 @@ __irq void TC0_IR (void)
 			}
 			break;
 		case 2:	/*debug model*/
-			
+
 			break;
 		case 3:	/*calibrate model*/
 			
@@ -471,7 +471,7 @@ __irq void TC0_IR (void)
 	}
 	
 	switch (count2){
-		case 200://200ms
+		case 200://100ms
 		flag2 = 1;
 		break;
 		
@@ -495,7 +495,7 @@ __irq void TC0_IR (void)
 	}
 	
 	switch (count4){
-		case 2000:
+		case 1000:
 		flag4 = 1;
 		count4 = 0;
 		break;

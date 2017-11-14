@@ -11,6 +11,7 @@
 #include "Peripherals_LPC2194.h"
 #include "AD7738.h"
 #include "Cubic.h"
+#include "fitting.h"
 
 /***********************************************************
 Description: Global variable region.
@@ -109,19 +110,25 @@ float Current_of_Temperature_resistance = 5;
 float Current_of_Hydrogen_Resistance = 0.75;
 
 /*-------------------------Global variable region----------------------*/
+extern int temperature;
+
+extern int flag1;
 unsigned char data0 = 0, data1 = 0, data2 = 0;	/* The raw data output from ADC */
 float OilTemp = 0;
 float TempResistor = 0;
 float H2Resistor = 0;
 float PcbTemp = 0;
 
-unsigned int OilTemp_V[6] = {0};	/* Data for filtering processing */
-unsigned int H2Resistor_V[6] = {0};
-unsigned int PcbTemp_V[4] = {0};
+extern float H2Resistor_OilTemp_K;
+extern float H2Resistor_OilTemp_B;
+float OilTemp_Tmp[500] = {0};
+float H2Resistor_Tmp[500] = {0};
 
-unsigned int OilTemp_V_V[50] = {0};	/* The data used to calculate the output */
-unsigned int H2Resistor_V_V[50] = {0};
-unsigned int PcbTemp_V_V[10] = {0};
+float H2Resistor_Tmp_1[200] = {0};/* Data for filtering processing */
+
+unsigned int Channel_OilTemp = 0;
+unsigned int Channel_H2Resistor = 0;
+unsigned int Channel_PcbTemp = 0;
 
 /***********************************************************
 Function:	 AD7738 CS pin init.
@@ -253,35 +260,22 @@ void AD7738_SET(void)
 
 /***********************************************************
 Function:	 AVERAGE for arry.
-Input: *arry.
+Input: float *arry.
 Output: none
 Author: zhuobin
 Date: 2017/10/31
 Description: .
 ***********************************************************/
-unsigned int AVERAGE(unsigned int *p)
+float AVERAGE_F(float *p)
 {
-	unsigned int i = 0, sum = 0, number = 0;
+	unsigned int i = 0, number = 0;
+	float sum = 0;
 
-	if (p == OilTemp_V_V){
-		number = sizeof(OilTemp_V_V)/sizeof(OilTemp_V_V[0]);
+	if (p == H2Resistor_Tmp_1){
+		number = sizeof(H2Resistor_Tmp_1)/sizeof(H2Resistor_Tmp_1[0]);
 		for (i=0;i<number;i++)
 		{
-			sum += OilTemp_V_V[i];
-		}
-		sum = sum / number;
-	}else if (p == H2Resistor_V_V){
-		number = sizeof(H2Resistor_V_V)/sizeof(H2Resistor_V_V[0]);
-		for (i=0;i<number;i++)
-		{
-			sum += H2Resistor_V_V[i];
-		}
-		sum = sum / number;
-	}else if (p == PcbTemp_V_V){
-		number = sizeof(PcbTemp_V_V)/sizeof(PcbTemp_V_V[0]);
-		for (i=0;i<number;i++)
-		{
-			sum += PcbTemp_V_V[i];
+			sum += H2Resistor_Tmp_1[i];
 		}
 		sum = sum / number;
 	}
@@ -290,63 +284,30 @@ unsigned int AVERAGE(unsigned int *p)
 
 /***********************************************************
 Function:	 sort for arry.
-Input: *arry.
+Input: float *arry.
 Output: none
 Author: zhuobin
-Date: 2017/11/01
+Date: 2017/11/13
 Description: .
 ***********************************************************/
-void sortA(unsigned int *arry)
+void sortB(float *arry)
 {
-	unsigned int i = 0, j = 0, temp = 0, length = 0;
+	unsigned int i = 0, j = 0, length = 0;
+	float temp = 0;
 
-	if (arry == OilTemp_V){
-		length = sizeof(OilTemp_V)/sizeof(OilTemp_V[0]);
+	if (arry == H2Resistor_Tmp_1){
+		length = sizeof(H2Resistor_Tmp_1)/sizeof(H2Resistor_Tmp_1[0]);
 		for(i = 0; i < length; ++i)
 		{
 			for(j = i + 1; j < length; ++j){
 
-				if(OilTemp_V[j] < OilTemp_V[i]){
+				if(H2Resistor_Tmp_1[j] < H2Resistor_Tmp_1[i]){
 
-					temp = OilTemp_V[i];
+					temp = H2Resistor_Tmp_1[i];
 
-					OilTemp_V[i] = OilTemp_V[j];
+					H2Resistor_Tmp_1[i] = H2Resistor_Tmp_1[j];
 
-					OilTemp_V[j] = temp;
-
-				}
-			}
-		}
-	}else if (arry == H2Resistor_V){
-		length = sizeof(H2Resistor_V)/sizeof(H2Resistor_V[0]);
-		for(i = 0; i < length; ++i)
-		{
-			for(j = i + 1; j < length; ++j){
-
-				if(H2Resistor_V[j] < H2Resistor_V[i]){
-
-					temp = H2Resistor_V[i];
-
-					H2Resistor_V[i] = H2Resistor_V[j];
-
-					H2Resistor_V[j] = temp;
-
-				}
-			}
-		}
-	}else if (arry == PcbTemp_V){
-		length = sizeof(PcbTemp_V)/sizeof(PcbTemp_V[0]);
-		for(i = 0; i < length; ++i)
-		{
-			for(j = i + 1; j < length; ++j){
-
-				if(PcbTemp_V[j] < PcbTemp_V[i]){
-
-					temp = PcbTemp_V[i];
-
-					PcbTemp_V[i] = PcbTemp_V[j];
-
-					PcbTemp_V[j] = temp;
+					H2Resistor_Tmp_1[j] = temp;
 
 				}
 			}
@@ -362,46 +323,21 @@ Author: zhuobin
 Date: 2017/11/01
 Description: .
 ***********************************************************/
-void filterA(unsigned int *arry)
+void filterA(float *arry)
 {
-	static unsigned int three_time_data1 = 0;
-	static unsigned int three_time_data2 = 0;
-	static unsigned int three_time_data3 = 0;
-	unsigned int i = 0, sum = 0, number = 0;
-	unsigned int effective = 1;
+	unsigned int i = 0, number = 0, effective = 5;
+	float sum = 0;
 
-	sortA(arry);
+	sortB(arry);
 
-	if (arry == OilTemp_V){
-		number = sizeof(OilTemp_V)/sizeof(OilTemp_V[0]);
+	if (arry == H2Resistor_Tmp_1){
+		number = sizeof(H2Resistor_Tmp_1)/sizeof(H2Resistor_Tmp_1[0]);
 		for (i=(number/2)-effective;i<(number/2)+effective;i++)
 		{
-			sum += OilTemp_V[i];
+			sum += H2Resistor_Tmp_1[i];
+
 		}
-		sum = sum / (2*effective);
-		OilTemp_V_V[three_time_data1++] = sum;
-		if (three_time_data1 == sizeof(OilTemp_V_V)/sizeof(OilTemp_V_V[0]))
-			three_time_data1 = 0;
-	}else if (arry == H2Resistor_V){
-		number = sizeof(H2Resistor_V)/sizeof(H2Resistor_V[0]);
-		for (i=(number/2)-effective;i<(number/2)+effective;i++)
-		{
-			sum += H2Resistor_V[i];
-		}
-		sum = sum / (2*effective);
-		H2Resistor_V_V[three_time_data2++] = sum;
-		if (three_time_data2 == sizeof(H2Resistor_V_V)/sizeof(H2Resistor_V_V[0]))
-			three_time_data2 = 0;
-	}else if (arry == PcbTemp_V){
-		number = sizeof(PcbTemp_V)/sizeof(PcbTemp_V[0]);
-		for (i=(number/2)-effective;i<(number/2)+effective;i++)
-		{
-			sum += PcbTemp_V[i];
-		}
-		sum = sum / (2*effective);
-		PcbTemp_V_V[three_time_data3++] = sum;
-		if (three_time_data3 == sizeof(PcbTemp_V_V)/sizeof(PcbTemp_V_V[0]))
-			three_time_data3 = 0;
+		H2Resistor = sum / (2*effective);
 	}
 }
 
@@ -416,12 +352,17 @@ Description: .
 void Temperature_of_resistance_Parameter(void)
 {	
 	float Temp_resistance_slope = 0, x = 0, y = 0;
+	static unsigned int number = 0;
 
 	Linear_slope(&Temp_resistance_slope, &x, &y, Temp_Res);
 
-	TempResistor = (AVERAGE(OilTemp_V_V)/AD7738_resolution_NP25-2500)/Current_of_Temperature_resistance;
+	TempResistor = (Channel_OilTemp/AD7738_resolution_NP25-2500)/Current_of_Temperature_resistance;
 
-	OilTemp = (TempResistor-(y-Temp_resistance_slope*x))/Temp_resistance_slope;
+	OilTemp_Tmp[number++] = (TempResistor-(y-Temp_resistance_slope*x))/Temp_resistance_slope;
+//	UARTprintf("%.4f	",OilTemp_Tmp[number-1]);
+	if (number == sizeof(OilTemp_Tmp)/sizeof(OilTemp_Tmp[0])){
+		number = 0;
+	}
 }
 
 /***********************************************************
@@ -434,10 +375,13 @@ Description: .
 ***********************************************************/
 void Hydrogen_Resistance_Parameter(void)
 {
-	H2Resistor = (AVERAGE(H2Resistor_V_V)/AD7738_resolution_NP25-2500)/Current_of_Hydrogen_Resistance;
+	static unsigned int number1 = 0;
 	
-//	Temp = Cubic_main(resistance,Hydrogen_Res);
-//	R = Hydrogen_resistance_slope*temperature + (645-65*Hydrogen_resistance_slope);
+	H2Resistor_Tmp[number1++] = (Channel_H2Resistor/AD7738_resolution_NP25-2500)/Current_of_Hydrogen_Resistance;
+//	UARTprintf("%.4f\n",H2Resistor_Tmp[number1-1]);
+	if (number1 == sizeof(H2Resistor_Tmp)/sizeof(H2Resistor_Tmp[0])){
+		number1 = 0;
+	}
 }
 
 /***********************************************************
@@ -453,7 +397,7 @@ void PCB_temp_Parameter(void)
 	/* m*t*t+n*t+1-R/1000=0  n=0.0038623139728, m=-0.00000065314932626*/
 	float n = 0.0038623139728, m = -0.00000065314932626, R = 0, PT1000_current = 0.125;
 	
-	R = (AVERAGE(PcbTemp_V_V)/AD7738_resolution_NP25-2500)/PT1000_current;
+	R = (Channel_PcbTemp/AD7738_resolution_NP25-2500)/PT1000_current;
 	PcbTemp = (-n + sqrt(n*n-4*m*(1-R/1000)))/(2*m);
 }
 
@@ -467,11 +411,9 @@ Description:  accept three char data.
 ***********************************************************/
 void ADC7738_acquisition(unsigned char channel)
 {
-	static unsigned int number1 = 0;
-	static unsigned int number2 = 0;
-	static unsigned int number3 = 0;
 	unsigned char flag = 0;
-	unsigned int temp = 0, count1 = 0, one_time = 2;
+	unsigned int temp = 0, count1 = 0, one_time = 4;
+	static unsigned int number2 = 0;
 
 	AD7738_write(channel_setup_0 + channel,0<<7|AINx_AINx|0<<4|Channel_Continuous_conversion_disable|NP_25);	/*Channel Setup Registers:BUF_OFF<<7|COM1|COM0|Stat|Channel_CCM|RNG2_0*/
 	AD7738_write(channel_conv_time_0 + channel,Chop_Enable|FW);	/*channel coversion time*/
@@ -493,27 +435,22 @@ void ADC7738_acquisition(unsigned char channel)
 
 	switch (channel){
 		case 1:
-		OilTemp_V[number1++] = (data0<<16|data1<<8|data2);
-		if (number1 == sizeof(OilTemp_V)/sizeof(OilTemp_V[0])){
-			filterA(OilTemp_V);
-			number1 = 0;
-		}
+		Channel_OilTemp = (data0<<16|data1<<8|data2);
+		Temperature_of_resistance_Parameter();
 		break;
 
 		case 2:
-		H2Resistor_V[number2++] = (data0<<16|data1<<8|data2);
-		if (number2 == sizeof(H2Resistor_V)/sizeof(H2Resistor_V[0])){
-			filterA(H2Resistor_V);
+ 		Channel_H2Resistor = (data0<<16|data1<<8|data2);
+		Hydrogen_Resistance_Parameter();
+		Line_Fit();
+		H2Resistor_Tmp_1[number2++] = H2Resistor_OilTemp_K*temperature + H2Resistor_OilTemp_B;
+		if (number2 == sizeof(H2Resistor_Tmp_1)/sizeof(H2Resistor_Tmp_1[0])){
 			number2 = 0;
 		}
 		break;
 
 		case 3:
-		PcbTemp_V[number3++] = (data0<<16|data1<<8|data2);
-		if (number3 == sizeof(PcbTemp_V)/sizeof(PcbTemp_V[0])){
-			filterA(PcbTemp_V);
-			number3 = 0;
-		}
+ 		Channel_PcbTemp = (data0<<16|data1<<8|data2);
 		break;
 
 		default: break;
@@ -533,11 +470,11 @@ void ADC7738_acquisition_output(unsigned char channel)
 {
 	switch (channel){
 		case 1:
-		Temperature_of_resistance_Parameter();
+		OilTemp = temperature;
 		break;
 
 		case 2:
-		Hydrogen_Resistance_Parameter();
+		H2Resistor = AVERAGE_F(H2Resistor_Tmp_1);
 		break;
 
 		case 3:
