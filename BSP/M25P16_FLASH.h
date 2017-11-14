@@ -14,6 +14,8 @@
 
 void M25P16_CS_INIT(void);
 void M25P16_TEST(void);
-
+void M25P16_read_data_anywhere(unsigned short data_count,unsigned int start_address);
+void M25P16_reset(void);
+void M25P16_read_ID(unsigned char *pbuffer);
 
 #endif

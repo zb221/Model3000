@@ -17,22 +17,22 @@
 #define REG_CONTROL	0x8D
 #define REG_STATUS	0x8E
 
-VARIABLE_EXT unsigned char hide_sec,hide_min,hide_hour,hide_day,hide_week,hide_month,hide_year;  //秒,分,时到日,月,年位闪的计数
-VARIABLE_EXT unsigned char UDT_Flag;
-VARIABLE_EXT unsigned char DST_Flag;
-VARIABLE_EXT unsigned char DST_EN;
-VARIABLE_EXT unsigned char D60_Flag;
-VARIABLE_EXT unsigned int time_s;
-VARIABLE_EXT unsigned char D60_sec;
-VARIABLE_EXT unsigned char D60_min;
-VARIABLE_EXT unsigned char D60_hour;
-VARIABLE_EXT unsigned char DST_sec;//静态时间 动态时间
-VARIABLE_EXT unsigned char DST_min;
-VARIABLE_EXT unsigned char DST_hour;
-VARIABLE_EXT unsigned char Timer_Ds1390_sec;//静态时间 动态时间
-VARIABLE_EXT unsigned char Timer_Ds1390_min;
-VARIABLE_EXT unsigned char Timer_Ds1390_hour;
-VARIABLE_EXT unsigned long long int Runtimes;	
+//VARIABLE_EXT unsigned char hide_sec,hide_min,hide_hour,hide_day,hide_week,hide_month,hide_year;  //秒,分,时到日,月,年位闪的计数
+//VARIABLE_EXT unsigned char UDT_Flag;
+//VARIABLE_EXT unsigned char DST_Flag;
+//VARIABLE_EXT unsigned char DST_EN;
+//VARIABLE_EXT unsigned char D60_Flag;
+//VARIABLE_EXT unsigned int time_s;
+//VARIABLE_EXT unsigned char D60_sec;
+//VARIABLE_EXT unsigned char D60_min;
+//VARIABLE_EXT unsigned char D60_hour;
+//VARIABLE_EXT unsigned char DST_sec;//静态时间 动态时间
+//VARIABLE_EXT unsigned char DST_min;
+//VARIABLE_EXT unsigned char DST_hour;
+//VARIABLE_EXT unsigned char Timer_Ds1390_sec;//静态时间 动态时间
+//VARIABLE_EXT unsigned char Timer_Ds1390_min;
+//VARIABLE_EXT unsigned char Timer_Ds1390_hour;
+//VARIABLE_EXT unsigned long long int Runtimes;	
 
 #define DS1390_CS_H    {   IO0DIR|=(1<<13);IO0SET|=(1<<13); }//P0.13
 #define DS1390_CS_L    { IO0DIR|=(1<<7);IO0SET|=(1<<7);IO0DIR|=(1<<25);IO0SET|=(1<<25);IO0DIR|=(1<<13);IO0CLR|=(1<<13); }//{LC512_CS_H;AT25_CS_H;   IO0DIR|=(1<<13);IO0CLR|=(1<<13); }

@@ -4,6 +4,11 @@
 @		Author: megzheng.
 @		Date: 2017/10/19.
 ***********************************************/
+#ifdef VARIABLE_GLOBALS
+#define VARIABLE_EXT
+#else
+#define VARIABLE_EXT extern
+#endif
 
 #ifndef __PARAMETER_H__
 #define __PARAMETER_H__
@@ -66,7 +71,8 @@ typedef struct
 	unsigned char Alarm_data_buffer[8];
 }USER_PARAMETER;
 //VARIABLE_EXT  
-USER_PARAMETER  user_parameter;	
+//USER_PARAMETER  user_parameter;	
+VARIABLE_EXT USER_PARAMETER user_parameter;
 
 typedef struct
 {
@@ -487,8 +493,8 @@ union
 //	unsigned short reserved_parameter20;//106
 //	unsigned short reserved_parameter21;//107
 //	unsigned short reserved_parameter22;//108
-	unsigned short reserved_parameter23;//109
-	unsigned short reserved_parameter24;//110
+	unsigned short reserved_parameter13;//109
+	unsigned short reserved_parameter14;//110
 	union
 	{
 		struct
@@ -527,7 +533,7 @@ union
 //	unsigned short reserved_parameter25;//112
 //	unsigned short reserved_parameter26;//113
 //	unsigned short reserved_parameter27;//114
-	unsigned short reserved_parameter28;//115
+	unsigned short reserved_parameter15;//115
 	unsigned short reserved_parameter29;//116
 	unsigned short reserved_parameter30;//117
 	unsigned short reserved_parameter31;//118
@@ -992,7 +998,7 @@ union
 		}transformer_id_sstr;
 		char transformer_id_str[20];
 }transformer_id;
-    unsigned short modbus_id;
+    unsigned short modbus_id;//230
 //	unsigned short reserved_parameter76;//231
 		unsigned short reserved_parameter77;//232
 		unsigned short reserved_parameter78;//233
@@ -1019,8 +1025,8 @@ union
 		unsigned short reserved_parameter99;//254
 		unsigned short reserved_parameter100;//255
 }RUN_PARAMETER;
-RUN_PARAMETER  run_parameter;
-//VARIABLE_EXT  RUN_PARAMETER  run_parameter;//moudlebus ??????		
+//RUN_PARAMETER  run_parameter;
+VARIABLE_EXT  RUN_PARAMETER  run_parameter;//moudlebus ??????		
 
 #endif
 
