@@ -54,7 +54,7 @@ float MonthROC = 0;
 float SensorTemp = 0;
 extern float H2Resistor;
 
-int temperature = 60;	/*sense default temperature*/
+int temperature = 50;	/*sense default temperature*/
 int PCB_temp = 40;	/*PCB control default temperature*/
 
 const char print_menu[] = 
@@ -308,31 +308,6 @@ int main (void)
 			case 1:
 			LED_RED_SET
 			LED_BLUE_SET
-			if(flag_screen==0)
-			{
-        UARTprintf("200ms LED\n");			
-			}
-			flag2 = 0;
-			command_print();
-			break;
-
-			case 2:
-			/*300ms ADC*/
-			ADC7738_acquisition(1);
-			ADC7738_acquisition_output(1);
-			ADC7738_acquisition(2);
-			ADC7738_acquisition_output(2);
-			ADC7738_acquisition(3);
-			ADC7738_acquisition_output(3);
-			if(flag_screen==0)
-			{
-			UARTprintf("300ms ADC\n");			
-			}
-			flag2 = 0;
-			break;
-
-			case 3:
-			/*600 ms checkself*/
 			device_checkself();
 			flag2 = 0;
 			break;
@@ -340,11 +315,6 @@ int main (void)
 			case 2:
 			LED_RED_CLR
 			LED_BLUE_CLR
-			DS1390_GetTime(&CurrentTime);
-			if(flag_screen==0)
-      {
-			UARTprintf("800ms DS1390\n");			
-			}
 			flag2 = 0;
 			break;
 
@@ -361,14 +331,24 @@ int main (void)
 			}
 			flag3 = 0;
 		}
+		
+		if (flag4 == 1)
+ 		{
+ 			/*1S command_print*/
+ 			ADC7738_acquisition_output(1);
+ 			ADC7738_acquisition_output(2);
+ 			ADC7738_acquisition_output(3);
+			command_print();
+			flag4 = 0;
+		}
+		ADC7738_acquisition(1);
+		ADC7738_acquisition(2);
+		ADC7738_acquisition(3);
+		
 		if(user_parameter.flag.ubit.recept_ok==1)
 		{			
 			Data_Ack_Processor();
 		}
-		
-		ADC7738_acquisition(1);
-		ADC7738_acquisition(2);
-		ADC7738_acquisition(3);
 
 		if(user_parameter.flag.ubit.recept_write==1)
 		{
