@@ -121,8 +121,8 @@ float PcbTemp = 0;
 
 extern float H2Resistor_OilTemp_K;
 extern float H2Resistor_OilTemp_B;
-float OilTemp_Tmp[500] = {0};
-float H2Resistor_Tmp[500] = {0};
+float OilTemp_Tmp[1000] = {0};
+float H2Resistor_Tmp[1000] = {0};
 
 float H2Resistor_Tmp_1[200] = {0};/* Data for filtering processing */
 
@@ -413,7 +413,6 @@ void ADC7738_acquisition(unsigned char channel)
 {
 	unsigned char flag = 0;
 	unsigned int temp = 0, count1 = 0, one_time = 4;
-	static unsigned int number2 = 0;
 
 	AD7738_write(channel_setup_0 + channel,0<<7|AINx_AINx|0<<4|Channel_Continuous_conversion_disable|NP_25);	/*Channel Setup Registers:BUF_OFF<<7|COM1|COM0|Stat|Channel_CCM|RNG2_0*/
 	AD7738_write(channel_conv_time_0 + channel,Chop_Enable|FW);	/*channel coversion time*/
@@ -442,11 +441,6 @@ void ADC7738_acquisition(unsigned char channel)
 		case 2:
  		Channel_H2Resistor = (data0<<16|data1<<8|data2);
 		Hydrogen_Resistance_Parameter();
-		Line_Fit();
-		H2Resistor_Tmp_1[number2++] = H2Resistor_OilTemp_K*temperature + H2Resistor_OilTemp_B;
-		if (number2 == sizeof(H2Resistor_Tmp_1)/sizeof(H2Resistor_Tmp_1[0])){
-			number2 = 0;
-		}
 		break;
 
 		case 3:
@@ -468,12 +462,18 @@ Description:  .
 ***********************************************************/
 void ADC7738_acquisition_output(unsigned char channel)
 {
+	static unsigned int number2 = 0;
 	switch (channel){
 		case 1:
 		OilTemp = temperature;
 		break;
 
 		case 2:
+		Line_Fit();
+		H2Resistor_Tmp_1[number2++] = H2Resistor_OilTemp_K*temperature + H2Resistor_OilTemp_B;
+		if (number2 == sizeof(H2Resistor_Tmp_1)/sizeof(H2Resistor_Tmp_1[0])){
+			number2 = 0;
+		}
 		H2Resistor = AVERAGE_F(H2Resistor_Tmp_1);
 		break;
 
