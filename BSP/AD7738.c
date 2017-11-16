@@ -411,6 +411,7 @@ Description:  accept three char data.
 ***********************************************************/
 void ADC7738_acquisition(unsigned char channel)
 {
+	static unsigned int number2 = 0;
 	unsigned char flag = 0;
 	unsigned int temp = 0, count1 = 0, one_time = 4;
 
@@ -441,6 +442,11 @@ void ADC7738_acquisition(unsigned char channel)
 		case 2:
  		Channel_H2Resistor = (data0<<16|data1<<8|data2);
 		Hydrogen_Resistance_Parameter();
+		Line_Fit();
+		H2Resistor_Tmp_1[number2++] = H2Resistor_OilTemp_K*temperature + H2Resistor_OilTemp_B;
+		if (number2 == sizeof(H2Resistor_Tmp_1)/sizeof(H2Resistor_Tmp_1[0])){
+			number2 = 0;
+		}
 		break;
 
 		case 3:
@@ -462,18 +468,12 @@ Description:  .
 ***********************************************************/
 void ADC7738_acquisition_output(unsigned char channel)
 {
-	static unsigned int number2 = 0;
 	switch (channel){
 		case 1:
 		OilTemp = temperature;
 		break;
 
 		case 2:
-		Line_Fit();
-		H2Resistor_Tmp_1[number2++] = H2Resistor_OilTemp_K*temperature + H2Resistor_OilTemp_B;
-		if (number2 == sizeof(H2Resistor_Tmp_1)/sizeof(H2Resistor_Tmp_1[0])){
-			number2 = 0;
-		}
 		H2Resistor = AVERAGE_F(H2Resistor_Tmp_1);
 		break;
 

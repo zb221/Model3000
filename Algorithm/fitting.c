@@ -67,6 +67,6 @@ void Line_Fit(void)
 
   H2Resistor_OilTemp_K = ( x_multiply_y - N * x_sum_average * y_sum_average)/( x_square_sum - N * x_sum_average*x_sum_average );
   H2Resistor_OilTemp_B = y_sum_average - H2Resistor_OilTemp_K * x_sum_average;
-	UARTprintf("%.3f,%.4f\n",H2Resistor_OilTemp_K,H2Resistor_OilTemp_B);
+//	UARTprintf("%.3f,%.4f\n",H2Resistor_OilTemp_K,H2Resistor_OilTemp_B);
 }
 
