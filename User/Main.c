@@ -240,7 +240,7 @@ int main (void)
 			flag1 = 0;
 			if(flag_screen==0)
 			{
-        UARTprintf("1-4min capture 3min oil temp\n");	
+			UARTprintf("1-4min capture 3min oil temp\n");	
 			}
 			break;
 

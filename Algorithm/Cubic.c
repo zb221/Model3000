@@ -37,8 +37,8 @@ float Hydrogen_R[] = {556.448,567.663,578.720,589.298,600.106};
 //float DAC_Din[] =  {39877,40000,40500};/* new sense */
 //float Din_temp[] = {49,54.6,75.4};/* new sense */
 
-float DAC_Din[] =  {39577,39677,39877,40000,40200};/* zsy */
-float Din_temp[] = {45.8,50.8,61.1,66.9,76.9};/* zsy */
+float DAC_Din[5] =  {39577,39677,39877,40000,40200};/* zsy */
+float Din_temp[5] = {45.8,50.8,61.1,66.9,76.9};/* zsy */
 
 /*DAC8568 Din data - PCB temp control*/
 float PCB_TEMP_Din[] =  {11336,11536};

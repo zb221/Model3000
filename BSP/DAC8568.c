@@ -10,6 +10,14 @@
 #include "DAC8568.h"
 #include "Cubic.h"
 #include "Peripherals_LPC2194.h"
+#include "fitting.h"
+
+
+extern float DAC_Din[];
+extern float Din_temp[];
+
+extern float Din_temp_DAC_Din_K;
+extern float Din_temp_DAC_Din_B;
 
 /***********************************************************
 Function:	init DAC8568 CS PIN.
@@ -71,6 +79,10 @@ void DAC_SET_Chanel_Din(float temperature,int *DAC_DIN, unsigned char type)
 		case DAC_temp:
 		Linear_slope(&DAC_Din_Sense_Temp_slope, &x, &y, DAC_temp);
 		*DAC_DIN = (temperature - (y-(DAC_Din_Sense_Temp_slope*x)))/DAC_Din_Sense_Temp_slope;
+		UARTprintf("DAC_DIN1=%d\n",*DAC_DIN);
+		Line_Fit(DAC_Din, Din_temp);
+		*DAC_DIN = Din_temp_DAC_Din_K*temperature + Din_temp_DAC_Din_B;
+		UARTprintf("DAC_DIN2=%d\n",*DAC_DIN);
 		break;
 		case PCB_TEMP:
 		Linear_slope(&DAC_Din_PCB_Temp_slope, &m, &n, PCB_TEMP);
