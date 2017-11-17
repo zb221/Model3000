@@ -94,12 +94,12 @@ void DAC8568_INIT_SET(float temperature,float current)
 {
 	int DAC_G_Din = 0;
 	DAC_SET_Chanel_Din(temperature,&DAC_G_Din,DAC_temp);     /* set sense want temp value */
-	
+
 	DAC8568_SET(0x0,0x9,0x0,0xA000,0);		        /* Power up internal reference all the time regardless DAC states */
 	
 	DAC8568_SET(0x0,0x3,0x2,current,0);		       /* DAC-C */
 	DAC8568_SET(0x0,0x3,0x6,DAC_G_Din,0);		       /* DAC-G */
-//	UARTprintf("DAC_G_Din=%d\n",DAC_G_Din);
+	UARTprintf("DAC_G_Din=%d\n",DAC_G_Din);
 }
 
 /***********************************************************

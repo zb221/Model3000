@@ -10,9 +10,9 @@
 
 //#define N 10             //N??????????
 
-extern float OilTemp_Tmp[500];
-extern float H2Resistor_Tmp[500];
-#define N 500 
+extern float OilTemp_Tmp[1000];
+extern float H2Resistor_Tmp[1000];
+#define N 1000 
 
 //float OilTemp_Tmp[10] = {1.9,0.8,1.1,0.1,-0.1,4.4,4.6,1.6,5.5,3.4};
 //float H2Resistor_Tmp[10] = {0.7,-1.0,-0.2,-1.2,-0.1,3.4,0.0,0.8,3.7,2.0};
@@ -67,6 +67,6 @@ void Line_Fit(void)
 
   H2Resistor_OilTemp_K = ( x_multiply_y - N * x_sum_average * y_sum_average)/( x_square_sum - N * x_sum_average*x_sum_average );
   H2Resistor_OilTemp_B = y_sum_average - H2Resistor_OilTemp_K * x_sum_average;
-//	UARTprintf("H2Resistor_OilTemp_K=%.3f,H2Resistor_OilTemp_B=%.4f\n",H2Resistor_OilTemp_K,H2Resistor_OilTemp_B);
+//	UARTprintf("%.3f,%.4f\n",H2Resistor_OilTemp_K,H2Resistor_OilTemp_B);
 }
 

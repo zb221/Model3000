@@ -495,7 +495,7 @@ __irq void TC0_IR (void)
 	}
 	
 	switch (count4){
-		case 1000:
+		case 2000:
 		flag4 = 1;
 		count4 = 0;
 		break;
