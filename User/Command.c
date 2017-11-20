@@ -4,7 +4,6 @@
 @		Author: megzheng.
 @		Date: 2017/10/16.
 ***********************************************/
-#define VARIABLE_GLOBALS
 #include <stdio.h>                      /* standard I/O .h-file              */
 #include <stdlib.h>
 #include <ctype.h>                      /* character functions               */
@@ -342,8 +341,8 @@ void alarm_arg(void)//还需增加将继电器状态值存入E2P中
 //					UARTprintf("relay h2 ppm low %d\n",run_parameter.h2_ppm_alarm_low_h16.hilo);
 //					UARTprintf("\n...Wait...SAVED  Done......\r\n\r\n");
 					temp=atoi(cmd_tmp);
-					run_parameter.h2_ppm_alarm_low_l16.hilo=temp%65536;
-					run_parameter.h2_ppm_alarm_low_h16.hilo=temp/65536;					
+					run_parameter.h2_ppm_alert_low_l16.hilo=temp%65536;
+					run_parameter.h2_ppm_alert_low_h16.hilo=temp/65536;					
 					UARTprintf("relay h2 ppm low  %d\n",temp);
 					UARTprintf("\n...Wait...SAVED  Done......\r\n\r\n");
 					if(flag_relay_done==1)
@@ -382,7 +381,7 @@ void alarm_arg(void)//还需增加将继电器状态值存入E2P中
 				if(flag_done==0)
 				{
 					temp=atoi(cmd_tmp);
-					run_parameter.h2_ppm_alarm_DRC.hilo=temp;
+					run_parameter.h2_ppm_alert_low_l16.hilo=temp;
 					UARTprintf("rate of change  %d\n",temp);
 					UARTprintf("\n...Wait...SAVED  Done......\r\n\r\n");
 					if(flag_relay_done==1)
@@ -520,10 +519,10 @@ void config_arg_d1(void)
 		Voltage Output is disabled\n\
 		Isolated Output is enabled: %0.1fmA to %0.1fmA (LowH2Current-HighH2Current)\n\
 		Error output is: %0.1fmA\n\
-		Not-Ready output is %0.1fmA\n",run_parameter.h2_ppm_out_current_low.hilo,
-		run_parameter.h2_ppm_out_current_high.hilo,
-		run_parameter.h2_ppm_error_out_current.hilo,
-		run_parameter.h2_ppm_no_ready_out_current.hilo);	
+		Not-Ready output is %0.1fmA\n",cmd_ConfigData.LowmA,
+		cmd_ConfigData.HighmA,
+		cmd_ConfigData.ErrmA,
+		cmd_ConfigData.NotRmA);	
 		#endif
 		if(flag_relay1==0){UARTprintf("Relays#1:disable\n");}else{UARTprintf("Relays#1:enable\n");}
 		if(flag_relay2==0){UARTprintf("Relays#2:disable\n");}else{UARTprintf("Relays#2:enable\n");}
@@ -533,37 +532,37 @@ void config_arg_d1(void)
 		{
 			UARTprintf("(relays#1)");
 			UARTprintf(" threshold is %u ppm Hydrogen\n",
-			(unsigned int)(run_parameter.h2_ppm_alarm_low_l16.hilo*10000.F));
+			(unsigned int)(run_parameter.h2_ppm_alert_low_l16.hilo*10000.F));
 		}
 		if(flag_relay2==1)
 		{
 			UARTprintf("(relays#2)");
 			UARTprintf(" threshold is %u ppm Hydrogen\n",
-			(unsigned int)(run_parameter.h2_ppm_alarm_low_l16.hilo*10000.F));
+			(unsigned int)(run_parameter.h2_ppm_alert_low_l16.hilo*10000.F));
 		}
 		if(flag_relay3==1)
 		{
 			UARTprintf("(relays#3)");
 			UARTprintf(" threshold is %u ppm Hydrogen\n",
-			(unsigned int)(run_parameter.h2_ppm_alarm_low_l16.hilo*10000.F));
+			(unsigned int)(run_parameter.h2_ppm_alert_low_l16.hilo*10000.F));
 		}
 		if(flag_relay1==2)
 		{
 			UARTprintf("(relays#1)");
 			UARTprintf(" threshold is %u ppm Hydrogen/Day\n",
-			(unsigned int)(run_parameter.h2_ppm_alarm_DRC.hilo*10000.F));
+			(unsigned int)(run_parameter.h2_ppm_alarm_low_l16.hilo*10000.F));
 		}
 		if(flag_relay2==2)
 		{
 			UARTprintf("(relays#2)");
 			UARTprintf(" threshold is %u ppm Hydrogen/Day\n",
-			(unsigned int)(run_parameter.h2_ppm_alarm_DRC.hilo*10000.F));
+			(unsigned int)(run_parameter.h2_ppm_alarm_low_l16.hilo*10000.F));
 		}
 		if(flag_relay3==2)
 		{
 			UARTprintf("(relays#3)");
 			UARTprintf(" threshold is %u ppm Hydrogen/Day\n",
-			(unsigned int)(run_parameter.h2_ppm_alarm_DRC.hilo*10000.F));
+			(unsigned int)(run_parameter.h2_ppm_alarm_low_l16.hilo*10000.F));
 		}
 		if(flag_relay1==3)
 		{
@@ -1280,10 +1279,10 @@ void aoerr_arg(void)//i
 	switch(flag_function){
 		case 0:
     UARTprintf("DAC range is %0.2fmA to %0.2fmA(LowH2Current-HighH2Current), error output is %0.2fmA, not ready output is %0.2fmA\n",
-		run_parameter.h2_ppm_out_current_low.hilo,
-		run_parameter.h2_ppm_out_current_high.hilo,
-		run_parameter.h2_ppm_error_out_current.hilo,
-		run_parameter.h2_ppm_no_ready_out_current.hilo);		
+		cmd_ConfigData.LowmA,
+		cmd_ConfigData.HighmA,
+		cmd_ConfigData.ErrmA,
+		cmd_ConfigData.NotRmA);		
     UARTprintf("Change (Y/N)?");
 		flag_function++;
 		flag_chaoshi++;
