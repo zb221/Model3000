@@ -11,7 +11,6 @@
 #include "config.h"
 #include "stdarg.h"
 #include "Command.h"
-#include "parameter.h"
 
 /***********************************************************
 Description: General define.
@@ -126,6 +125,7 @@ Description: serial default interrupt.
 __irq void IRQ_UART0(void)
 {
 		volatile unsigned char i;
+
 		do{
 		switch(U0IIR&0x0e)
 		{
@@ -177,7 +177,7 @@ void init_serial (void)
 {
 	unsigned short Fdiv;
   PINSEL0 |= 0x00050005;                /* Enable UART0 UART1             */
-  U1FCR = 0x07;
+  U1FCR = 7;
 	U1LCR = 0x83;                         /* 8 bits, no Parity, 1 Stop bit     */
 	Fdiv=(Fpclk/16)/19200;								/* 19200 Baud Rate @ 12MHz VPB Clock  */	
   U1DLM=Fdiv/256;
@@ -209,11 +209,11 @@ Description: serial init.
 /* implementation of putchar (also used by printf function to output data)    */
 int sendchar (int ch)  {                 /* Write character to Serial Port    */
   if (ch == '\n')  {
-    while (!(U0LSR & 0x20));
-    U0THR = CR;                          /* output CR */
+    while (!(U1LSR & 0x20));
+    U1THR = CR;                          /* output CR */
   }
-  while (!(U0LSR & 0x20));
-  return (U0THR = ch);
+  while (!(U1LSR & 0x20));
+  return (U1THR = ch);
 }
 
 /***********************************************************
@@ -478,7 +478,6 @@ __irq void TC0_IR (void)
 		case 1000://1000ms
 		flag2 = 2;
 		count2 = 0;
-		Runtimes++;
 		break;
 
 		default:

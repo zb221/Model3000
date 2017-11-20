@@ -8,7 +8,6 @@
 #include <stdio.h>
 #include <math.h>
 #include "Cubic.h"
-#include "Peripherals_LPC2194.h"
 
 /***********************************************************
 Description: Global variable region.

@@ -11,7 +11,6 @@
 #include "Peripherals_LPC2194.h"
 #include "AD7738.h"
 #include "Cubic.h"
-#include "parameter.h"
 
 /***********************************************************
 Description: Global variable region.

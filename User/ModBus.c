@@ -28,11 +28,6 @@ unsigned char SpiFlash_Addr[5];
 //±‰¡ø∂®“ÂStart  hugo add
 unsigned short time0_count_1ms;
 unsigned short time0_count_1ms_run;
-unsigned char recept_value_buffer;
-unsigned char rcv_buf1[10];
-unsigned char rcv_cnt1;
-unsigned char rcv_new1;
-
 
 /* CRC ∏ﬂŒª◊÷Ω⁄÷µ±Ì */
 const unsigned char auchCRCHi[] = {
@@ -97,21 +92,21 @@ const unsigned char auchCRCLo[] = {
  
 } ;
 
- __irq void IRQ_UART1(void)
+ __irq void Uart_IRQ(void)
 {
-	//unsigned char recept_value_buffer;
+	unsigned char recept_value_buffer;
+
 	if((U1IIR&0x0e)==0x04)  //≈–∂œΩ¯»Îµƒ «∑ÒŒ™UART1Ω” ’÷–∂œ
 	{
-		while (!(U1LSR & 0x01));//µ»¥˝ ˝æ›Ω” ’ÕÍ±œ 
-		rcv_new1=1;
-		recept_value_buffer=U1RBR;
-		//UARTprintf(" %x ",recept_value_buffer);
+
+		while (!(U1LSR & 0x01));//µ»¥˝ ˝æ›Ω” ’ÕÍ±œ
+
+		recept_value_buffer=U1RBR;   	  
 		if(user_parameter.flag.ubit.recept_ok==0)
 		{
 			Data_Analysis(recept_value_buffer);
 		}
 	}
-
 	VICVectAddr = 0;                              /* Acknowledge Interrupt       */
 }
 
@@ -531,13 +526,13 @@ void Spi_Flash_Data_read(void)//?SPI??
 	}
 	
 void Init_interrupt(void)//hugo add 
-{		
+	{
+		
 	VICIntSelect = 0x00000000;												// ????????IRQ??
-	VICVectCntl5 = 0x20 | 7;													// UART1???IRQ slot0,??????
-	VICVectAddr5=(unsigned long)IRQ_UART1;//—°‘Ò÷–∂œ»Îø⁄µÿ÷∑µƒ≥Ã–
-	//VICIntEnClr|=1<<7; 
-	VICIntEnable |= 1 << 0x07;							// ??UART1??
-}	
+	VICVectCntl2 = 0x20 | 7;													// UART1???IRQ slot0,??????
+  VICVectAddr2=(unsigned int)Uart_IRQ;//—°‘Ò÷–∂œ»Îø⁄µÿ÷∑µƒ≥Ã–
+	VICIntEnable |= (1 << 0x07);							// ??UART1??
+		}	
 
 void Data_Analysis(unsigned char data)//hugo add 
 {
@@ -821,101 +816,99 @@ return (uchCRCHi << 8 | uchCRCLo) ;
  
 }
 
-//void UpData_ModbBus()
-//{
-//	unsigned char Temp;
-//	unsigned char Tens, units;
-//	//REALTIMEINFO TimeBCD;   //BCD¬Î ±º‰		
-///////////////////////////////////////////////////////ModBus–≠“È±‰¡ø////////////////////////////////////////////////////////////////////
+void UpData_ModbBus(REALTIMEINFO *Time)
+{
+	unsigned char Temp;
+	unsigned char Tens, units;
+	REALTIMEINFO TimeBCD;   //BCD¬Î ±º‰		
+/////////////////////////////////////////////////////ModBus–≠“È±‰¡ø////////////////////////////////////////////////////////////////////
 
-//////0°¢1
-//run_parameter.h2_ppm_h16.hilo=300;//”Õ÷–«‚(¥¯–° ˝µ„)
-//run_parameter.h2_ppm_l16.hilo=400;	
-////run_parameter.h2_ppm_l16.hilo=300;	
-//////2°¢3	
-//run_parameter.h2_ppm_dga_h16.hilo=600;//”Õ÷–«‚
-//run_parameter.h2_ppm_dga_l16.hilo=500;
-////run_parameter.h2_ppm_dga_l16.hilo=300;
+////0°¢1
+//run_parameter.h2_ppm_h16.hilo=(unsigned int)(SenseData.H2G*10000)>>16;//”Õ÷–«‚(¥¯–° ˝µ„)
+//run_parameter.h2_ppm_l16.hilo=(unsigned int)(SenseData.H2G*10000)&0xFFFF;	
+
+////2°¢3	
+//run_parameter.h2_ppm_dga_h16.hilo=(unsigned int)(SenseData.H2G*10000)>>16;//”Õ÷–«‚
+//run_parameter.h2_ppm_dga_l16.hilo=(unsigned int)(SenseData.H2G*10000)&0xFFFF;
 //	
-//////4°¢5
-//run_parameter.h2_ppm_max_h16.hilo=700;//N2 Air «‚
-//run_parameter.h2_ppm_max_l16.hilo=800;
-////run_parameter.h2_ppm_max_l16.hilo=300;
+////4°¢5
+//run_parameter.h2_ppm_max_h16.hilo=(unsigned int)(SenseData.h2)>>16;//N2 Air «‚
+//run_parameter.h2_ppm_max_l16.hilo=(unsigned int)(SenseData.h2)&0xFFFF;
 //	
-//////6
-//run_parameter.die_temperature_celsius.hilo=50*100.F;//SenseŒ¬∂»
+////6
+//run_parameter.die_temperature_celsius.hilo=(unsigned int)(SenseData.St*100.F);//SenseŒ¬∂»
 
-//////7
-//run_parameter.pcb_temperature_celsius.hilo=50*100.F;//PCBŒ¬∂»	
+////7
+//run_parameter.pcb_temperature_celsius.hilo=(unsigned int)(SenseData.Pt*100.F);//PCBŒ¬∂»	
 
-//////8
-//run_parameter.oil_temperature_celsius.hilo=50*100.F;//”ÕŒ¬
-//////9°¢10
+////8
+//run_parameter.oil_temperature_celsius.hilo=(unsigned int)(SenseData.Ot*100.F);//”ÕŒ¬
+////9°¢10
 
-//////11°¢12
-//run_parameter.h2_ppm_24hour_average_h16.hilo=10;//24h±‰ªØ¬ 
-//run_parameter.h2_ppm_24hour_average_l16.hilo=80;
+////11°¢12
+//run_parameter.h2_ppm_24hour_average_h16.hilo=(unsigned int)(SenseData.H2SldAv*10000)>>16;//24h±‰ªØ¬ 
+//run_parameter.h2_ppm_24hour_average_l16.hilo=(unsigned int)(SenseData.H2SldAv*10000)&0xFFFF;
 
-//////13°¢14
-//run_parameter.h2_ppm_DRC_h16.hilo=20;//ÃÏ±‰ªØ¬ 
-//run_parameter.h2_ppm_DRC_l16.hilo=30;
+////13°¢14
+//run_parameter.h2_ppm_DRC_h16.hilo=(unsigned int)(SenseData.DayROC*10000)>>16;//ÃÏ±‰ªØ¬ 
+//run_parameter.h2_ppm_DRC_l16.hilo=(unsigned int)(SenseData.DayROC*10000)&0xFFFF;
 
-//////15°¢16
-//run_parameter.h2_ppm_WRC_h16.hilo=40;//÷‹±‰ªØ¬ 
-//run_parameter.h2_ppm_WRC_l16.hilo=50;
+////15°¢16
+//run_parameter.h2_ppm_WRC_h16.hilo=(unsigned int)(SenseData.WeekROC*10000)>>16;//÷‹±‰ªØ¬ 
+//run_parameter.h2_ppm_WRC_l16.hilo=(unsigned int)(SenseData.WeekROC*10000)&0xFFFF;
 
-//////17°¢18
-//run_parameter.h2_ppm_MRC_h16.hilo=60;//‘¬±‰ªØ¬ 
-//run_parameter.h2_ppm_MRC_l16.hilo=70;
-////19-30±£¡Ù
+////17°¢18
+//run_parameter.h2_ppm_MRC_h16.hilo=(unsigned int)(SenseData.MonthROC*10000)>>16;//‘¬±‰ªØ¬ 
+//run_parameter.h2_ppm_MRC_l16.hilo=(unsigned int)(SenseData.MonthROC*10000)&0xFFFF;
+//19-30±£¡Ù
 
-////        //*
-////	Temp = Time->SpecificTime.sec;		//
-////	Tens = Temp / 10;
-////	units = Temp % 10;
-////	TimeBCD.SpecificTime.sec = ((Tens << 4) & 0xF0) | (units & 0x0F);
+        //*
+	Temp = Time->SpecificTime.sec;		//
+	Tens = Temp / 10;
+	units = Temp % 10;
+	TimeBCD.SpecificTime.sec = ((Tens << 4) & 0xF0) | (units & 0x0F);
 
-////	Temp = Time->SpecificTime.min;		//
-////	Tens = Temp / 10;
-////	units = Temp % 10;
-////	TimeBCD.SpecificTime.min = ((Tens << 4) & 0xF0) | (units & 0x0F);
+	Temp = Time->SpecificTime.min;		//
+	Tens = Temp / 10;
+	units = Temp % 10;
+	TimeBCD.SpecificTime.min = ((Tens << 4) & 0xF0) | (units & 0x0F);
 
-////	Temp = Time->SpecificTime.hour;		//
-////	Tens = Temp / 10;
-////	units = Temp % 10;
-////	TimeBCD.SpecificTime.hour = ((Tens << 4) & 0xF0) | (units & 0x0F);
+	Temp = Time->SpecificTime.hour;		//
+	Tens = Temp / 10;
+	units = Temp % 10;
+	TimeBCD.SpecificTime.hour = ((Tens << 4) & 0xF0) | (units & 0x0F);
 
-////	Temp = Time->SpecificTime.week;		//
-////	Tens = Temp / 10;
-////	units = Temp % 10;
-////	TimeBCD.SpecificTime.week = ((Tens << 4) & 0xF0) | (units & 0x0F);	
-////	
-////	Temp = Time->SpecificTime.day;		//
-////	Tens = Temp / 10;
-////	units = Temp % 10;
-////	TimeBCD.SpecificTime.day = ((Tens << 4) & 0xF0) | (units & 0x0F);
+	Temp = Time->SpecificTime.week;		//
+	Tens = Temp / 10;
+	units = Temp % 10;
+	TimeBCD.SpecificTime.week = ((Tens << 4) & 0xF0) | (units & 0x0F);	
+	
+	Temp = Time->SpecificTime.day;		//
+	Tens = Temp / 10;
+	units = Temp % 10;
+	TimeBCD.SpecificTime.day = ((Tens << 4) & 0xF0) | (units & 0x0F);
 
-////	Temp = Time->SpecificTime.month;		//
-////	Tens = Temp / 10;
-////	units = Temp % 10;
-////	TimeBCD.SpecificTime.month = ((Tens << 4) & 0xF0) | (units & 0x0F);
+	Temp = Time->SpecificTime.month;		//
+	Tens = Temp / 10;
+	units = Temp % 10;
+	TimeBCD.SpecificTime.month = ((Tens << 4) & 0xF0) | (units & 0x0F);
 
-////	Temp = Time->SpecificTime.year;		//
-////	Tens = Temp / 10;
-////	units = Temp % 10;
-////	TimeBCD.SpecificTime.year = ((Tens << 4) & 0xF0) | (units & 0x0F);
-//	
-////	run_parameter.reserved_parameter35=(0x20<<8 | TimeBCD.SpecificTime.year);//?
-////	run_parameter.reserved_parameter34=(TimeBCD.SpecificTime.month<<8 | TimeBCD.SpecificTime.day);
-////	run_parameter.reserved_parameter36=TimeBCD.SpecificTime.hour;
-////	run_parameter.reserved_parameter37=(TimeBCD.SpecificTime.min<<8 | TimeBCD.SpecificTime.sec);
+	Temp = Time->SpecificTime.year;		//
+	Tens = Temp / 10;
+	units = Temp % 10;
+	TimeBCD.SpecificTime.year = ((Tens << 4) & 0xF0) | (units & 0x0F);
+	
+  			run_parameter.reserved_parameter35=(0x20<<8 | TimeBCD.SpecificTime.year);//?
+  			run_parameter.reserved_parameter34=(TimeBCD.SpecificTime.month<<8 | TimeBCD.SpecificTime.day);
+  			run_parameter.reserved_parameter36=TimeBCD.SpecificTime.hour;
+  			run_parameter.reserved_parameter37=(TimeBCD.SpecificTime.min<<8 | TimeBCD.SpecificTime.sec);
 
 //if(Runtimes>=0xFFFFFFFFFFFFFFFF)Runtimes=0;
 //run_parameter.run_time_in_secends_hh32.hilo=((Runtimes>>48)&0xFFFF);
 //run_parameter.run_time_in_secends_h32.hilo=((Runtimes>>32)&0xFFFF);
 //run_parameter.run_time_in_secends_ll32.hilo=((Runtimes>>16)&0xFFFF);
 //run_parameter.run_time_in_secends_l32.hilo=Runtimes&0xFFFF;
-//}
+}
 
 ///******************************************************************************/
 ///***************************      MAIN PROGRAM      ***************************/
@@ -924,11 +917,15 @@ int Init_ModBus (void)
 {
   int i;
 	unsigned char ch;	
-//	float date;
-//	char month[2],day[2];
-//	char year[5];
+	float date;
+	char month[2],day[2];
+	char year[5];
 	
+//	Init_Pll();
 	Init_io();	
+//  init_serial();/*Gu*/
+//  init_spi();
+//	Init_timer();/*Gu*/
 	Init_interrupt();
 	//debug parameter init
 	run_parameter.reserved_parameter100=0x0240;//255	
@@ -938,37 +935,89 @@ int Init_ModBus (void)
 ///////////////////////////////////////////////////////ModBus–≠“È≥£¡ø////////////////////////////////////////////////////////////////////
 user_parameter.flag.ubit.recept_write=0;
 //31-40
-strcpy(run_parameter.model_number.model_number_str,"3000");
+//sprintf(TempBuffer,"x",ProtectType);
+//strcpy(run_parameter.model_number.model_number_str,productInf.ProtectType);	
+for(i=0;i<20;i++)
+{
+ch=run_parameter.model_number.model_number_str[i];	
+run_parameter.model_number.model_number_str[i]=run_parameter.model_number.model_number_str[i+1];
+run_parameter.model_number.model_number_str[i+1]=ch;i++;
+}
 //41-50
-strcpy(run_parameter.product_serial_number.product_serial_number_str,"170000001");
+//sprintf(TempBuffer,"x",SerialNum);
+//strcpy(run_parameter.product_serial_number.product_serial_number_str,productInf.SerialNum);
+for(i=0;i<20;i++)
+{
+ch=run_parameter.product_serial_number.product_serial_number_str[i];	
+run_parameter.product_serial_number.product_serial_number_str[i]=run_parameter.product_serial_number.product_serial_number_str[i+1];
+run_parameter.product_serial_number.product_serial_number_str[i+1]=ch;i++;
+}
+
 //51-60
-strcpy(run_parameter.sensor_serial_number.sensor_serial_number_str,"S2.3.01893");
+//sprintf(TempBuffer,"x",SenseNum);
+//strcpy(run_parameter.sensor_serial_number.sensor_serial_number_str,productInf.SenseNum);
+for(i=0;i<20;i++)
+{
+ch=run_parameter.sensor_serial_number.sensor_serial_number_str[i];	
+run_parameter.sensor_serial_number.sensor_serial_number_str[i]=run_parameter.sensor_serial_number.sensor_serial_number_str[i+1];
+run_parameter.sensor_serial_number.sensor_serial_number_str[i+1]=ch;i++;
+}
 //61-70
-strcpy(run_parameter.sensor_board_serial_number.sensor_board_serial_number_str,"12345678");//productInf.SensorBoardNum
+//sprintf(TempBuffer,"x","10L114-30");
+//strcpy(run_parameter.sensor_board_serial_number.sensor_board_serial_number_str,productInf.SensorBoardNum);//productInf.SensorBoardNum
+for(i=0;i<20;i++)
+{
+ch=run_parameter.sensor_board_serial_number.sensor_board_serial_number_str[i];	
+run_parameter.sensor_board_serial_number.sensor_board_serial_number_str[i]=run_parameter.sensor_board_serial_number.sensor_board_serial_number_str[i+1];
+run_parameter.sensor_board_serial_number.sensor_board_serial_number_str[i+1]=ch;i++;
+}
+
 //71-80
-strcpy(run_parameter.interface_board_serial_number.interface_board_serial_number_str,"12345678");//productInf.InterfaceBoardNum
+//sprintf(TempBuffer,"x","10L137-31");InterfaceBoardNum
+//strcpy(run_parameter.interface_board_serial_number.interface_board_serial_number_str,productInf.InterfaceBoardNum);//productInf.InterfaceBoardNum
+for(i=0;i<20;i++)
+{
+ch=run_parameter.interface_board_serial_number.interface_board_serial_number_str[i];	
+run_parameter.interface_board_serial_number.interface_board_serial_number_str[i]=run_parameter.interface_board_serial_number.interface_board_serial_number_str[i+1];
+run_parameter.interface_board_serial_number.interface_board_serial_number_str[i+1]=ch;i++;
+}
+
 //81°¢82
-run_parameter.manufacturing_date.month=01;
+run_parameter.manufacturing_date.month=01;//
 run_parameter.manufacturing_date.day=01;
 run_parameter.manufacturing_date.year=2000;
 
 //83°¢84
-//date=atof(month);
-run_parameter.factory_calibration_date.month=11;
-//date=atof(day);
-run_parameter.factory_calibration_date.day=14;
-//date=atof(year);
-run_parameter.factory_calibration_date.year=2017;
+//year[0]=CalDate[0];year[1]=CalDate[1];year[2]=CalDate[2];year[3]=CalDate[3];
+//month[0]=CalDate[4];month[1]=CalDate[5];
+//day[0]=CalDate[6];day[1]=CalDate[7];
+
+date=atof(month);
+run_parameter.factory_calibration_date.month=(unsigned char)date;//
+date=atof(day);
+run_parameter.factory_calibration_date.day=(unsigned char)date;
+date=atof(year);
+run_parameter.factory_calibration_date.year=(unsigned short)date;
+
 //85°¢86
-run_parameter.field_calibration_date.month=11;
-run_parameter.field_calibration_date.day=14;
-run_parameter.field_calibration_date.year=2017;
+//run_parameter.field_calibration_date.month=((cmd_ConfigData.Caldate&0xFFFF)>>8);
+//run_parameter.field_calibration_date.day=(cmd_ConfigData.Caldate & 0xFF);
+//run_parameter.field_calibration_date.year=cmd_ConfigData.Caldate>>16;
+
 //87°¢88
-run_parameter.dissolved_gas_calibration_date.month=01;
+run_parameter.dissolved_gas_calibration_date.month=01;//
 run_parameter.dissolved_gas_calibration_date.day=01;
 run_parameter.dissolved_gas_calibration_date.year=2000;
+
 //89-98
-strcpy(run_parameter.firmware_revesion.firmware_revesion_str,"demo");
+//sprintf(TempBuffer,"x",FirmwareREV);
+//strcpy(run_parameter.firmware_revesion.firmware_revesion_str,FirmwareREV);
+for(i=0;i<20;i++)
+{
+ch=run_parameter.firmware_revesion.firmware_revesion_str[i];	
+run_parameter.firmware_revesion.firmware_revesion_str[i]=run_parameter.firmware_revesion.firmware_revesion_str[i+1];
+run_parameter.firmware_revesion.firmware_revesion_str[i+1]=ch;i++;
+}
 //99-110±£¡Ù
 
 //111
@@ -991,21 +1040,40 @@ run_parameter.status_flag.ubit.new_data_available=0;
 run_parameter.status_flag.ubit.unit_ready=1;
 //112-120±£¡Ù
 
-run_parameter.h2_ppm_report_high_h16.hilo=0;
-run_parameter.h2_ppm_report_high_l16.hilo=10;
-	
-run_parameter.h2_ppm_report_low_h16.hilo=0;
-run_parameter.h2_ppm_report_low_l16.hilo=5000;
 
 //150
+//run_parameter.unit_id.ubit.lo=systemInf.ModbusID;//∂¡ID	
 run_parameter.unit_id.ubit.lo=1;	
 //201-210
-strcpy(run_parameter.own_id.own_id_str,"user 01");
+//sprintf(TempBuffer,"x","user 01");
+//strcpy(run_parameter.own_id.own_id_str,productInf.Own_id);
+for(i=0;i<20;i++)
+{
+ch=run_parameter.own_id.own_id_str[i];	
+run_parameter.own_id.own_id_str[i]=run_parameter.own_id.own_id_str[i+1];
+run_parameter.own_id.own_id_str[i+1]=ch;i++;
+}
 //211-220
-strcpy(run_parameter.sub_station_id.sub_station_id_str,"Sub-Station 01");
+//sprintf(TempBuffer,"x","Sub-Station 01");
+//strcpy(run_parameter.sub_station_id.sub_station_id_str,productInf.Sub_station_id);
+for(i=0;i<20;i++)
+{
+ch=run_parameter.sub_station_id.sub_station_id_str[i];	
+run_parameter.sub_station_id.sub_station_id_str[i]=run_parameter.sub_station_id.sub_station_id_str[i+1];
+run_parameter.sub_station_id.sub_station_id_str[i+1]=ch;i++;
+}
 //221-230
-strcpy(run_parameter.transformer_id.transformer_id_str,"Transformer 01");
+//sprintf(TempBuffer,"x","Transformer 01");
+//strcpy(run_parameter.transformer_id.transformer_id_str,productInf.Transformer_id);
+for(i=0;i<20;i++)
+{
+ch=run_parameter.transformer_id.transformer_id_str[i];	
+run_parameter.transformer_id.transformer_id_str[i]=run_parameter.transformer_id.transformer_id_str[i+1];
+run_parameter.transformer_id.transformer_id_str[i+1]=ch;i++;
+}
 //231-255±£¡Ù
+
+
 DS1390_CS_H;
 LC512_CS_H;
 
@@ -1015,8 +1083,6 @@ M25P16_reset();
 M25P16_read_ID(user_parameter.spi_flash_buffer);
 //			flash_read(&SpiFlash_Addr[0], 4, 120);
 e2prom512_read(&SpiFlash_Addr[0], 4, 120);
-
-//UpData_ModbBus();
 			
 return 0;
 }
@@ -1029,7 +1095,7 @@ return 0;
 int RW_ModBus_Data (void)  
 {
 
-//	unsigned int wr;
+	unsigned int wr;
 	unsigned int db_H2ppm;	
 /////////////////////////////////////////////////////ModBus–≠“È≥£¡øwrite////////////////////////////////////////////////////////////////////
 ////	UARTprintf("point=%d\r\n",user_parameter.function_point);
@@ -1040,7 +1106,7 @@ switch (user_parameter.function_point)
 //∂¡Flash
   case 101:
 	{
-  Spi_Flash_Data_read();//read flash data
+  Spi_Flash_Data_read();
 	break;		
 	}		
 //************************************************	
@@ -1116,30 +1182,30 @@ RealTime_Modbus.Real_Time[6]=run_parameter.reserved_parameter37&0xFF;//√Î
 	Write1390(REG_SEC,RealTime_Modbus.Real_Time[6]);
 	Write1390(REG_STATUS,0x00); //Ω˚÷π–¥»Î		
 		
-    //DS1390_AdjustTime(&RealTime_Modbus);
+//    DS1390_AdjustTime(&RealTime_Modbus);
 break;
 	}
 case 142:
 {
 //141-142	
-cmd_ConfigData.H2low = (double)(((run_parameter.h2_ppm_report_low_h16.hilo<<16 |run_parameter.h2_ppm_report_low_l16.hilo)/10000.F)*20.F);
+//cmd_ConfigData.H2low = (double)(((run_parameter.h2_ppm_report_low_h16.hilo<<16 |run_parameter.h2_ppm_report_low_l16.hilo)/10000.F)*20.F);
 //float_char(cmd_ConfigData.H2low,systemInf.LowH2);		
 break;
 }	
 case 144:
 {
 //143-144	
-cmd_ConfigData.H2high = (double)(((run_parameter.h2_ppm_report_high_h16.hilo<<16 |run_parameter.h2_ppm_report_high_l16.hilo)/10000.F)*20.F);		
+//cmd_ConfigData.H2high = (double)(((run_parameter.h2_ppm_report_high_h16.hilo<<16 |run_parameter.h2_ppm_report_high_l16.hilo)/10000.F)*20.F);		
 //float_char(cmd_ConfigData.H2high,systemInf.HighH2);		
 	break;
 }
 	case 148:
 	{
 //145 146 147 148
-cmd_ConfigData.LowmA=(double)((run_parameter.h2_ppm_out_current_low.hilo)/100.F);
-cmd_ConfigData.HighmA=(double)((run_parameter.h2_ppm_out_current_high.hilo)/100.F);
-cmd_ConfigData.ErrmA=(double)((run_parameter.h2_ppm_error_out_current.hilo)/100.F);
-cmd_ConfigData.NotRmA=(double)((run_parameter.h2_ppm_no_ready_out_current.hilo)/100.F);
+//cmd_ConfigData.LowmA=(double)((run_parameter.h2_ppm_out_current_low.hilo)/100.F);
+//cmd_ConfigData.HighmA=(double)((run_parameter.h2_ppm_out_current_high.hilo)/100.F);
+//cmd_ConfigData.ErrmA=(double)((run_parameter.h2_ppm_error_out_current.hilo)/100.F);
+//cmd_ConfigData.NotRmA=(double)((run_parameter.h2_ppm_no_ready_out_current.hilo)/100.F);
 
 //    float_char(cmd_ConfigData.LowmA,systemInf.Out_mA_Low);//float?char  ??????
 //    float_char(cmd_ConfigData.HighmA,systemInf.Out_mA_High);
@@ -1204,14 +1270,14 @@ return 0;
 }
 
 
-void Spi_Flash_Addr_RW(unsigned long ddr)
-{
-SpiFlash_Addr[0]=((ddr & 0xFFFFFFFF) >> 24);
-SpiFlash_Addr[1]=((ddr & 0xFFFFFF) >> 16);
-SpiFlash_Addr[2]=((ddr & 0xFFFF) >> 8);
-SpiFlash_Addr[3]=ddr&0xFF;			
-e2prom512_write(&SpiFlash_Addr[0],4, 120);	
-}
+//void Spi_Flash_Addr_RW(unsigned long ddr)
+//{
+//SpiFlash_Addr[0]=((ddr & 0xFFFFFFFF) >> 24);
+//SpiFlash_Addr[1]=((ddr & 0xFFFFFF) >> 16);
+//SpiFlash_Addr[2]=((ddr & 0xFFFF) >> 8);
+//SpiFlash_Addr[3]=ddr&0xFF;			
+//flash_write(&SpiFlash_Addr[0],4, 120);	
+//}
 
 //unsigned long Spi_Flash_Addr_R(void)
 //{
@@ -1464,16 +1530,16 @@ e2prom512_write(&SpiFlash_Addr[0],4, 120);
 //	
 //for(i=0;i<m;i++)	
 //{	
-//M25P16_read_data_anywhere(256,256*i);	
+//AT25df16_read_data_anywhere(256,256*i);	
 
 //for(n=0;n<256;n++)	
 //{
 //								IO1SET	=EN_485_DE;//  πƒ‹ ‰»Î 485 ∑¢ÀÕ
 //								Delay_us(1);
-//								Uart1_SentByte(user_parameter.spi_flash_buffer[n]);
+//								Uart0_SentByte(user_parameter.spi_flash_buffer[n]);
 //								IO1CLR	=EN_485_DE;//  πƒ‹ ‰»Î 485 ∑¢ÀÕ	
 //}
 //}
 //}
 
-				
+//				
