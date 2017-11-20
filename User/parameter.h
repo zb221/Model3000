@@ -450,51 +450,40 @@ union
 		}firmware_revesion_sstr;
 		char firmware_revesion_str[20];
 }firmware_revesion;
+	unsigned short reserved_parameter13;//99
+	unsigned short reserved_parameter14;//100
+	unsigned short reserved_parameter15;//101
 union
 {		
 	struct
 	  {
 		unsigned char character1;
-		unsigned char character2;//99
+		unsigned char character2;//102
 		unsigned char character3;
-		unsigned char character4;//100
+		unsigned char character4;//103
 		unsigned char character5;
-		unsigned char character6;//101
+		unsigned char character6;//104
 		unsigned char character7;
-		unsigned char character8;//102
-		unsigned char character9;
-		unsigned char character10;//103
+		unsigned char character8;//105
 		}factory_sstr;
-		char factory_str[10];
+		char factory_str[8];
 	}factory;//99
 union
 {		
 	struct
 	  {
 		unsigned char character1;
-		unsigned char character2;//104
+		unsigned char character2;//106
 		unsigned char character3;
-		unsigned char character4;//105
+		unsigned char character4;//107
 		unsigned char character5;
-		unsigned char character6;//106
+		unsigned char character6;//108
 		unsigned char character7;
-		unsigned char character8;//107
-		unsigned char character9;
-		unsigned char character10;//108
+		unsigned char character8;//109
 		}hardware_version_sstr;
-		char hardware_version_str[10];
+		char hardware_version_str[8];
 	}hardware_version;
-//	unsigned short reserved_parameter14;//100
-//	unsigned short reserved_parameter15;//101
-//	unsigned short reserved_parameter16;//102
-//	unsigned short reserved_parameter17;//103
-//	unsigned short reserved_parameter18;//104
-//	unsigned short reserved_parameter19;//105
-//	unsigned short reserved_parameter20;//106
-//	unsigned short reserved_parameter21;//107
-//	unsigned short reserved_parameter22;//108
-	unsigned short reserved_parameter13;//109
-	unsigned short reserved_parameter14;//110
+	unsigned short reserved_parameter24;//110
 	union
 	{
 		struct
@@ -533,7 +522,7 @@ union
 //	unsigned short reserved_parameter25;//112
 //	unsigned short reserved_parameter26;//113
 //	unsigned short reserved_parameter27;//114
-	unsigned short reserved_parameter15;//115
+	unsigned short reserved_parameter28;//115
 	unsigned short reserved_parameter29;//116
 	unsigned short reserved_parameter30;//117
 	unsigned short reserved_parameter31;//118
@@ -700,7 +689,7 @@ union
 			unsigned char hi;	
 			}ubit;	
 		unsigned short hilo;
-		}h2_ppm_alarm_low_h16;//154
+		}h2_ppm_alarm_low_h16;//154 DRC alarm?
 	union
 	{
 		struct
@@ -720,17 +709,17 @@ union
 			}ubit;	
 		unsigned short hilo;
 	}OilTemp_Alarm_celsius;//156		
-		union
-	{
-		struct
-		{
-			unsigned char lo;
-			unsigned char hi;		
-			}ubit;	
-		unsigned short hilo;
-	}h2_ppm_alarm_DRC;//157		
+//		union
+//	{
+//		struct
+//		{
+//			unsigned char lo;
+//			unsigned char hi;		
+//			}ubit;	
+//		unsigned short hilo;
+//	}h2_ppm_alarm_DRC;//157		
 				
-//	unsigned short reserved_parameter50;//157
+	unsigned short reserved_parameter50;//157
 	unsigned short reserved_parameter51;//158
 	unsigned short reserved_parameter52;//159
 	unsigned short reserved_parameter53;//160
@@ -742,7 +731,7 @@ union
 			unsigned char hi;	
 			}ubit;	
 		unsigned short hilo;
-		}die_temperature_counts_h16;//161
+		}die_temperature_counts_h16;//161 sensor temperature count
 	union
 	{
 		struct
@@ -1027,6 +1016,43 @@ union
 }RUN_PARAMETER;
 //RUN_PARAMETER  run_parameter;
 VARIABLE_EXT  RUN_PARAMETER  run_parameter;//moudlebus ??????		
+
+VARIABLE_EXT unsigned long FlashData_Addr;
+VARIABLE_EXT unsigned long long int Runtimes;	
+
+typedef struct CMD_ConfigData
+{  
+ unsigned int   slaveID;//={1};	
+ float     H2low;//=0;
+ float     H2high;//=40000;
+ float     MaxAlertH2;
+ float     MaxAlarmH2;	
+ unsigned long  Caldate;//=20160621;	
+ unsigned int   inter_time;//=0;
+ float          LowmA;//cmd_ConfigData.LowmA;
+ float          HighmA;
+ float          ErrmA;
+ float          NotRmA;	
+ float          LowVout;//cmd_ConfigData.LowmA;
+ float          HighVout;
+ float          ErrVout;
+ float          NotRVout;		
+ float          h2cdata_ka;//=1;//?????1
+ float          h2cdata_kb;//=1;
+ float          h2cdata_ka_temp;//=1;//?????1
+ float          h2cdata_kb_temp;//=1; 
+ float          OutCi_ka;//=1;//?????1
+ float          OutCi_kb;//=1;
+ float          OutCi_ka_temp;//=1;//?????1
+ float          OutCi_kb_temp;//=1;
+ float          OutCv_ka;//=1;//?????1
+ float          OutCv_kb;//=1;
+ float          OutCv_ka_temp;//=1;//?????1
+ float          OutCv_kb_temp;//=1;
+ float     MaxAlarmOil;
+}ConfigFlashEE;
+//#pragma pack(pop)
+VARIABLE_EXT ConfigFlashEE   cmd_ConfigData; // fill_rec_buf()????
 
 #endif
 
