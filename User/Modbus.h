@@ -21,10 +21,12 @@ void Data_Analysis(unsigned char tata);
 unsigned short crc16(unsigned char *puchMsg, unsigned short usDataLen);
 void Data_Ack_Processor(void);//hugo add
 
-void UpData_ModbBus(REALTIMEINFO *Time);
+//void UpData_ModbBus();
 void Init_io(void); 
 int Init_ModBus (void);
 int RW_ModBus_Data (void);
 
 
 #endif
+
+
