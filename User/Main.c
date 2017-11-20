@@ -334,7 +334,7 @@ int main (void)
 		
 		if (flag4 == 1)
  		{
- 			/*1S command_print*/
+ 			/*2S command_print*/
  			ADC7738_acquisition_output(1);
  			ADC7738_acquisition_output(2);
  			ADC7738_acquisition_output(3);
