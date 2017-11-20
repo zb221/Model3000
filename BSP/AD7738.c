@@ -110,6 +110,12 @@ float Current_of_Temperature_resistance = 5;
 float Current_of_Hydrogen_Resistance = 0.75;
 
 /*-------------------------Global variable region----------------------*/
+extern float Temp_R_K;
+extern float Temp_R_B;
+
+extern float Temp[4];
+extern float Temp_R[4];
+
 extern int temperature;
 
 extern int flag1;
@@ -124,7 +130,7 @@ extern float H2Resistor_OilTemp_B;
 float OilTemp_Tmp[1000] = {0};
 float H2Resistor_Tmp[1000] = {0};
 
-float H2Resistor_Tmp_1[200] = {0};/* Data for filtering processing */
+float H2Resistor_Tmp_1[20] = {0};/* Data for filtering processing */
 
 unsigned int Channel_OilTemp = 0;
 unsigned int Channel_H2Resistor = 0;
@@ -351,14 +357,17 @@ Description: .
 ***********************************************************/
 void Temperature_of_resistance_Parameter(void)
 {	
-	float Temp_resistance_slope = 0, x = 0, y = 0;
 	static unsigned int number = 0;
-
-	Linear_slope(&Temp_resistance_slope, &x, &y, Temp_Res);
+	static unsigned char flag = 0;
+	
+	if (flag == 0){
+	    Line_Fit(Temp_R, Temp);
+	    flag = 1;
+	}
 
 	TempResistor = (Channel_OilTemp/AD7738_resolution_NP25-2500)/Current_of_Temperature_resistance;
 
-	OilTemp_Tmp[number++] = (TempResistor-(y-Temp_resistance_slope*x))/Temp_resistance_slope;
+	OilTemp_Tmp[number++] = Temp_R_K*TempResistor + Temp_R_B;
 //	UARTprintf("%.4f	",OilTemp_Tmp[number-1]);
 	if (number == sizeof(OilTemp_Tmp)/sizeof(OilTemp_Tmp[0])){
 		number = 0;
@@ -442,7 +451,7 @@ void ADC7738_acquisition(unsigned char channel)
 		case 2:
  		Channel_H2Resistor = (data0<<16|data1<<8|data2);
 		Hydrogen_Resistance_Parameter();
-		Line_Fit();
+		Line_Fit(OilTemp_Tmp,H2Resistor_Tmp);
 		H2Resistor_Tmp_1[number2++] = H2Resistor_OilTemp_K*temperature + H2Resistor_OilTemp_B;
 		if (number2 == sizeof(H2Resistor_Tmp_1)/sizeof(H2Resistor_Tmp_1[0])){
 			number2 = 0;

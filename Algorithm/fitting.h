@@ -5,4 +5,4 @@
 @		Date: 2017/11/13.
 ***********************************************/
 
-void Line_Fit(void);
+void Line_Fit(float *X, float *Y);

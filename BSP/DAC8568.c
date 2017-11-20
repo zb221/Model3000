@@ -10,7 +10,17 @@
 #include "DAC8568.h"
 #include "Cubic.h"
 #include "Peripherals_LPC2194.h"
+#include "fitting.h"
 
+extern float Din_temp_DAC_Din_K;
+extern float Din_temp_DAC_Din_B;
+extern float DAC_Din[5];
+extern float Din_temp[5];
+
+extern float PCB_TEMP_Din_K;
+extern float PCB_TEMP_Din_B;
+extern float PCB_TEMP_Din[3];
+extern float PCB_TEMP_SET[3];
 /***********************************************************
 Function:	init DAC8568 CS PIN.
 Input:	none
@@ -64,17 +74,16 @@ Description: .
 ***********************************************************/
 void DAC_SET_Chanel_Din(float temperature,int *DAC_DIN, unsigned char type)
 {
-	float DAC_Din_Sense_Temp_slope = 0, x = 0, y = 0;
-	float DAC_Din_PCB_Temp_slope = 0, m = 0, n = 0;
-	
 	switch (type){
 		case DAC_temp:
-		Linear_slope(&DAC_Din_Sense_Temp_slope, &x, &y, DAC_temp);
-		*DAC_DIN = (temperature - (y-(DAC_Din_Sense_Temp_slope*x)))/DAC_Din_Sense_Temp_slope;
+		Line_Fit(Din_temp,DAC_Din);
+		*DAC_DIN = Din_temp_DAC_Din_K*temperature + Din_temp_DAC_Din_B;
+//		UARTprintf("DAC_DIN2=%d\n",*DAC_DIN);
 		break;
 		case PCB_TEMP:
-		Linear_slope(&DAC_Din_PCB_Temp_slope, &m, &n, PCB_TEMP);
-		*DAC_DIN = (temperature - (n-(DAC_Din_PCB_Temp_slope*m)))/DAC_Din_PCB_Temp_slope;
+		Line_Fit(PCB_TEMP_SET, PCB_TEMP_Din);
+		*DAC_DIN = PCB_TEMP_Din_K*temperature + PCB_TEMP_Din_B;
+//		UARTprintf("DAC_DIN4=%d\n",*DAC_DIN);
 		break;
 		
 		default:
@@ -114,7 +123,7 @@ void DAC8568_PCB_TEMP_SET(float PCB_temp,float current)
 {
 	int DAC_H_Din = 0;
 	DAC_SET_Chanel_Din(PCB_temp,&DAC_H_Din,PCB_TEMP);     /* set PCB want temp value */
-	
+
 	DAC8568_SET(0x0,0x9,0x0,0xA000,0);		        /* Power up internal reference all the time regardless DAC states */
 
 	DAC8568_SET(0x0,0x3,0x5,current,0);		/*DAC-F*/

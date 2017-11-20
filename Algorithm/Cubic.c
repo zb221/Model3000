@@ -20,29 +20,28 @@ Date: 2017/10/10
 /*The relationship between H2 and H2_resistance*/
 float H2[] = {0.5,0.8,1.0,2.0,4.0,6.0,8.0,10.0,15.0,20.0,30,40,60,80,100};
 float OHM[] = {607.732,608.799,609.422,611.832,615.097,617.59,619.734,621.5,625.587,628.711,634.544,639.727,648.659,656.587,663.789};
+float Hydrogen_R[] = {556.448,567.663,578.720,589.298,600.106};
 
 /*The relationship between temperature_resistance/H2_resistance and temperature*/
-float Temp[] = {10,30,50,70};
-float Temp_R[] = {92.130,97.952,104.021,110.174};
+float Temp[4] = {10,30,50,70};/* zsy */
+float Temp_R[4] = {92.130,97.952,104.021,110.174};/* zsy */
 
-//float Temp[] = {10,30,50,70};	/* new sense */
-//float Temp_R[] = {93.661,100.345,107.373,114.696};	/* new sense */
-
-float Hydrogen_R[] = {556.448,567.663,578.720,589.298,600.106};
+//float Temp[4] = {10,30,50,70};	/* new sense */
+//float Temp_R[4] = {93.661,100.345,107.373,114.696};	/* new sense */
 
 /*The relationship between temperature of sense_temperature_resistance and DAC Din*/
 //float DAC_Din[] =  {38864,39083,39421,39754,40247,40960,41600};
 //float Din_temp[] = {35.080,43.085,58.520,75.125,96.450,128.450,157.625};
 
-//float DAC_Din[] =  {39877,40000,40500};/* new sense */
-//float Din_temp[] = {49,54.6,75.4};/* new sense */
+//float DAC_Din[5] =  {39877,40000,40500};/* new sense */
+//float Din_temp[5] = {41.1,54.6,75.4};/* new sense */
 
-float DAC_Din[] =  {39577,39677,39877,40000,40200};/* zsy */
-float Din_temp[] = {45.8,50.8,61.1,66.9,76.9};/* zsy */
+float DAC_Din[5] =  {39577,39677,39877,40000,40200};/* zsy */
+float Din_temp[5] = {45.8,50.8,61.1,66.9,76.9};/* zsy */
 
 /*DAC8568 Din data - PCB temp control*/
-float PCB_TEMP_Din[] =  {11336,11536};
-float PCB_TEMP_SET[] = {41.336,45.835};
+float PCB_TEMP_Din[3] =  {11336,11536,11636};
+float PCB_TEMP_SET[3] = {37.5,42.6,44.9};
 
 typedef struct SPLINE    
 { 

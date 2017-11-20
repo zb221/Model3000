@@ -240,7 +240,7 @@ int main (void)
 			flag1 = 0;
 			if(flag_screen==0)
 			{
-        UARTprintf("1-4min capture 3min oil temp\n");	
+			UARTprintf("1-4min capture 3min oil temp\n");	
 			}
 			break;
 
@@ -334,7 +334,7 @@ int main (void)
 		
 		if (flag4 == 1)
  		{
- 			/*1S command_print*/
+ 			/*2S command_print*/
  			ADC7738_acquisition_output(1);
  			ADC7738_acquisition_output(2);
  			ADC7738_acquisition_output(3);
