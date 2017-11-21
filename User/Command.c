@@ -31,8 +31,7 @@ unsigned char flag_relay_done;//判断设置的是哪个relay的功能，relay设置限制跳转标
 unsigned char flag_mode=1;//mode flag
 unsigned char a;//cmd_tmp的长度
 unsigned int readlog_number;//读取报警信息数量
-extern int temperature;
-extern unsigned char MODEL_TYPE;
+
 extern REALTIMEINFO CurrentTime;
 //*****************************************************************************/
 //cmd catalogue
@@ -2379,17 +2378,17 @@ void cf_arg(void)//configuration
 					break;
 					case 0x31://n 
 					UARTprintf("change mode to normal - exit\n");
-					MODEL_TYPE=1;
+					output_data.MODEL_TYPE=1;
 					flag_function++;						
 					break;
 					case 0x32:
 					UARTprintf("change mode to debug - exit\n");
-					MODEL_TYPE=2;
+					output_data.MODEL_TYPE=2;
 					flag_function++;
 					break;
 					case 0x33:
 					UARTprintf("change mode to calibration - exit\n");
-					MODEL_TYPE=3;
+					output_data.MODEL_TYPE=3;
 					flag_function++;
 					break;
 					case 0x34:
@@ -2440,10 +2439,10 @@ void cf_arg(void)//configuration
 				}
 				if(flag_done==0)
 				{
-					temperature=atoi(cmd_tmp);
-					UARTprintf("now heat temperature is %d\r\n",temperature);
+					output_data.temperature=atoi(cmd_tmp);
+					UARTprintf("now heat temperature is %d\r\n",output_data.temperature);
 					UARTprintf("\n...SAVED  Done......exit\r\n\r\n");
-					DAC8568_INIT_SET(temperature,0xF000);
+					DAC8568_INIT_SET(output_data.temperature,0xF000);
 					flag_function=2;
 				}
 		}

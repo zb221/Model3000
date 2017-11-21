@@ -27,7 +27,6 @@
 #define PCB_TEMP			3
 
 float Cubic_main(float value,unsigned char type);
-void Linear_slope(float *slope, float *x, float *y, unsigned char type);
 
 #endif
 

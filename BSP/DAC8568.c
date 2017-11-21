@@ -11,16 +11,8 @@
 #include "Cubic.h"
 #include "Peripherals_LPC2194.h"
 #include "fitting.h"
+#include "parameter.h"
 
-extern float Din_temp_DAC_Din_K;
-extern float Din_temp_DAC_Din_B;
-extern float DAC_Din[5];
-extern float Din_temp[5];
-
-extern float PCB_TEMP_Din_K;
-extern float PCB_TEMP_Din_B;
-extern float PCB_TEMP_Din[3];
-extern float PCB_TEMP_SET[3];
 /***********************************************************
 Function:	init DAC8568 CS PIN.
 Input:	none
@@ -76,13 +68,13 @@ void DAC_SET_Chanel_Din(float temperature,int *DAC_DIN, unsigned char type)
 {
 	switch (type){
 		case DAC_temp:
-		Line_Fit(Din_temp,DAC_Din);
-		*DAC_DIN = Din_temp_DAC_Din_K*temperature + Din_temp_DAC_Din_B;
+		Line_Fit(Intermediate_Data.Din_temp,Intermediate_Data.DAC_Din);
+		*DAC_DIN = Intermediate_Data.Din_temp_DAC_Din_K*temperature + Intermediate_Data.Din_temp_DAC_Din_B;
 //		UARTprintf("DAC_DIN2=%d\n",*DAC_DIN);
 		break;
 		case PCB_TEMP:
-		Line_Fit(PCB_TEMP_SET, PCB_TEMP_Din);
-		*DAC_DIN = PCB_TEMP_Din_K*temperature + PCB_TEMP_Din_B;
+		Line_Fit(Intermediate_Data.PCB_TEMP_SET, Intermediate_Data.PCB_TEMP_Din);
+		*DAC_DIN = Intermediate_Data.PCB_TEMP_Din_K*temperature + Intermediate_Data.PCB_TEMP_Din_B;
 //		UARTprintf("DAC_DIN4=%d\n",*DAC_DIN);
 		break;
 		
@@ -108,7 +100,7 @@ void DAC8568_INIT_SET(float temperature,float current)
 	
 	DAC8568_SET(0x0,0x3,0x2,current,0);		       /* DAC-C */
 	DAC8568_SET(0x0,0x3,0x6,DAC_G_Din,0);		       /* DAC-G */
-	UARTprintf("DAC_G_Din=%d\n",DAC_G_Din);
+//	UARTprintf("DAC_G_Din=%d\n",DAC_G_Din);
 }
 
 /***********************************************************
