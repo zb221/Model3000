@@ -12,6 +12,7 @@
 #include "AD7738.h"
 #include "Cubic.h"
 #include "fitting.h"
+#include "parameter.h"
 
 /***********************************************************
 Description: Global variable region.
@@ -102,35 +103,13 @@ enum {
 #define BIT24		(1<<1)
 #define BIT16		(0<<1)
 
+/*-------------------------Global variable region----------------------*/
 float AD7738_resolution_NP25 = 8388607/2500;
 float AD7738_resolution_NP_125 = 8388607/1250;
 float AD7738_resolution_NP_0625 = 8388607/625;
 
 float Current_of_Temperature_resistance = 5;
 float Current_of_Hydrogen_Resistance = 0.75;
-
-/*-------------------------Global variable region----------------------*/
-extern float Temp_R_K;
-extern float Temp_R_B;
-
-extern float Temp[4];
-extern float Temp_R[4];
-
-extern int temperature;
-
-extern int flag1;
-unsigned char data0 = 0, data1 = 0, data2 = 0;	/* The raw data output from ADC */
-float OilTemp = 0;
-float TempResistor = 0;
-float H2Resistor = 0;
-float PcbTemp = 0;
-
-extern float H2Resistor_OilTemp_K;
-extern float H2Resistor_OilTemp_B;
-float OilTemp_Tmp[1000] = {0};
-float H2Resistor_Tmp[1000] = {0};
-
-float H2Resistor_Tmp_1[20] = {0};/* Data for filtering processing */
 
 unsigned int Channel_OilTemp = 0;
 unsigned int Channel_H2Resistor = 0;
@@ -277,11 +256,11 @@ float AVERAGE_F(float *p)
 	unsigned int i = 0, number = 0;
 	float sum = 0;
 
-	if (p == H2Resistor_Tmp_1){
-		number = sizeof(H2Resistor_Tmp_1)/sizeof(H2Resistor_Tmp_1[0]);
+	if (p == Intermediate_Data.H2Resistor_Tmp_1){
+		number = sizeof(Intermediate_Data.H2Resistor_Tmp_1)/sizeof(Intermediate_Data.H2Resistor_Tmp_1[0]);
 		for (i=0;i<number;i++)
 		{
-			sum += H2Resistor_Tmp_1[i];
+			sum += Intermediate_Data.H2Resistor_Tmp_1[i];
 		}
 		sum = sum / number;
 	}
@@ -301,19 +280,19 @@ void sortB(float *arry)
 	unsigned int i = 0, j = 0, length = 0;
 	float temp = 0;
 
-	if (arry == H2Resistor_Tmp_1){
-		length = sizeof(H2Resistor_Tmp_1)/sizeof(H2Resistor_Tmp_1[0]);
+	if (arry == Intermediate_Data.H2Resistor_Tmp_1){
+		length = sizeof(Intermediate_Data.H2Resistor_Tmp_1)/sizeof(Intermediate_Data.H2Resistor_Tmp_1[0]);
 		for(i = 0; i < length; ++i)
 		{
 			for(j = i + 1; j < length; ++j){
 
-				if(H2Resistor_Tmp_1[j] < H2Resistor_Tmp_1[i]){
+				if(Intermediate_Data.H2Resistor_Tmp_1[j] < Intermediate_Data.H2Resistor_Tmp_1[i]){
 
-					temp = H2Resistor_Tmp_1[i];
+					temp = Intermediate_Data.H2Resistor_Tmp_1[i];
 
-					H2Resistor_Tmp_1[i] = H2Resistor_Tmp_1[j];
+					Intermediate_Data.H2Resistor_Tmp_1[i] = Intermediate_Data.H2Resistor_Tmp_1[j];
 
-					H2Resistor_Tmp_1[j] = temp;
+					Intermediate_Data.H2Resistor_Tmp_1[j] = temp;
 
 				}
 			}
@@ -336,14 +315,14 @@ void filterA(float *arry)
 
 	sortB(arry);
 
-	if (arry == H2Resistor_Tmp_1){
-		number = sizeof(H2Resistor_Tmp_1)/sizeof(H2Resistor_Tmp_1[0]);
+	if (arry == Intermediate_Data.H2Resistor_Tmp_1){
+		number = sizeof(Intermediate_Data.H2Resistor_Tmp_1)/sizeof(Intermediate_Data.H2Resistor_Tmp_1[0]);
 		for (i=(number/2)-effective;i<(number/2)+effective;i++)
 		{
-			sum += H2Resistor_Tmp_1[i];
+			sum += Intermediate_Data.H2Resistor_Tmp_1[i];
 
 		}
-		H2Resistor = sum / (2*effective);
+		output_data.H2Resistor = sum / (2*effective);
 	}
 }
 
@@ -361,15 +340,15 @@ void Temperature_of_resistance_Parameter(void)
 	static unsigned char flag = 0;
 	
 	if (flag == 0){
-	    Line_Fit(Temp_R, Temp);
+	    Line_Fit(Intermediate_Data.Temp_R, Intermediate_Data.Temp);
 	    flag = 1;
 	}
 
-	TempResistor = (Channel_OilTemp/AD7738_resolution_NP25-2500)/Current_of_Temperature_resistance;
+	output_data.TempResistor = (Channel_OilTemp/AD7738_resolution_NP25-2500)/Current_of_Temperature_resistance;
 
-	OilTemp_Tmp[number++] = Temp_R_K*TempResistor + Temp_R_B;
-//	UARTprintf("%.4f	",OilTemp_Tmp[number-1]);
-	if (number == sizeof(OilTemp_Tmp)/sizeof(OilTemp_Tmp[0])){
+	Intermediate_Data.OilTemp_Tmp[number++] = Intermediate_Data.Temp_R_K*output_data.TempResistor + Intermediate_Data.Temp_R_B;
+//	UARTprintf("%.4f	",Intermediate_Data.OilTemp_Tmp[number-1]);
+	if (number == sizeof(Intermediate_Data.OilTemp_Tmp)/sizeof(Intermediate_Data.OilTemp_Tmp[0])){
 		number = 0;
 	}
 }
@@ -386,9 +365,9 @@ void Hydrogen_Resistance_Parameter(void)
 {
 	static unsigned int number1 = 0;
 	
-	H2Resistor_Tmp[number1++] = (Channel_H2Resistor/AD7738_resolution_NP25-2500)/Current_of_Hydrogen_Resistance;
-//	UARTprintf("%.4f\n",H2Resistor_Tmp[number1-1]);
-	if (number1 == sizeof(H2Resistor_Tmp)/sizeof(H2Resistor_Tmp[0])){
+	Intermediate_Data.H2Resistor_Tmp[number1++] = (Channel_H2Resistor/AD7738_resolution_NP25-2500)/Current_of_Hydrogen_Resistance;
+//	UARTprintf("%.4f\n",Intermediate_Data.H2Resistor_Tmp[number1-1]);
+	if (number1 == sizeof(Intermediate_Data.H2Resistor_Tmp)/sizeof(Intermediate_Data.H2Resistor_Tmp[0])){
 		number1 = 0;
 	}
 }
@@ -407,7 +386,7 @@ void PCB_temp_Parameter(void)
 	float n = 0.0038623139728, m = -0.00000065314932626, R = 0, PT1000_current = 0.125;
 	
 	R = (Channel_PcbTemp/AD7738_resolution_NP25-2500)/PT1000_current;
-	PcbTemp = (-n + sqrt(n*n-4*m*(1-R/1000)))/(2*m);
+	output_data.PcbTemp = (-n + sqrt(n*n-4*m*(1-R/1000)))/(2*m);
 }
 
 /***********************************************************
@@ -423,6 +402,7 @@ void ADC7738_acquisition(unsigned char channel)
 	static unsigned int number2 = 0;
 	unsigned char flag = 0;
 	unsigned int temp = 0, count1 = 0, one_time = 4;
+	unsigned char data0 = 0, data1 = 0, data2 = 0;	/* The raw data output from ADC */
 
 	AD7738_write(channel_setup_0 + channel,0<<7|AINx_AINx|0<<4|Channel_Continuous_conversion_disable|NP_25);	/*Channel Setup Registers:BUF_OFF<<7|COM1|COM0|Stat|Channel_CCM|RNG2_0*/
 	AD7738_write(channel_conv_time_0 + channel,Chop_Enable|FW);	/*channel coversion time*/
@@ -451,9 +431,9 @@ void ADC7738_acquisition(unsigned char channel)
 		case 2:
  		Channel_H2Resistor = (data0<<16|data1<<8|data2);
 		Hydrogen_Resistance_Parameter();
-		Line_Fit(OilTemp_Tmp,H2Resistor_Tmp);
-		H2Resistor_Tmp_1[number2++] = H2Resistor_OilTemp_K*temperature + H2Resistor_OilTemp_B;
-		if (number2 == sizeof(H2Resistor_Tmp_1)/sizeof(H2Resistor_Tmp_1[0])){
+		Line_Fit(Intermediate_Data.OilTemp_Tmp,Intermediate_Data.H2Resistor_Tmp);
+		Intermediate_Data.H2Resistor_Tmp_1[number2++] = Intermediate_Data.H2Resistor_OilTemp_K*output_data.temperature + Intermediate_Data.H2Resistor_OilTemp_B;
+		if (number2 == sizeof(Intermediate_Data.H2Resistor_Tmp_1)/sizeof(Intermediate_Data.H2Resistor_Tmp_1[0])){
 			number2 = 0;
 		}
 		break;
@@ -479,11 +459,12 @@ void ADC7738_acquisition_output(unsigned char channel)
 {
 	switch (channel){
 		case 1:
-		OilTemp = temperature;
+		output_data.OilTemp = output_data.temperature;
 		break;
 
 		case 2:
-		H2Resistor = AVERAGE_F(H2Resistor_Tmp_1);
+		output_data.H2Resistor = AVERAGE_F(Intermediate_Data.H2Resistor_Tmp_1);
+//		UARTprintf("\r\n %.3f \r\n",Cubic_main(608.9,Hydrogen_Res));
 		break;
 
 		case 3:
