@@ -122,7 +122,32 @@ void command_print(void)
 	}
 	UARTprintf("\r\n");
 }
+void update_e2c(void)//run_parameter all save
+{
+ unsigned char *p;
+ p=&(run_parameter.h2_ppm_h16.ubit.lo);
+//	  e2prom512_write(p,128,0);
+//		e2prom512_write(p+128,128,128);
+//		e2prom512_write(p+256,128,256);
+//		e2prom512_write(p+384,128,384);
 
+	e2prom512_read(p+150*2,2,150*2);
+	e2prom512_read(p+141*2,4,141*2);
+	e2prom512_read(p+143*2,4,143*2);
+	e2prom512_read(p+145*2,8,145*2);
+	e2prom512_read(p+152*2,4,152*2);
+	e2prom512_read(p+154*2,4,154*2);
+	e2prom512_read(p+156*2,2,156*2);
+	e2prom512_read(p+201*2,20,201*2);
+	e2prom512_read(p+211*2,20,211*2);
+	e2prom512_read(p+221*2,20,221*2);
+//	for(i=0;i<512;i++)//test save accuracy
+//	{
+//	 UARTprintf("buffer %d %x\n",i,buffer[i]);
+//	}
+	
+	
+}
 void UpData_ModbBus(REALTIMEINFO *Time)
 {
 	unsigned char Temp;
@@ -220,17 +245,12 @@ run_parameter.run_time_in_secends_h32.hilo=((Runtimes>>32)&0xFFFF);
 run_parameter.run_time_in_secends_ll32.hilo=((Runtimes>>16)&0xFFFF);
 run_parameter.run_time_in_secends_l32.hilo=Runtimes&0xFFFF;
 
-run_parameter.h2_ppm_out_current_low.hilo=(unsigned short)(cmd_ConfigData.LowmA*100.F);
-run_parameter.h2_ppm_out_current_high.hilo=(unsigned short)(cmd_ConfigData.HighmA*100.F);
-run_parameter.h2_ppm_error_out_current.hilo=(unsigned short)(cmd_ConfigData.ErrmA*100.F);
-run_parameter.h2_ppm_no_ready_out_current.hilo=(unsigned short)(cmd_ConfigData.NotRmA*100.F);
-
-run_parameter.h2_ppm_report_high_l16.hilo=200;
-run_parameter.h2_ppm_report_low_l16.hilo=100;
-
-run_parameter.h2_ppm_alarm_low_l16.hilo=100;
-run_parameter.h2_ppm_alert_low_l16.hilo=10;
-run_parameter.OilTemp_Alarm_celsius.hilo=70;
+//run_parameter.h2_ppm_out_current_low.hilo=(unsigned short)(cmd_ConfigData.LowmA*100.F);
+//run_parameter.h2_ppm_out_current_high.hilo=(unsigned short)(cmd_ConfigData.HighmA*100.F);
+//run_parameter.h2_ppm_error_out_current.hilo=(unsigned short)(cmd_ConfigData.ErrmA*100.F);
+//run_parameter.h2_ppm_no_ready_out_current.hilo=(unsigned short)(cmd_ConfigData.NotRmA*100.F);
+//e2prom512_write(&run_parameter.h2_ppm_out_current_low.ubit.lo,8,145*2);
+update_e2c();
 }
 /***********************************************************
 Function:	Main function.
@@ -242,19 +262,20 @@ Description: main function for Model3000 project.
 ***********************************************************/
 int main (void)  
 {
-	//unsigned char i;
+	unsigned short i;
+	unsigned char buffer[512];
 	FrecInit();
 
 	init_peripherals();
 	Init_ModBus();
 	//LC512_Init();
 	UARTprintf(print_menu);
-
 	DAC8568_INIT_SET(temperature,2*65536/5);	/*DOUT-C = xV*65536/5*/
 	DAC8568_PCB_TEMP_SET(PCB_temp,0x1000);
 	
+//	update_e2c();
 //	M25P16_TEST();
-//	LC512_TEST();
+//  e2promtest();
 
 	while (1)  
 	{
@@ -420,6 +441,7 @@ int main (void)
 			device_checkself();
 			command_print();
 			UpData_ModbBus(&CurrentTime);
+			update_e2c();	
 			flag2 = 0;
 			break;
 
@@ -454,18 +476,16 @@ int main (void)
 		}
 		ADC7738_acquisition(1);
 		ADC7738_acquisition(2);
-		ADC7738_acquisition(3);
-		
+		ADC7738_acquisition(3);		
 		if(user_parameter.flag.ubit.recept_ok==1)
 		{			
 			Data_Ack_Processor();
 		}
-
 		if(user_parameter.flag.ubit.recept_write==1)
 		{
 			RW_ModBus_Data();
+			//after writing save to e2c	
 		}	
-
 	}
 }
 

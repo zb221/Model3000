@@ -455,7 +455,7 @@ Author: megzheng
 Date: 2017/10/19
 Description:  .
 ***********************************************************/
-void config_arg_d0(void)//e2c do not save just init give these value
+void config_arg_d0(void)//还需增加从E2P读取这些参数
 {
 	switch(flag_function){
 		case 0:

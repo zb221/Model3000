@@ -1033,26 +1033,45 @@ typedef struct CMD_ConfigData
  float          HighmA;
  float          ErrmA;
  float          NotRmA;	
- float          LowVout;//cmd_ConfigData.LowmA;
- float          HighVout;
- float          ErrVout;
- float          NotRVout;		
- float          h2cdata_ka;//=1;//?????1
- float          h2cdata_kb;//=1;
- float          h2cdata_ka_temp;//=1;//?????1
- float          h2cdata_kb_temp;//=1; 
- float          OutCi_ka;//=1;//?????1
- float          OutCi_kb;//=1;
- float          OutCi_ka_temp;//=1;//?????1
- float          OutCi_kb_temp;//=1;
- float          OutCv_ka;//=1;//?????1
- float          OutCv_kb;//=1;
- float          OutCv_ka_temp;//=1;//?????1
- float          OutCv_kb_temp;//=1;
+// float          LowVout;//cmd_ConfigData.LowmA;
+// float          HighVout;
+// float          ErrVout;
+// float          NotRVout;		
+// float          h2cdata_ka;//=1;//?????1
+// float          h2cdata_kb;//=1;
+// float          h2cdata_ka_temp;//=1;//?????1
+// float          h2cdata_kb_temp;//=1; 
+// float          OutCi_ka;//=1;//?????1
+// float          OutCi_kb;//=1;
+// float          OutCi_ka_temp;//=1;//?????1
+// float          OutCi_kb_temp;//=1;
+// float          OutCv_ka;//=1;//?????1
+// float          OutCv_kb;//=1;
+// float          OutCv_ka_temp;//=1;//?????1
+// float          OutCv_kb_temp;//=1;
  float     MaxAlarmOil;
 }ConfigFlashEE;
-//#pragma pack(pop)
-VARIABLE_EXT ConfigFlashEE   cmd_ConfigData; // fill_rec_buf()????
+VARIABLE_EXT ConfigFlashEE   cmd_ConfigData;
 
+//typedef struct Systeminf //?????????????????tt?€??
+//{
+//	unsigned char h2_ppm_alert_low[4];
+//  unsigned char h2_ppm_alert_high[4];
+//	unsigned char h2_ppm_alarm_low[4];// DRC min
+//	unsigned char h2_ppm_alarm_high[4];
+//	unsigned char oiltemp_alarm[4];
+//	unsigned char report_h2_ppm_low[4];
+//	unsigned char report_h2_ppm_high[4];
+//	unsigned char Out_mA_Low[4];
+//  unsigned char Out_mA_High[4];
+//  unsigned char Out_mA_Err[4];
+//  unsigned char Out_mA_NotR[4];
+//	unsigned char CaliDate[4]; 
+//	unsigned char interval_time[2];
+//	unsigned char modbus_id;
+////	unsigned char 
+
+//}SysInf;
+//VARIABLE_EXT SysInf systemInf;
 #endif
 
