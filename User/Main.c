@@ -187,52 +187,77 @@ void command_print(void)
 	}
 	UARTprintf("\r\n");
 }
+void update_e2c(void)//run_parameter all save
+{
+ unsigned char *p;
+ p=&(run_parameter.h2_ppm_h16.ubit.lo);
+//	  e2prom512_write(p,128,0);
+//		e2prom512_write(p+128,128,128);
+//		e2prom512_write(p+256,128,256);
+//		e2prom512_write(p+384,128,384);
 
+	e2prom512_read(p+150*2,2,150*2);
+	e2prom512_read(p+141*2,4,141*2);
+	e2prom512_read(p+143*2,4,143*2);
+	e2prom512_read(p+145*2,8,145*2);
+	e2prom512_read(p+152*2,4,152*2);
+	e2prom512_read(p+154*2,4,154*2);
+	e2prom512_read(p+156*2,2,156*2);
+	e2prom512_read(p+201*2,20,201*2);
+	e2prom512_read(p+211*2,20,211*2);
+	e2prom512_read(p+221*2,20,221*2);
+//	for(i=0;i<512;i++)//test save accuracy
+//	{
+//	 UARTprintf("buffer %d %x\n",i,buffer[i]);
+//	}
+	
+	
+}
 void UpData_ModbBus(REALTIMEINFO *Time)
 {
 	unsigned char Temp;
 	unsigned char Tens, units;
-	REALTIMEINFO TimeBCD;   //BCDÂëÊ±¼ä		
-/////////////////////////////////////////////////////ModBusÐ­Òé±äÁ¿////////////////////////////////////////////////////////////////////
+	REALTIMEINFO TimeBCD;   //BCDç æ—¶é—´		
+/////////////////////////////////////////////////////ModBusåè®®å˜é‡////////////////////////////////////////////////////////////////////
 
-////0¡¢1
-run_parameter.h2_ppm_h16.hilo=0;//ÓÍÖÐÇâ(´øÐ¡Êýµã)
+////0ã€1
+run_parameter.h2_ppm_h16.hilo=0;//æ²¹ä¸­æ°¢(å¸¦å°æ•°ç‚¹)
 run_parameter.h2_ppm_l16.hilo=400;	
 //run_parameter.h2_ppm_l16.hilo=300;	
-////4¡¢5
-run_parameter.h2_ppm_max_h16.hilo=0;//N2 Air Çâ
+////4ã€5
+run_parameter.h2_ppm_max_h16.hilo=0;//N2 Air æ°¢
 run_parameter.h2_ppm_max_l16.hilo=800;
 //run_parameter.h2_ppm_max_l16.hilo=300;
-////2¡¢3	
-run_parameter.h2_ppm_dga_h16.hilo=0;//ÓÍÖÐÇâ
+////2ã€3	
+run_parameter.h2_ppm_dga_h16.hilo=0;//æ²¹ä¸­æ°¢
 run_parameter.h2_ppm_dga_l16.hilo=500;
 //run_parameter.h2_ppm_dga_l16.hilo=300;
 ////6
-run_parameter.die_temperature_celsius.hilo=50*100.F;//SenseÎÂ¶È
+run_parameter.die_temperature_celsius.hilo=50*100.F;//Senseæ¸©åº¦
 
 ////7
-run_parameter.pcb_temperature_celsius.hilo=50*100.F;//PCBÎÂ¶È	
+run_parameter.pcb_temperature_celsius.hilo=50*100.F;//PCBæ¸©åº¦	
 
 ////8
-run_parameter.oil_temperature_celsius.hilo=50*100.F;//ÓÍÎÂ
-////9¡¢10
+run_parameter.oil_temperature_celsius.hilo=50*100.F;//æ²¹æ¸©
+////9ã€10
 
-////11¡¢12
-run_parameter.h2_ppm_24hour_average_h16.hilo=10;//24h±ä»¯ÂÊ
+////11ã€12
+run_parameter.h2_ppm_24hour_average_h16.hilo=10;//24hå˜åŒ–çŽ‡
 run_parameter.h2_ppm_24hour_average_l16.hilo=80;
 
-////13¡¢14
-run_parameter.h2_ppm_DRC_h16.hilo=20;//Ìì±ä»¯ÂÊ
+////13ã€14
+run_parameter.h2_ppm_DRC_h16.hilo=20;//å¤©å˜åŒ–çŽ‡
 run_parameter.h2_ppm_DRC_l16.hilo=30;
 
-////15¡¢16
-run_parameter.h2_ppm_WRC_h16.hilo=40;//ÖÜ±ä»¯ÂÊ
+////15ã€16
+run_parameter.h2_ppm_WRC_h16.hilo=40;//å‘¨å˜åŒ–çŽ‡
 run_parameter.h2_ppm_WRC_l16.hilo=50;
 
-////17¡¢18
-run_parameter.h2_ppm_MRC_h16.hilo=60;//ÔÂ±ä»¯ÂÊ
+////17ã€18
+run_parameter.h2_ppm_MRC_h16.hilo=60;//æœˆå˜åŒ–çŽ‡
 run_parameter.h2_ppm_MRC_l16.hilo=70;
-//19-30±£Áô
+//19-30ä¿ç•™
 
 	DS1390_GetTime(&CurrentTime);
 	Temp = Time->SpecificTime.sec;		//
@@ -285,17 +310,12 @@ run_parameter.run_time_in_secends_h32.hilo=((Runtimes>>32)&0xFFFF);
 run_parameter.run_time_in_secends_ll32.hilo=((Runtimes>>16)&0xFFFF);
 run_parameter.run_time_in_secends_l32.hilo=Runtimes&0xFFFF;
 
-run_parameter.h2_ppm_out_current_low.hilo=(unsigned short)(cmd_ConfigData.LowmA*100.F);
-run_parameter.h2_ppm_out_current_high.hilo=(unsigned short)(cmd_ConfigData.HighmA*100.F);
-run_parameter.h2_ppm_error_out_current.hilo=(unsigned short)(cmd_ConfigData.ErrmA*100.F);
-run_parameter.h2_ppm_no_ready_out_current.hilo=(unsigned short)(cmd_ConfigData.NotRmA*100.F);
-
-run_parameter.h2_ppm_report_high_l16.hilo=200;
-run_parameter.h2_ppm_report_low_l16.hilo=100;
-
-run_parameter.h2_ppm_alarm_low_l16.hilo=100;
-run_parameter.h2_ppm_alert_low_l16.hilo=10;
-run_parameter.OilTemp_Alarm_celsius.hilo=70;
+//run_parameter.h2_ppm_out_current_low.hilo=(unsigned short)(cmd_ConfigData.LowmA*100.F);
+//run_parameter.h2_ppm_out_current_high.hilo=(unsigned short)(cmd_ConfigData.HighmA*100.F);
+//run_parameter.h2_ppm_error_out_current.hilo=(unsigned short)(cmd_ConfigData.ErrmA*100.F);
+//run_parameter.h2_ppm_no_ready_out_current.hilo=(unsigned short)(cmd_ConfigData.NotRmA*100.F);
+//e2prom512_write(&run_parameter.h2_ppm_out_current_low.ubit.lo,8,145*2);
+update_e2c();
 }
 /***********************************************************
 Function:	Main function.
@@ -307,8 +327,11 @@ Description: main function for Model3000 project.
 ***********************************************************/
 int main (void)  
 {
+	unsigned short i;
+	unsigned char buffer[512];
+  
 	FrecInit();
-
+  
 	init_Global_Variable();
 	init_peripherals();
 	Init_ModBus();
@@ -485,6 +508,7 @@ int main (void)
 			LED_status();
 			command_print();
 			UpData_ModbBus(&CurrentTime);
+			update_e2c();
 			Intermediate_Data.flag2 = 0;
 			break;
 
@@ -517,18 +541,16 @@ int main (void)
 		}
 		ADC7738_acquisition(1);
 		ADC7738_acquisition(2);
-		ADC7738_acquisition(3);
-		
+		ADC7738_acquisition(3);		
 		if(user_parameter.flag.ubit.recept_ok==1)
 		{			
 			Data_Ack_Processor();
 		}
-
 		if(user_parameter.flag.ubit.recept_write==1)
 		{
 			RW_ModBus_Data();
+			//after writing save to e2c	
 		}	
-
 	}
 }
 

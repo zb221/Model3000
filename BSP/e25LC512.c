@@ -13,7 +13,7 @@
 2. 16KB/Sector
 
 @		Copyright: Hydrogen Sense(Suzhou)  Technology Co.,Ltd. All rights reserved.
-@		Author: zhuobin.
+@		Author: megzheng.
 @		Date: 2017/10/25.
 
 ***********************************************/
@@ -157,7 +157,7 @@ void e2prom512_sector_erase(void)
 {
 	LC512_CS_L;
 	Delay_us(1);
-	SPI1_SendDate(SE);
+	SPI1_SendDate(SSE);
 	LC512_CS_H;
 	Delay_ms(5);	
 }

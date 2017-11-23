@@ -22,7 +22,7 @@
 #define RDSR		0x05
 #define WRSR		0x01
 #define PE			0x42
-#define SE			0xd8
+#define SSE			0xd8
 #define CE			0xc7
 #define RDID		0xab
 #define DPD			0xb9

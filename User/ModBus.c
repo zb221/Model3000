@@ -680,6 +680,7 @@ void Data_Ack_Processor(void)//hugo add
 							temp_point_count=user_parameter.register_count.hi_lo;
 							user_parameter.register_count.hi_lo=user_parameter.register_count.hi_lo<<1;						
 							p=p+(user_parameter.start_address.hi_lo<<1);
+		          //UARTprintf("P %d\n",p);
 							temp_vp=user_parameter.register_count.hi_lo+(user_parameter.start_address.hi_lo<<1);
 							temp_vmax=512;
 							if((temp_vp>temp_vmax)||(temp_point_count>125))
@@ -704,10 +705,10 @@ void Data_Ack_Processor(void)//hugo add
 									}
 							for(i=0;i<temp_point_count;i++)
 							{
-										user_parameter.send_buffer[3+i*2]=*(p+1);
+								    user_parameter.send_buffer[3+i*2]=*(p+1);
 										user_parameter.send_buffer[3+i*2+1]=*p;
 										p+=2;	
-								}
+							}
 							temp_crc=crc16(user_parameter.send_buffer,user_parameter.send_buffer[2]+3);
 							user_parameter.send_buffer[user_parameter.register_count.hi_lo+4]=temp_crc;
 							user_parameter.send_buffer[user_parameter.register_count.hi_lo+3]=temp_crc>>8;
@@ -923,14 +924,15 @@ int Init_ModBus (void)
 //	float date;
 //	char month[2],day[2];
 //	char year[5];
-	
+//	unsigned char buffer[20];
+//	unsigned char i;
 	Init_io();	
 	Init_interrupt();
 	//debug parameter init
 	run_parameter.reserved_parameter100=0x0240;//255	
-
-
 	
+//	run_parameter.h2_ppm_h16.hilo=10000;
+//	run_parameter.h2_ppm_l16.hilo=20000;
 ///////////////////////////////////////////////////////ModBus协议常量////////////////////////////////////////////////////////////////////
 user_parameter.flag.ubit.recept_write=0;
 //31-40
@@ -943,7 +945,7 @@ strcpy(run_parameter.sensor_serial_number.sensor_serial_number_str,"S2.3.01893")
 strcpy(run_parameter.sensor_board_serial_number.sensor_board_serial_number_str,"12345678");//productInf.SensorBoardNum
 //71-80
 strcpy(run_parameter.interface_board_serial_number.interface_board_serial_number_str,"12345678");//productInf.InterfaceBoardNum
-//81、82
+//81-82
 run_parameter.manufacturing_date.month=01;
 run_parameter.manufacturing_date.day=01;
 run_parameter.manufacturing_date.year=2000;
@@ -986,21 +988,31 @@ run_parameter.status_flag.ubit.reserved1=0;
 run_parameter.status_flag.ubit.new_data_available=0; 
 run_parameter.status_flag.ubit.unit_ready=1;
 //112-120保留
-
 run_parameter.h2_ppm_report_high_h16.hilo=0;
-run_parameter.h2_ppm_report_high_l16.hilo=10;
+run_parameter.h2_ppm_report_high_l16.hilo=5000;
 	
 run_parameter.h2_ppm_report_low_h16.hilo=0;
-run_parameter.h2_ppm_report_low_l16.hilo=5000;
+run_parameter.h2_ppm_report_low_l16.hilo=100;
 
 //150
 run_parameter.unit_id.ubit.lo=1;	
 //201-210
 strcpy(run_parameter.own_id.own_id_str,"user 01");
+e2prom512_write(&run_parameter.own_id.own_id_str,sizeof(run_parameter.own_id.own_id_str),201*2);
 //211-220
 strcpy(run_parameter.sub_station_id.sub_station_id_str,"Sub-Station 01");
+e2prom512_write(&run_parameter.sub_station_id.sub_station_id_str,sizeof(run_parameter.own_id.own_id_str),211*2);
 //221-230
 strcpy(run_parameter.transformer_id.transformer_id_str,"Transformer 01");
+e2prom512_write(&run_parameter.transformer_id.transformer_id_str,sizeof(run_parameter.own_id.own_id_str),221*2);
+
+run_parameter.h2_ppm_report_high_l16.hilo=200;
+run_parameter.h2_ppm_report_low_l16.hilo=100;
+
+run_parameter.h2_ppm_alarm_low_l16.hilo=100;
+run_parameter.h2_ppm_alert_low_l16.hilo=10;
+run_parameter.OilTemp_Alarm_celsius.hilo=70;
+
 //231-255保留
 DS1390_CS_H;
 LC512_CS_H;
@@ -1010,8 +1022,7 @@ M25P16_reset();
   		//AT25df16_read_ID(user_parameter.spi_flash_buffer);
 M25P16_read_ID(user_parameter.spi_flash_buffer);
 //			flash_read(&SpiFlash_Addr[0], 4, 120);
-e2prom512_read(&SpiFlash_Addr[0], 4, 120);
-
+//e2prom512_read(&SpiFlash_Addr[0], 4, 120);
 //UpData_ModbBus();
 			
 return 0;
@@ -1045,6 +1056,7 @@ switch (user_parameter.function_point)
 //    UARTprintf("Current H2 value is %5u ppm H2\n",(unsigned int)((SenseData.h2*10000)/20));
 //    cmd_ConfigData.h2cdata_ka=SenseData.h2;		
 //    float_char(cmd_ConfigData.h2cdata_ka,systemInf.Cal_Ka);
+		
  	break;		
 	}
   case 122:
@@ -1081,6 +1093,7 @@ switch (user_parameter.function_point)
 //		systemInf.ModbusID=(unsigned char)run_parameter.uint_id.ubit.lo;//systemInf.CallID=(systemInf.CallID-50);		
 //    UARTprintf("Set ModbusID to:%d\r\n", (unsigned int)systemInf.ModbusID);		
 //run_parameter.uint_id.ubit.lo=0x01;//默认ID
+		e2prom512_write(&run_parameter.unit_id.ubit.lo,2,150*2);
 	break;
 	}
 	
@@ -1099,8 +1112,7 @@ RealTime_Modbus.Real_Time[6]=run_parameter.reserved_parameter37&0xFF;//秒
 	  (long int)RealTime_Modbus.Real_Time[0],\
 		(long int)RealTime_Modbus.Real_Time[1],\
     (long int)RealTime_Modbus.Real_Time[2],(long int)RealTime_Modbus.Real_Time[4],\
-    (long int)RealTime_Modbus.Real_Time[5],(long int)RealTime_Modbus.Real_Time[6]);
-		
+    (long int)RealTime_Modbus.Real_Time[5],(long int)RealTime_Modbus.Real_Time[6]);		
 //*/
 	Write1390(REG_STATUS,0x80); //写入允许
 	Write1390(REG_YEAR,RealTime_Modbus.Real_Time[0]); 
@@ -1119,23 +1131,27 @@ case 142:
 {
 //141-142	
 cmd_ConfigData.H2low = (double)(((run_parameter.h2_ppm_report_low_h16.hilo<<16 |run_parameter.h2_ppm_report_low_l16.hilo)/10000.F)*20.F);
-//float_char(cmd_ConfigData.H2low,systemInf.LowH2);		
+e2prom512_write(&run_parameter.h2_ppm_report_low_h16.ubit.lo,4,141*2);	
+	//float_char(cmd_ConfigData.H2low,systemInf.LowH2);		
 break;
 }	
 case 144:
 {
 //143-144	
-cmd_ConfigData.H2high = (double)(((run_parameter.h2_ppm_report_high_h16.hilo<<16 |run_parameter.h2_ppm_report_high_l16.hilo)/10000.F)*20.F);		
+cmd_ConfigData.H2high = (double)(((run_parameter.h2_ppm_report_high_h16.hilo<<16 |run_parameter.h2_ppm_report_high_l16.hilo)/10000.F)*20.F);
+e2prom512_write(&run_parameter.h2_ppm_report_high_h16.ubit.lo,4,143*2);	
 //float_char(cmd_ConfigData.H2high,systemInf.HighH2);		
 	break;
 }
 	case 148:
-	{
+{
 //145 146 147 148
 cmd_ConfigData.LowmA=(double)((run_parameter.h2_ppm_out_current_low.hilo)/100.F);
 cmd_ConfigData.HighmA=(double)((run_parameter.h2_ppm_out_current_high.hilo)/100.F);
 cmd_ConfigData.ErrmA=(double)((run_parameter.h2_ppm_error_out_current.hilo)/100.F);
 cmd_ConfigData.NotRmA=(double)((run_parameter.h2_ppm_no_ready_out_current.hilo)/100.F);
+
+e2prom512_write(&run_parameter.h2_ppm_out_current_low.ubit.lo,8,145*2);
 
 //    float_char(cmd_ConfigData.LowmA,systemInf.Out_mA_Low);//float?char  ??????
 //    float_char(cmd_ConfigData.HighmA,systemInf.Out_mA_High);
@@ -1148,7 +1164,9 @@ break;
 //152 153
 case 153:
 {	
-//cmd_ConfigData.MaxAlertH2 = (double)((run_parameter.h2_ppm_alert_low_h16.hilo<<16 |run_parameter.h2_ppm_alert_low_l16.hilo)/10000.F);
+cmd_ConfigData.MaxAlertH2 = (double)((run_parameter.h2_ppm_alert_low_h16.hilo<<16 |run_parameter.h2_ppm_alert_low_l16.hilo)/10000.F);
+e2prom512_write(&run_parameter.h2_ppm_alert_low_h16.ubit.lo,4,152*2);
+	
 //float_char(cmd_ConfigData.MaxAlertH2,systemInf.AlertH2);		
 break;
 }
@@ -1156,7 +1174,8 @@ break;
 //154 155
 case 155:
 {	
-//cmd_ConfigData.MaxAlarmH2 = (double)((run_parameter.h2_ppm_alarm_low_h16.hilo<<16 |run_parameter.h2_ppm_alarm_low_l16.hilo)/10000.F);
+cmd_ConfigData.MaxAlarmH2 = (double)((run_parameter.h2_ppm_alarm_low_h16.hilo<<16 |run_parameter.h2_ppm_alarm_low_l16.hilo)/10000.F);
+e2prom512_write(&run_parameter.h2_ppm_alarm_low_h16.ubit.lo,4,154*2);
 //float_char(cmd_ConfigData.MaxAlarmH2,systemInf.AlarmH2);		
 break;
 }
@@ -1164,30 +1183,34 @@ break;
 //156
 case 156:
 {	
-//cmd_ConfigData.MaxAlarmOil = (double)(run_parameter.OilTemp_Alarm_celsius.hilo/100.F);
-//float_char(cmd_ConfigData.MaxAlarmOil,systemInf.AlarmOil);		
+cmd_ConfigData.MaxAlarmOil = (double)(run_parameter.OilTemp_Alarm_celsius.hilo/100.F);
+e2prom512_write(&run_parameter.OilTemp_Alarm_celsius.ubit.lo,2,156*2);
+	//float_char(cmd_ConfigData.MaxAlarmOil,systemInf.AlarmOil);		
 break;
 }
 
 	case 210:
-	{
+{
 //				 wr=Msg8StartAdr;//????0x0100?  ???257????						 
 // 				 strcpy(productInf.Own_id, run_parameter.own_id.own_id_str);//??        write_opera);//    cmd_analyze.processed_buf
 //	       flash_write (&productInf.Own_id[0],EElength, wr);//wr????EE??
+e2prom512_write(&run_parameter.own_id.own_id_sstr.character1,20,201*2);
 break;
 }
 		case 220:
-	{
+{
 //				 wr=Msg9StartAdr;//????0x0100?  ???257????						 
 // 				 strcpy(productInf.Sub_station_id, run_parameter.sub_station_id.sub_station_id_str);//??        write_opera);//    cmd_analyze.processed_buf
 //	       flash_write (&productInf.Sub_station_id[0],EElength, wr);//wr????EE??
+e2prom512_write(&run_parameter.sub_station_id.sub_station_id_sstr.character1,20,211*2);
 break;
 }
 		case 230:
-	{
+{
 //				 wr=Msg10StartAdr;//????0x0100?  ???257????						 
 // 				 strcpy(productInf.Transformer_id,run_parameter.transformer_id.transformer_id_str);//??        write_opera);//    cmd_analyze.processed_buf
 //	       flash_write (&productInf.Transformer_id[0],EElength, wr);//wr????EE??
+e2prom512_write(&run_parameter.transformer_id.transformer_id_sstr.character1,20,221*2);
 break;
 }
 //231-255保留
@@ -1206,7 +1229,7 @@ SpiFlash_Addr[0]=((ddr & 0xFFFFFFFF) >> 24);
 SpiFlash_Addr[1]=((ddr & 0xFFFFFF) >> 16);
 SpiFlash_Addr[2]=((ddr & 0xFFFF) >> 8);
 SpiFlash_Addr[3]=ddr&0xFF;			
-e2prom512_write(&SpiFlash_Addr[0],4, 120);	
+//e2prom512_write(&SpiFlash_Addr[0],4, 120);	
 }
 
 //unsigned long Spi_Flash_Addr_R(void)
