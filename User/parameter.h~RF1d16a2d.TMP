@@ -1054,22 +1054,6 @@ typedef struct CMD_ConfigData
 //#pragma pack(pop)
 VARIABLE_EXT ConfigFlashEE   cmd_ConfigData; // fill_rec_buf()????
 
-typedef union __real_time_info__ 
-{
-	unsigned char Real_Time[10];
-	struct
-	{
-		unsigned char	  year;						//秒
-		unsigned char   month;					//分
-		unsigned char   day;					//
-		unsigned char   hour;					//日			///unsigned char   week;	
-    unsigned char   min;					//月
-		unsigned char	  sec;					//年     
-		unsigned char	  week;
-	}SpecificTime;	
-}REALTIMEINFO;
-VARIABLE_EXT REALTIMEINFO CurrentTime;
-
 typedef struct Output_Data
 {
 	unsigned char MODEL_TYPE; /*1->normal model; 2->debug model; 3->calibrate model*/

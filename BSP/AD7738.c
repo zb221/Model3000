@@ -116,6 +116,23 @@ unsigned int Channel_H2Resistor = 0;
 unsigned int Channel_PcbTemp = 0;
 
 /***********************************************************
+Function:	 U23 AD7738 CS pin init.
+Input:	none
+Output: none
+Author: zhuobin
+Date: 2017/11/22
+Description: P1.23 and P1.21 is output port.
+***********************************************************/
+void U23_AD7738_CS_INIT(void)
+{	
+	IO1DIR |= (1<<23); /*CS2->P1.23*/
+	IO1SET |= (1<<23);
+	
+	IO1DIR|=(1<<21);	/*RDY2->P1.21*/		
+	IO1SET|=(1<<21);
+}
+
+/***********************************************************
 Function:	 AD7738 CS pin init.
 Input:	none
 Output: none
@@ -464,7 +481,7 @@ void ADC7738_acquisition_output(unsigned char channel)
 
 		case 2:
 		output_data.H2Resistor = AVERAGE_F(Intermediate_Data.H2Resistor_Tmp_1);
-//		UARTprintf("\r\n %.3f \r\n",Cubic_main(608.9,Hydrogen_Res));
+//		UARTprintf("\r\n %.3f \r\n",Cubic_main(608.899,Hydrogen_Res));
 		break;
 
 		case 3:

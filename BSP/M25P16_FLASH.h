@@ -11,11 +11,8 @@
 #define SE 0xD8
 #define BE 0xC7
 
-
-void M25P16_CS_INIT(void);
+void Init_M25P16(void);
 void M25P16_TEST(void);
-void M25P16_read_data_anywhere(unsigned short data_count,unsigned int start_address);
-void M25P16_reset(void);
-void M25P16_read_ID(unsigned char *pbuffer);
+void M25P16_Data_Records(void);
 
 #endif

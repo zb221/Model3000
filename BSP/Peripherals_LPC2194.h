@@ -20,6 +20,16 @@ void FrecInit(void);
 #define		LED_BLUE_CLR		IO1CLR|=(1<<18);
 
 void LED_init(void);
+
+/*-------------------------------------------------RELAY-----------------------------------------------------------*/
+#define  Relay1_Pin_SET  {   IO0DIR|=(1<<2);IO0SET|=(1<<2); run_parameter.status_flag.ubit.relay1=1;}
+#define  Relay1_Pin_CLR  {   IO0DIR|=(1<<2);IO0CLR|=(1<<2); run_parameter.status_flag.ubit.relay1=0;}
+
+#define  Relay2_Pin_SET  {   IO0DIR|=(1<<23);IO0SET|=(1<<23); run_parameter.status_flag.ubit.relay2=1;}
+#define  Relay2_Pin_CLR  {   IO0DIR|=(1<<23);IO0CLR|=(1<<23); run_parameter.status_flag.ubit.relay2=0;}
+
+#define  Relay3_Pin_SET  {   IO0DIR|=(1<<24);IO0SET|=(1<<24); run_parameter.status_flag.ubit.relay3=1;}
+#define  Relay3_Pin_CLR  {   IO0DIR|=(1<<24);IO0CLR|=(1<<24); run_parameter.status_flag.ubit.relay3=0;}
 	
 /*------------------------------------------------------------------Serial--------------------------------------------------------------*/
 void init_serial (void);          /* initialize serial interface       */
