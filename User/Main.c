@@ -83,8 +83,8 @@ void init_Global_Variable(void)
 	unsigned int H2[15] = {1,2,3,4,5,6,8,10,15,20,30,40,60,80,100};
 	float OHM[15] = {607.732,608.799,609.422,611.832,615.097,617.59,619.734,621.5,625.587,628.711,634.544,639.727,648.659,656.587,663.789};
 	
-	output_data.MODEL_TYPE = 2;/*1->normal model; 2->debug model; 3->calibrate model*/
-	output_data.temperature = 50;
+	output_data.MODEL_TYPE = 1;/*1->normal model; 2->debug model; 3->calibrate model*/
+	output_data.temperature = 0;
 	output_data.PCB_temp = 40;
 	output_data.PcbTemp = 0;
 	output_data.OilTemp = 0;
@@ -171,8 +171,8 @@ void command_print(void)
 	CurrentTime.SpecificTime.day,CurrentTime.SpecificTime.hour,CurrentTime.SpecificTime.min,CurrentTime.SpecificTime.sec);
 
   if (output_data.MODEL_TYPE == 1)
-    UARTprintf("	%.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f ",output_data.PcbTemp,output_data.H2AG,output_data.OilTemp,output_data.H2DG,output_data.H2G,output_data.H2SldAv,
-		output_data.DayROC,output_data.WeekROC,output_data.MonthROC);
+    UARTprintf("	%.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f ",output_data.PcbTemp,output_data.H2AG,output_data.OilTemp,output_data.H2DG,output_data.H2G,output_data.H2SldAv,
+		output_data.DayROC,output_data.WeekROC,output_data.MonthROC,output_data.SensorTemp,output_data.H2Resistor,output_data.TempResistor);
 	else if (output_data.MODEL_TYPE == 2)
     UARTprintf("	%.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f ",output_data.PcbTemp,output_data.H2AG,output_data.OilTemp,output_data.H2DG,output_data.H2G,output_data.H2SldAv,
 		output_data.DayROC,output_data.WeekROC,output_data.MonthROC,output_data.SensorTemp,output_data.H2Resistor,output_data.TempResistor);

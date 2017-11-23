@@ -363,6 +363,10 @@ void Temperature_of_resistance_Parameter(void)
 
 	output_data.TempResistor = (Channel_OilTemp/AD7738_resolution_NP25-2500)/Current_of_Temperature_resistance;
 
+	if (output_data.temperature == 0){
+	    output_data.OilTemp = Intermediate_Data.Temp_R_K*output_data.TempResistor + Intermediate_Data.Temp_R_B;
+			output_data.SensorTemp = output_data.OilTemp;
+	}
 	Intermediate_Data.OilTemp_Tmp[number++] = Intermediate_Data.Temp_R_K*output_data.TempResistor + Intermediate_Data.Temp_R_B;
 //	UARTprintf("%.4f	",Intermediate_Data.OilTemp_Tmp[number-1]);
 	if (number == sizeof(Intermediate_Data.OilTemp_Tmp)/sizeof(Intermediate_Data.OilTemp_Tmp[0])){
@@ -476,7 +480,8 @@ void ADC7738_acquisition_output(unsigned char channel)
 {
 	switch (channel){
 		case 1:
-		output_data.OilTemp = output_data.temperature;
+		if (output_data.temperature != 0)
+		    output_data.SensorTemp = output_data.temperature;
 		break;
 
 		case 2:
