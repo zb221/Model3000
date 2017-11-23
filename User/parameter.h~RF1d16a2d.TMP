@@ -1033,42 +1033,26 @@ typedef struct CMD_ConfigData
  float          HighmA;
  float          ErrmA;
  float          NotRmA;	
-// float          LowVout;//cmd_ConfigData.LowmA;
-// float          HighVout;
-// float          ErrVout;
-// float          NotRVout;		
-// float          h2cdata_ka;//=1;//?????1
-// float          h2cdata_kb;//=1;
-// float          h2cdata_ka_temp;//=1;//?????1
-// float          h2cdata_kb_temp;//=1; 
-// float          OutCi_ka;//=1;//?????1
-// float          OutCi_kb;//=1;
-// float          OutCi_ka_temp;//=1;//?????1
-// float          OutCi_kb_temp;//=1;
-// float          OutCv_ka;//=1;//?????1
-// float          OutCv_kb;//=1;
-// float          OutCv_ka_temp;//=1;//?????1
-// float          OutCv_kb_temp;//=1;
+ float          LowVout;//cmd_ConfigData.LowmA;
+ float          HighVout;
+ float          ErrVout;
+ float          NotRVout;		
+ float          h2cdata_ka;//=1;//?????1
+ float          h2cdata_kb;//=1;
+ float          h2cdata_ka_temp;//=1;//?????1
+ float          h2cdata_kb_temp;//=1; 
+ float          OutCi_ka;//=1;//?????1
+ float          OutCi_kb;//=1;
+ float          OutCi_ka_temp;//=1;//?????1
+ float          OutCi_kb_temp;//=1;
+ float          OutCv_ka;//=1;//?????1
+ float          OutCv_kb;//=1;
+ float          OutCv_ka_temp;//=1;//?????1
+ float          OutCv_kb_temp;//=1;
  float     MaxAlarmOil;
 }ConfigFlashEE;
-VARIABLE_EXT ConfigFlashEE   cmd_ConfigData;
-
-
-typedef union __real_time_info__ 
-{
-	unsigned char Real_Time[10];
-	struct
-	{
-		unsigned char	  year;						//秒
-		unsigned char   month;					//分
-		unsigned char   day;					//
-		unsigned char   hour;					//日			///unsigned char   week;	
-    unsigned char   min;					//月
-		unsigned char	  sec;					//年     
-		unsigned char	  week;
-	}SpecificTime;	
-}REALTIMEINFO;
-VARIABLE_EXT REALTIMEINFO CurrentTime;
+//#pragma pack(pop)
+VARIABLE_EXT ConfigFlashEE   cmd_ConfigData; // fill_rec_buf()????
 
 typedef struct Output_Data
 {
@@ -1126,5 +1110,6 @@ typedef struct Intermediate_Data
 
 }Intermediate_Parameters;
 VARIABLE_EXT Intermediate_Parameters Intermediate_Data;
+
 #endif
 

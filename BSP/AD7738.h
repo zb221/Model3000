@@ -10,9 +10,8 @@
 
 #define TURE 1
 
-
+void U23_AD7738_CS_INIT(void);
 void AD7738_CS_INIT(void);
-void M25P16_CS_INIT(void);
 void AD7738_write(unsigned char Register,unsigned char data);
 void AD7738_read(unsigned char Register,unsigned char *data);
 void AD7738_read_channel_data(unsigned char Register,unsigned char *buf0,unsigned char *buf1,unsigned char *buf2);

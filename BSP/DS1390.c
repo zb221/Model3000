@@ -9,7 +9,8 @@
 #include <stdio.h>
 #include "Peripherals_LPC2194.h"
 #include "DS1390.h"
-REALTIMEINFO CurrentTime;
+#include "parameter.h"
+
 
 void DS1390_Delay(unsigned int n)
 {

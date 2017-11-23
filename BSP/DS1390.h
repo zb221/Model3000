@@ -1,3 +1,6 @@
+
+#include "parameter.h"
+
 #ifdef VARIABLE_GLOBALS
 #define VARIABLE_EXT
 #else
@@ -42,23 +45,6 @@
 #define DS1390_SCK_L    {   IO0DIR|=(1<<17);IO0CLR|=(1<<17); }//
 #define DS1390_DOUT_IN   (   IO0PIN&(1<<18)  )//P0.18
 
-typedef union __real_time_info__ 
-{
-	unsigned char Real_Time[10];
-	struct
-	{
-		unsigned char	  year;						//秒
-		unsigned char   month;					//分
-		unsigned char   day;					//
-		unsigned char   week;					//
-		unsigned char   hour;					//日			///unsigned char   week;	
-    unsigned char   min;					//月
-		unsigned char	  sec;					//年                
-		unsigned char   DateString[11];
-	  unsigned char   TimeString[9];	
-		unsigned char   DateTimeString[22];                
-	}SpecificTime;	
-}REALTIMEINFO;
 
 VARIABLE_EXT void TASK_DS1390_Update(void);
 VARIABLE_EXT void DS1390InputByte(unsigned char wr_data);

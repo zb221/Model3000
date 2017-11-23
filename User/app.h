@@ -10,7 +10,8 @@
 #define __app_h
 
 void device_checkself(void);
-
+void relay_status(void);
+void LED_status(void);
 
 
 

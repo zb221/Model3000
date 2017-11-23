@@ -80,10 +80,10 @@ void init_Global_Variable(void)
 	float Din_temp[5] = {45.7,49.4,55,63.9,68.3};           /* new sense */
 	
 	/*The relationship between H2 and H2_resistance*/
-	float H2[15] = {0.5,0.8,1.0,2.0,4.0,6.0,8.0,10.0,15.0,20.0,30,40,60,80,100};
+	unsigned int H2[15] = {1,2,3,4,5,6,8,10,15,20,30,40,60,80,100};
 	float OHM[15] = {607.732,608.799,609.422,611.832,615.097,617.59,619.734,621.5,625.587,628.711,634.544,639.727,648.659,656.587,663.789};
 	
-	output_data.MODEL_TYPE = 1;
+	output_data.MODEL_TYPE = 2;/*1->normal model; 2->debug model; 3->calibrate model*/
 	output_data.temperature = 50;
 	output_data.PCB_temp = 40;
 	output_data.PcbTemp = 0;
@@ -124,7 +124,7 @@ void init_Global_Variable(void)
 	memcpy(Intermediate_Data.Din_temp,Din_temp,sizeof(float)*sizeof(Din_temp)/sizeof(Din_temp[0]));
 	
 	/*cpy DAC8568 Din data - PCB temp control*/
-	memcpy(Intermediate_Data.H2,H2,sizeof(float)*sizeof(H2)/sizeof(H2[0]));
+	memcpy(Intermediate_Data.H2,H2,sizeof(unsigned int)*sizeof(H2)/sizeof(H2[0]));
 	memcpy(Intermediate_Data.OHM,OHM,sizeof(float)*sizeof(OHM)/sizeof(OHM[0]));
 
 	/*cpy DAC8568 Din data - PCB temp control*/
@@ -149,10 +149,12 @@ void init_peripherals(void)
 	init_PWM();
 	SPI0_INIT();
 	SPI1_INIT();
+	U23_AD7738_CS_INIT();
 	AD7738_CS_INIT();
 	DAC8568_CS_INIT();
 	Initial_DS1390();
 	Initial_e2prom();
+	Init_M25P16();
 }
 /***********************************************************
 Function:	serial print data.
@@ -167,7 +169,14 @@ void command_print(void)
 	DS1390_GetTime(&CurrentTime);
 	UARTprintf("%d/%d/%d %d:%d:%d",CurrentTime.SpecificTime.year+2000,CurrentTime.SpecificTime.month,
 	CurrentTime.SpecificTime.day,CurrentTime.SpecificTime.hour,CurrentTime.SpecificTime.min,CurrentTime.SpecificTime.sec);
-	UARTprintf("	%.3f	%.4f	%.4f	%.3f	",output_data.OilTemp,output_data.TempResistor,output_data.H2Resistor,output_data.PcbTemp);
+
+  if (output_data.MODEL_TYPE == 1)
+    UARTprintf("	%.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f ",output_data.PcbTemp,output_data.H2AG,output_data.OilTemp,output_data.H2DG,output_data.H2G,output_data.H2SldAv,
+		output_data.DayROC,output_data.WeekROC,output_data.MonthROC);
+	else if (output_data.MODEL_TYPE == 2)
+    UARTprintf("	%.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f ",output_data.PcbTemp,output_data.H2AG,output_data.OilTemp,output_data.H2DG,output_data.H2G,output_data.H2SldAv,
+		output_data.DayROC,output_data.WeekROC,output_data.MonthROC,output_data.SensorTemp,output_data.H2Resistor,output_data.TempResistor);
+	
 	if(output_data.temperature>=50)
 	{
 	UARTprintf(message_menu[1]);
@@ -320,19 +329,20 @@ int main (void)
 {
 	unsigned short i;
 	unsigned char buffer[512];
+  
 	FrecInit();
-
+  
 	init_Global_Variable();
 	init_peripherals();
 	Init_ModBus();
-	//LC512_Init();
-	UARTprintf(print_menu);
+
+	if (output_data.MODEL_TYPE == 1)
+	    UARTprintf(print_menu);
+	else if (output_data.MODEL_TYPE == 2)
+		UARTprintf(debug_menu);
+	
 	DAC8568_INIT_SET(output_data.temperature,2*65536/5);	/*DOUT-C = xV*65536/5*/
 	DAC8568_PCB_TEMP_SET(output_data.PCB_temp,0x1000);
-	
-//	update_e2c();
-//	M25P16_TEST();
-//  e2promtest();
 
 	while (1)  
 	{
@@ -493,9 +503,9 @@ int main (void)
 
 		switch (Intermediate_Data.flag2)  {
 			case 1:
-			LED_RED_SET
-			LED_BLUE_SET
 			device_checkself();
+			relay_status();
+			LED_status();
 			command_print();
 			UpData_ModbBus(&CurrentTime);
 			update_e2c();
@@ -503,8 +513,6 @@ int main (void)
 			break;
 
 			case 2:
-			LED_RED_CLR
-			LED_BLUE_CLR
 			Intermediate_Data.flag2 = 0;
 			break;
 
@@ -528,8 +536,8 @@ int main (void)
  			ADC7738_acquisition_output(1);
  			ADC7738_acquisition_output(2);
  			ADC7738_acquisition_output(3);
-
 			Intermediate_Data.flag4 = 0;
+			M25P16_Data_Records();            /*save data into flash*/
 		}
 		ADC7738_acquisition(1);
 		ADC7738_acquisition(2);
