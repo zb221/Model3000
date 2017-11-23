@@ -30,14 +30,11 @@ Description: Global variable region.
 Author: zhuobin
 Date: 2017/10/10
 ***********************************************************/
-int count1 = 0, count2 = 0, count3 = 0, count4 = 0, flag1 = 0, flag2 = 0, flag3 = 0 , flag4 = 0;
+int count1 = 0, count2 = 0, count3 = 0, count4 = 0;
 
 unsigned char rcv_buf[100];
 volatile unsigned char rcv_new;
 unsigned int rcv_cnt;
-
-unsigned char MODEL_TYPE = 3;
-
 
 /***********************************************************
 Function: Delay .
@@ -417,39 +414,39 @@ __irq void TC0_IR (void)
 	count3++;
 	count4++;
 
-	switch (MODEL_TYPE){
+	switch (output_data.MODEL_TYPE){
 		case 1:	/*normal model*/
 			switch (count1){
 				case 60000:	/* 1-4min capture 3min oil temp */
-				flag1 = 1;
+				Intermediate_Data.flag1 = 1;
 				break;
 
 				case 240000:	/* 4-1H4min set 50 temp, keep 1H  */
-				flag1 = 2;
+				Intermediate_Data.flag1 = 2;
 				break;
 
 				case 3840000: /* 1H4min-1H7min stop heating, capture 3min oil temp */
-				flag1 = 3;
+				Intermediate_Data.flag1 = 3;
 				break;
 
 				case 4020000: /* 1H7min-2H7min set 50 temp and keep 1H */
-				flag1 = 4;
+				Intermediate_Data.flag1 = 4;
 				break;
 
 				case 7620000: /* 2H7min-2H10min stop heating and capture oil temp 3min */
-				flag1 = 5;
+				Intermediate_Data.flag1 = 5;
 				break;
 
 				case 7800000: /* 2H10min-3H40min set 70 temp and keep 1.5H */
-				flag1 = 6;
+				Intermediate_Data.flag1 = 6;
 				break;
 
 				case 13200000: /* 3H40min-4H10min set 50 temp and keep 0.5H */
-				flag1 = 7;
+				Intermediate_Data.flag1 = 7;
 				break;	
 
 				case 15000000: /* 4H10min-4H13min stop heating and capture oil temp 3min */
-				flag1 = 8;
+				Intermediate_Data.flag1 = 8;
 				break;			
 				
 				case 15180000: /* 4H13min reset count1 */
@@ -473,11 +470,11 @@ __irq void TC0_IR (void)
 	
 	switch (count2){
 		case 200://100ms
-		flag2 = 1;
+		Intermediate_Data.flag2 = 1;
 		break;
 		
 		case 1000://1000ms
-		flag2 = 2;
+		Intermediate_Data.flag2 = 2;
 		count2 = 0;
 		Runtimes++;
 		break;
@@ -488,7 +485,7 @@ __irq void TC0_IR (void)
 
 	switch (count3){
 		case 1800000:
-		flag3 = 1; /* 30min FLASH */
+		Intermediate_Data.flag3 = 1; /* 30min FLASH */
 		count3 = 0;
 		break;
 
@@ -498,7 +495,7 @@ __irq void TC0_IR (void)
 	
 	switch (count4){
 		case 2000:
-		flag4 = 1;
+		Intermediate_Data.flag4 = 1;
 		count4 = 0;
 		break;
 

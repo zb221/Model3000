@@ -33,29 +33,9 @@ extern unsigned int rcv_cnt;
 extern unsigned char cmd_tmp[CMD_LEN];
 extern unsigned char cmd_buf[CMD_LEN];
 extern unsigned char flag_screen;
-extern int flag1, flag2, flag3, flag4;
 extern unsigned char a;
 extern REALTIMEINFO CurrentTime;
 extern unsigned char flag_mode;
-
-extern unsigned char MODEL_TYPE;
-
-/*Output Parameters*/
-extern float PcbTemp;
-float H2AG = 0;
-extern float OilTemp;
-extern float TempResistor;
-float H2DG = 0;
-float H2G = 0;
-float H2SldAv = 0;
-float DayROC = 0;
-float WeekROC = 0;
-float MonthROC = 0;
-float SensorTemp = 0;
-extern float H2Resistor;
-
-int temperature = 50;	/*sense default temperature*/
-int PCB_temp = 40;	/*PCB control default temperature*/
 
 const char print_menu[] = 
 	"\n"
@@ -77,6 +57,82 @@ const char *message_menu[]=
 "R1",
 "R2",
 "R3"};
+
+/***********************************************************
+Function:	INIT Global variable region.
+Input:	none
+Output: none
+Author: zhuobin
+Date: 2017/11/21
+Description: all Global variable region init should add here.
+***********************************************************/
+void init_Global_Variable(void)
+{
+//	float Temp[4] = {10,30,50,70};                            /* zsy */
+//	float Temp_R[4] = {92.130,97.952,104.021,110.174};        /* zsy */
+//	float DAC_Din[5] =  {39577,39677,39877,40000,40200};      /* zsy */
+//	float Din_temp[5] = {45.8,50.8,61.1,66.9,76.9};           /* zsy */
+	float PCB_TEMP_Din[3] =  {11336,11536,11636};
+	float PCB_TEMP_SET[3] = {37.5,42.6,44.9};
+	float Temp[4] = {10,30,50,70};                          /* new sense */
+	float Temp_R[4] = {93.661,100.345,107.373,114.696};     /* new sense */
+	float DAC_Din[5] =  {39777,39877,40000,40200,40300};    /* new sense */
+	float Din_temp[5] = {45.7,49.4,55,63.9,68.3};           /* new sense */
+	
+	/*The relationship between H2 and H2_resistance*/
+	float H2[15] = {0.5,0.8,1.0,2.0,4.0,6.0,8.0,10.0,15.0,20.0,30,40,60,80,100};
+	float OHM[15] = {607.732,608.799,609.422,611.832,615.097,617.59,619.734,621.5,625.587,628.711,634.544,639.727,648.659,656.587,663.789};
+	
+	output_data.MODEL_TYPE = 1;
+	output_data.temperature = 50;
+	output_data.PCB_temp = 40;
+	output_data.PcbTemp = 0;
+	output_data.OilTemp = 0;
+	output_data.TempResistor = 0;
+	output_data.H2Resistor = 0;
+
+	output_data.H2AG = 0;
+	output_data.H2DG = 0;
+	output_data.H2G = 0;
+	output_data.H2SldAv = 0;
+	output_data.DayROC = 0;
+	output_data.WeekROC = 0;
+	output_data.MonthROC = 0;
+	output_data.SensorTemp = 0;
+	
+	Intermediate_Data.flag1 = 0;
+	Intermediate_Data.flag2 = 0;
+	Intermediate_Data.flag3 = 0;
+	Intermediate_Data.flag4 = 0;
+	
+	Intermediate_Data.H2Resistor_OilTemp_K = 0;
+	Intermediate_Data.H2Resistor_OilTemp_B = 0;
+
+	Intermediate_Data.Din_temp_DAC_Din_K = 0;
+	Intermediate_Data.Din_temp_DAC_Din_B = 0;
+
+	Intermediate_Data.PCB_TEMP_Din_K = 0;
+	Intermediate_Data.PCB_TEMP_Din_B = 0;
+
+	Intermediate_Data.Temp_R_K = 0;
+	Intermediate_Data.Temp_R_B = 0;
+
+  /*copy Temp-Temp_R Temp-DAC_Din*/
+	memcpy(Intermediate_Data.Temp,Temp,sizeof(float)*sizeof(Temp)/sizeof(Temp[0]));
+	memcpy(Intermediate_Data.Temp_R,Temp_R,sizeof(float)*sizeof(Temp_R)/sizeof(Temp_R[0]));
+	memcpy(Intermediate_Data.DAC_Din,DAC_Din,sizeof(float)*sizeof(DAC_Din)/sizeof(DAC_Din[0]));
+	memcpy(Intermediate_Data.Din_temp,Din_temp,sizeof(float)*sizeof(Din_temp)/sizeof(Din_temp[0]));
+	
+	/*cpy DAC8568 Din data - PCB temp control*/
+	memcpy(Intermediate_Data.H2,H2,sizeof(float)*sizeof(H2)/sizeof(H2[0]));
+	memcpy(Intermediate_Data.OHM,OHM,sizeof(float)*sizeof(OHM)/sizeof(OHM[0]));
+
+	/*cpy DAC8568 Din data - PCB temp control*/
+	memcpy(Intermediate_Data.PCB_TEMP_Din,PCB_TEMP_Din,sizeof(float)*sizeof(PCB_TEMP_Din)/sizeof(PCB_TEMP_Din[0]));
+	memcpy(Intermediate_Data.PCB_TEMP_SET,PCB_TEMP_SET,sizeof(float)*sizeof(PCB_TEMP_SET)/sizeof(PCB_TEMP_SET[0]));
+
+}
+
 /***********************************************************
 Function:	init peripherals.
 Input:	none
@@ -111,8 +167,8 @@ void command_print(void)
 	DS1390_GetTime(&CurrentTime);
 	UARTprintf("%d/%d/%d %d:%d:%d",CurrentTime.SpecificTime.year+2000,CurrentTime.SpecificTime.month,
 	CurrentTime.SpecificTime.day,CurrentTime.SpecificTime.hour,CurrentTime.SpecificTime.min,CurrentTime.SpecificTime.sec);
-	UARTprintf("	%.3f	%.4f	%.4f	%.3f	",OilTemp,TempResistor,H2Resistor,PcbTemp);
-	if(temperature>=50)
+	UARTprintf("	%.3f	%.4f	%.4f	%.3f	",output_data.OilTemp,output_data.TempResistor,output_data.H2Resistor,output_data.PcbTemp);
+	if(output_data.temperature>=50)
 	{
 	UARTprintf(message_menu[1]);
 	}
@@ -152,47 +208,47 @@ void UpData_ModbBus(REALTIMEINFO *Time)
 {
 	unsigned char Temp;
 	unsigned char Tens, units;
-	REALTIMEINFO TimeBCD;   //BCDÂëÊ±¼ä		
-/////////////////////////////////////////////////////ModBusÐ­Òé±äÁ¿////////////////////////////////////////////////////////////////////
+	REALTIMEINFO TimeBCD;   //BCDç æ—¶é—´		
+/////////////////////////////////////////////////////ModBusåè®®å˜é‡////////////////////////////////////////////////////////////////////
 
-////0¡¢1
-run_parameter.h2_ppm_h16.hilo=0;//ÓÍÖÐÇâ(´øÐ¡Êýµã)
+////0ã€1
+run_parameter.h2_ppm_h16.hilo=0;//æ²¹ä¸­æ°¢(å¸¦å°æ•°ç‚¹)
 run_parameter.h2_ppm_l16.hilo=400;	
 //run_parameter.h2_ppm_l16.hilo=300;	
-////4¡¢5
-run_parameter.h2_ppm_max_h16.hilo=0;//N2 Air Çâ
+////4ã€5
+run_parameter.h2_ppm_max_h16.hilo=0;//N2 Air æ°¢
 run_parameter.h2_ppm_max_l16.hilo=800;
 //run_parameter.h2_ppm_max_l16.hilo=300;
-////2¡¢3	
-run_parameter.h2_ppm_dga_h16.hilo=0;//ÓÍÖÐÇâ
+////2ã€3	
+run_parameter.h2_ppm_dga_h16.hilo=0;//æ²¹ä¸­æ°¢
 run_parameter.h2_ppm_dga_l16.hilo=500;
 //run_parameter.h2_ppm_dga_l16.hilo=300;
 ////6
-run_parameter.die_temperature_celsius.hilo=50*100.F;//SenseÎÂ¶È
+run_parameter.die_temperature_celsius.hilo=50*100.F;//Senseæ¸©åº¦
 
 ////7
-run_parameter.pcb_temperature_celsius.hilo=50*100.F;//PCBÎÂ¶È	
+run_parameter.pcb_temperature_celsius.hilo=50*100.F;//PCBæ¸©åº¦	
 
 ////8
-run_parameter.oil_temperature_celsius.hilo=50*100.F;//ÓÍÎÂ
-////9¡¢10
+run_parameter.oil_temperature_celsius.hilo=50*100.F;//æ²¹æ¸©
+////9ã€10
 
-////11¡¢12
-run_parameter.h2_ppm_24hour_average_h16.hilo=10;//24h±ä»¯ÂÊ
+////11ã€12
+run_parameter.h2_ppm_24hour_average_h16.hilo=10;//24hå˜åŒ–çŽ‡
 run_parameter.h2_ppm_24hour_average_l16.hilo=80;
 
-////13¡¢14
-run_parameter.h2_ppm_DRC_h16.hilo=20;//Ìì±ä»¯ÂÊ
+////13ã€14
+run_parameter.h2_ppm_DRC_h16.hilo=20;//å¤©å˜åŒ–çŽ‡
 run_parameter.h2_ppm_DRC_l16.hilo=30;
 
-////15¡¢16
-run_parameter.h2_ppm_WRC_h16.hilo=40;//ÖÜ±ä»¯ÂÊ
+////15ã€16
+run_parameter.h2_ppm_WRC_h16.hilo=40;//å‘¨å˜åŒ–çŽ‡
 run_parameter.h2_ppm_WRC_l16.hilo=50;
 
-////17¡¢18
-run_parameter.h2_ppm_MRC_h16.hilo=60;//ÔÂ±ä»¯ÂÊ
+////17ã€18
+run_parameter.h2_ppm_MRC_h16.hilo=60;//æœˆå˜åŒ–çŽ‡
 run_parameter.h2_ppm_MRC_l16.hilo=70;
-//19-30±£Áô
+//19-30ä¿ç•™
 
 	DS1390_GetTime(&CurrentTime);
 	Temp = Time->SpecificTime.sec;		//
@@ -266,12 +322,13 @@ int main (void)
 	unsigned char buffer[512];
 	FrecInit();
 
+	init_Global_Variable();
 	init_peripherals();
 	Init_ModBus();
 	//LC512_Init();
 	UARTprintf(print_menu);
-	DAC8568_INIT_SET(temperature,2*65536/5);	/*DOUT-C = xV*65536/5*/
-	DAC8568_PCB_TEMP_SET(PCB_temp,0x1000);
+	DAC8568_INIT_SET(output_data.temperature,2*65536/5);	/*DOUT-C = xV*65536/5*/
+	DAC8568_PCB_TEMP_SET(output_data.PCB_temp,0x1000);
 	
 //	update_e2c();
 //	M25P16_TEST();
@@ -364,10 +421,10 @@ int main (void)
 			break;			
 		}
 
-		switch (flag1)  {
+		switch (Intermediate_Data.flag1)  {
 			case 1:
 			/* 1-4min capture 3min oil temp */
-			flag1 = 0;
+			Intermediate_Data.flag1 = 0;
 			if(flag_screen==0)
 			{
 			UARTprintf("1-4min capture 3min oil temp\n");	
@@ -376,57 +433,57 @@ int main (void)
 
 			case 2:
 			/* 4-1H4min set 50 temp, keep 1H  */
-			temperature = 50;
-			DAC8568_INIT_SET(temperature,2*65536/5);
-			flag1 = 0;
+			output_data.temperature = 50;
+			DAC8568_INIT_SET(output_data.temperature,2*65536/5);
+			Intermediate_Data.flag1 = 0;
 			UARTprintf("4-1H4min set 50 temp, keep 1H\n");
 			break;
 
 			case 3:
 			/* 1H4min-1H7min stop heating, capture 3min oil temp */
-			temperature = 0;
-			DAC8568_INIT_SET(temperature,0);
-			flag1 = 0;
+			output_data.temperature = 0;
+			DAC8568_INIT_SET(output_data.temperature,0);
+			Intermediate_Data.flag1 = 0;
 			UARTprintf("1H4min-1H7min stop heating, capture 3min oil temp\n");
 			break;
 
 			case 4:
 			/* 1H7min-2H7min set 50 temp and keep 1H */
-			temperature = 50;
-			DAC8568_INIT_SET(temperature,2*65536/5);
-			flag1 = 0;
+			output_data.temperature = 50;
+			DAC8568_INIT_SET(output_data.temperature,2*65536/5);
+			Intermediate_Data.flag1 = 0;
 			UARTprintf("1H7min-2H7min set 50 temp and keep 1H\n");
 			break;
 
 			case 5:
 			/* 2H7min-2H10min stop heating and capture oil temp 3min */
-			temperature = 0;
-			DAC8568_INIT_SET(temperature,0);
-			flag1 = 0;
+			output_data.temperature = 0;
+			DAC8568_INIT_SET(output_data.temperature,0);
+			Intermediate_Data.flag1 = 0;
 			UARTprintf("2H7min-2H10min stop heating and capture oil temp 3min\n");
 			break;
 
 			case 6:
 			/* 2H10min-3H40min set 70 temp and keep 1.5H */
-			temperature = 70;
-			DAC8568_INIT_SET(temperature,2*65536/5);
-			flag1 = 0;
+			output_data.temperature = 70;
+			DAC8568_INIT_SET(output_data.temperature,2*65536/5);
+			Intermediate_Data.flag1 = 0;
 			UARTprintf("2H10min-3H40min set 70 temp and keep 1.5H\n");
 			break;
 
 			case 7:
 			/* 3H40min-4H10min set 50 temp and keep 0.5H */
-			temperature = 50;
-			DAC8568_INIT_SET(temperature,2*65536/5);
-			flag1 = 0;
+			output_data.temperature = 50;
+			DAC8568_INIT_SET(output_data.temperature,2*65536/5);
+			Intermediate_Data.flag1 = 0;
 			UARTprintf("3H40min-4H10min set 50 temp and keep 0.5H\n");
 			break;
 
 			case 8:
 			/* 4H10min-4H13min stop heating and capture oil temp 3min */
-			temperature = 0;
-			DAC8568_INIT_SET(temperature,0);
-			flag1 = 0;
+			output_data.temperature = 0;
+			DAC8568_INIT_SET(output_data.temperature,0);
+			Intermediate_Data.flag1 = 0;
 			UARTprintf("4H10min-4H13min stop heating and capture oil temp 3min\n");
 			break;
 
@@ -434,45 +491,45 @@ int main (void)
 			break;
 		}
 
-		switch (flag2)  {
+		switch (Intermediate_Data.flag2)  {
 			case 1:
 			LED_RED_SET
 			LED_BLUE_SET
 			device_checkself();
 			command_print();
 			UpData_ModbBus(&CurrentTime);
-			update_e2c();	
-			flag2 = 0;
+			update_e2c();
+			Intermediate_Data.flag2 = 0;
 			break;
 
 			case 2:
 			LED_RED_CLR
 			LED_BLUE_CLR
-			flag2 = 0;
+			Intermediate_Data.flag2 = 0;
 			break;
 
 			default:                                 /* Error Handling              */
 			break;
 		}
 
-		if (flag3 == 1)
+		if (Intermediate_Data.flag3 == 1)
 		{
 			/*30min FLASH*/
 			if(flag_screen==0)
 			{
 			UARTprintf("30min FLASH\n");			
 			}
-			flag3 = 0;
+			Intermediate_Data.flag3 = 0;
 		}
 		
-		if (flag4 == 1)
+		if (Intermediate_Data.flag4 == 1)
  		{
  			/*2S command_print*/
  			ADC7738_acquisition_output(1);
  			ADC7738_acquisition_output(2);
  			ADC7738_acquisition_output(3);
 
-			flag4 = 0;
+			Intermediate_Data.flag4 = 0;
 		}
 		ADC7738_acquisition(1);
 		ADC7738_acquisition(2);

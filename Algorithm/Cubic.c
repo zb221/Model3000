@@ -9,6 +9,7 @@
 #include <math.h>
 #include "Cubic.h"
 #include "Peripherals_LPC2194.h"
+#include "parameter.h"
 
 /***********************************************************
 Description: Global variable region.
@@ -16,32 +17,6 @@ Author: zhuobin
 Date: 2017/10/10
 ***********************************************************/
 #define  MAXNUM  50   
-
-/*The relationship between H2 and H2_resistance*/
-float H2[] = {0.5,0.8,1.0,2.0,4.0,6.0,8.0,10.0,15.0,20.0,30,40,60,80,100};
-float OHM[] = {607.732,608.799,609.422,611.832,615.097,617.59,619.734,621.5,625.587,628.711,634.544,639.727,648.659,656.587,663.789};
-float Hydrogen_R[] = {556.448,567.663,578.720,589.298,600.106};
-
-/*The relationship between temperature_resistance/H2_resistance and temperature*/
-float Temp[4] = {10,30,50,70};/* zsy */
-float Temp_R[4] = {92.130,97.952,104.021,110.174};/* zsy */
-
-//float Temp[4] = {10,30,50,70};	/* new sense */
-//float Temp_R[4] = {93.661,100.345,107.373,114.696};	/* new sense */
-
-/*The relationship between temperature of sense_temperature_resistance and DAC Din*/
-//float DAC_Din[] =  {38864,39083,39421,39754,40247,40960,41600};
-//float Din_temp[] = {35.080,43.085,58.520,75.125,96.450,128.450,157.625};
-
-//float DAC_Din[5] =  {39877,40000,40500};/* new sense */
-//float Din_temp[5] = {41.1,54.6,75.4};/* new sense */
-
-float DAC_Din[5] =  {39577,39677,39877,40000,40200};/* zsy */
-float Din_temp[5] = {45.8,50.8,61.1,66.9,76.9};/* zsy */
-
-/*DAC8568 Din data - PCB temp control*/
-float PCB_TEMP_Din[3] =  {11336,11536,11636};
-float PCB_TEMP_SET[3] = {37.5,42.6,44.9};
 
 typedef struct SPLINE    
 { 
@@ -157,30 +132,17 @@ float Cubic_main(float value,unsigned char type)
 	pLine1 = &line1;
 
 	switch (type){
-		case Temp_Res:
-			if (sizeof(Temp)/sizeof(Temp[0]) != sizeof(Temp_R)/sizeof(Temp_R[0]))
-					UARTprintf("input data ERROR!\n");
-			else{
-					number = sizeof(Temp_R)/sizeof(Temp_R[0]);
-					line1.point_num = number;
-			}
-
-			for (i=0;i<number;i++){
-					line1.x[i] = Temp_R[i];
-					line1.y[i] = Temp[i];
-			}
-			break;
 		case Hydrogen_Res:
-			if (sizeof(Temp)/sizeof(Temp[0]) != sizeof(Hydrogen_R)/sizeof(Hydrogen_R[0]))
+			if (sizeof(Intermediate_Data.H2)/sizeof(Intermediate_Data.H2[0]) != sizeof(Intermediate_Data.OHM)/sizeof(Intermediate_Data.OHM[0]))
 					UARTprintf("input data ERROR!\n");
 			else{
-					number = sizeof(Hydrogen_R)/sizeof(Hydrogen_R[0]);
+					number = sizeof(Intermediate_Data.OHM)/sizeof(Intermediate_Data.OHM[0]);
 					line1.point_num = number;
 			}
 
 			for (i=0;i<number;i++){
-					line1.x[i] = Hydrogen_R[i];
-					line1.y[i] = Temp[i];
+					line1.x[i] = Intermediate_Data.OHM[i];
+					line1.y[i] = Intermediate_Data.H2[i];
 			}
 			break;
 		default: break;
@@ -198,67 +160,7 @@ float Cubic_main(float value,unsigned char type)
 	            Si = pLine1->a3[i]*pow((line1.x[i+1]-value),3) + pLine1->a1[i]*(line1.x[i+1]-value) + pLine1->b3[i]*pow((value-line1.x[i]),3) + pLine1->b1[i]*(value-line1.x[i]);
 	        }
 	    }
-	}else UARTprintf("value outside of temp. ");
+	}else UARTprintf("Range out of measurement. \n");
 
 	return Si;
 }
-
-/***********************************************************
-Function: Linear_slope.
-Input: *slope x y type
-Output: none
-Author: zhuobin
-Date: 2017/10/10
-Description: .
-***********************************************************/
-void Linear_slope(float *slope, float *x, float *y, unsigned char type)
-{
-	unsigned char number = 0, i = 0;
-	
-	switch (type){
-		case Temp_Res:
-			if (sizeof(Temp)/sizeof(Temp[0]) != sizeof(Temp_R)/sizeof(Temp_R[0]))
-				UARTprintf("input data ERROR!\n");
-			else{
-				number = sizeof(Temp_R)/sizeof(Temp_R[0]);
-			}
-			for (i=0;i<number-1;i++){
-				*slope += (Temp_R[i+1] - Temp_R[i])/(Temp[i+1] - Temp[i]);
-			}
-			*slope = *slope/(number-1);
-			*x = Temp[0];
-			*y = Temp_R[0];
-			break;
-
-		case DAC_temp:
-			if (sizeof(DAC_Din)/sizeof(DAC_Din[0]) != sizeof(Din_temp)/sizeof(Din_temp[0]))
-				UARTprintf("input data ERROR!\n");
-			else{
-				number = sizeof(Din_temp)/sizeof(Din_temp[0]);
-			}
-			for (i=0;i<number-1;i++){
-				*slope += (Din_temp[i+1] - Din_temp[i])/(DAC_Din[i+1] - DAC_Din[i]);
-			}
-			*slope = *slope/(number-1);
-			*x = DAC_Din[0];
-			*y = Din_temp[0];
-			break;
-			
-		case PCB_TEMP:
-			if (sizeof(PCB_TEMP_Din)/sizeof(PCB_TEMP_Din[0]) != sizeof(PCB_TEMP_SET)/sizeof(PCB_TEMP_SET[0]))
-				UARTprintf("input data ERROR!\n");
-			else{
-				number = sizeof(PCB_TEMP_SET)/sizeof(PCB_TEMP_SET[0]);
-			}
-			for (i=0;i<number-1;i++){
-				*slope += (PCB_TEMP_SET[i+1] - PCB_TEMP_SET[i])/(PCB_TEMP_Din[i+1] - PCB_TEMP_Din[i]);
-			}
-			*slope = *slope/(number-1);
-			*x = PCB_TEMP_Din[0];
-			*y = PCB_TEMP_SET[0];
-			break;
-
-			default: break;
-	}
-}
-

@@ -1053,25 +1053,62 @@ typedef struct CMD_ConfigData
 }ConfigFlashEE;
 VARIABLE_EXT ConfigFlashEE   cmd_ConfigData;
 
-//typedef struct Systeminf //?????????????????tt?€??
-//{
-//	unsigned char h2_ppm_alert_low[4];
-//  unsigned char h2_ppm_alert_high[4];
-//	unsigned char h2_ppm_alarm_low[4];// DRC min
-//	unsigned char h2_ppm_alarm_high[4];
-//	unsigned char oiltemp_alarm[4];
-//	unsigned char report_h2_ppm_low[4];
-//	unsigned char report_h2_ppm_high[4];
-//	unsigned char Out_mA_Low[4];
-//  unsigned char Out_mA_High[4];
-//  unsigned char Out_mA_Err[4];
-//  unsigned char Out_mA_NotR[4];
-//	unsigned char CaliDate[4]; 
-//	unsigned char interval_time[2];
-//	unsigned char modbus_id;
-////	unsigned char 
 
-//}SysInf;
-//VARIABLE_EXT SysInf systemInf;
+typedef struct Output_Data
+{
+	unsigned char MODEL_TYPE;
+
+	int temperature;    /*sense default temperature*/
+	int PCB_temp;	    /*PCB control default temperature*/
+
+	float PcbTemp;
+	float OilTemp;
+	float TempResistor;
+	float H2Resistor;
+
+	float H2AG;
+	float H2DG;
+	float H2G;
+	float H2SldAv;
+	float DayROC;
+	float WeekROC;
+	float MonthROC;
+	float SensorTemp;
+
+}OUTPUT_Parameters;
+VARIABLE_EXT OUTPUT_Parameters output_data;
+
+typedef struct Intermediate_Data
+{
+	int flag1, flag2, flag3, flag4;
+	float PCB_TEMP_Din[3];
+	float PCB_TEMP_SET[3];
+	
+	float Temp[4];      
+	float Temp_R[4]; 
+	float DAC_Din[5]; 
+	float Din_temp[5]; 
+	
+	float H2[15];
+	float OHM[15];
+
+	float OilTemp_Tmp[1000];
+	float H2Resistor_Tmp[1000];
+	float H2Resistor_Tmp_1[20];    /* Data for filtering processing */
+	
+	float H2Resistor_OilTemp_K;
+	float H2Resistor_OilTemp_B;
+
+	float Din_temp_DAC_Din_K;
+	float Din_temp_DAC_Din_B;
+
+	float PCB_TEMP_Din_K;
+	float PCB_TEMP_Din_B;
+
+	float Temp_R_K;
+	float Temp_R_B;
+
+}Intermediate_Parameters;
+VARIABLE_EXT Intermediate_Parameters Intermediate_Data;
 #endif
 
