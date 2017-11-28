@@ -297,23 +297,32 @@ void sortB(float *arry)
 	unsigned int i = 0, j = 0, length = 0;
 	float temp = 0;
 
-	if (arry == Intermediate_Data.H2Resistor_Tmp_1){
-		length = sizeof(Intermediate_Data.H2Resistor_Tmp_1)/sizeof(Intermediate_Data.H2Resistor_Tmp_1[0]);
+	if (arry == Intermediate_Data.H2Resistor_Tmp_2){
+		length = sizeof(Intermediate_Data.H2Resistor_Tmp_2)/sizeof(Intermediate_Data.H2Resistor_Tmp_2[0]);
+//		for(i = 0; i < length; i++)
+//		{
+//		    UARTprintf("%.3f\n",Intermediate_Data.H2Resistor_Tmp_2[i]);
+//		}
+//		UARTprintf("\n");
 		for(i = 0; i < length; ++i)
 		{
 			for(j = i + 1; j < length; ++j){
 
-				if(Intermediate_Data.H2Resistor_Tmp_1[j] < Intermediate_Data.H2Resistor_Tmp_1[i]){
+				if(Intermediate_Data.H2Resistor_Tmp_2[j] < Intermediate_Data.H2Resistor_Tmp_2[i]){
 
-					temp = Intermediate_Data.H2Resistor_Tmp_1[i];
+					temp = Intermediate_Data.H2Resistor_Tmp_2[i];
 
-					Intermediate_Data.H2Resistor_Tmp_1[i] = Intermediate_Data.H2Resistor_Tmp_1[j];
+					Intermediate_Data.H2Resistor_Tmp_2[i] = Intermediate_Data.H2Resistor_Tmp_2[j];
 
-					Intermediate_Data.H2Resistor_Tmp_1[j] = temp;
+					Intermediate_Data.H2Resistor_Tmp_2[j] = temp;
 
 				}
 			}
 		}
+//		for(i = 0; i < length; i++)
+//		{
+//		    UARTprintf("%.3f\n",Intermediate_Data.H2Resistor_Tmp_2[i]);
+//		}
 	}
 }
 
@@ -327,16 +336,16 @@ Description: .
 ***********************************************************/
 void filterA(float *arry)
 {
-	unsigned int i = 0, number = 0, effective = 5;
+	unsigned int i = 0, number = 0, effective = 1;
 	float sum = 0;
 
 	sortB(arry);
 
-	if (arry == Intermediate_Data.H2Resistor_Tmp_1){
-		number = sizeof(Intermediate_Data.H2Resistor_Tmp_1)/sizeof(Intermediate_Data.H2Resistor_Tmp_1[0]);
+	if (arry == Intermediate_Data.H2Resistor_Tmp_2){
+		number = sizeof(Intermediate_Data.H2Resistor_Tmp_2)/sizeof(Intermediate_Data.H2Resistor_Tmp_2[0]);
 		for (i=(number/2)-effective;i<(number/2)+effective;i++)
 		{
-			sum += Intermediate_Data.H2Resistor_Tmp_1[i];
+			sum += Intermediate_Data.H2Resistor_Tmp_2[i];
 
 		}
 		output_data.H2Resistor = sum / (2*effective);
@@ -391,6 +400,7 @@ void Hydrogen_Resistance_Parameter(void)
 	if (number1 == sizeof(Intermediate_Data.H2Resistor_Tmp)/sizeof(Intermediate_Data.H2Resistor_Tmp[0])){
 		number1 = 0;
 	}
+
 }
 
 /***********************************************************
@@ -452,10 +462,11 @@ void ADC7738_acquisition(unsigned char channel)
 		case 2:
  		Channel_H2Resistor = (data0<<16|data1<<8|data2);
 		Hydrogen_Resistance_Parameter();
+		
 		Line_Fit(Intermediate_Data.OilTemp_Tmp,Intermediate_Data.H2Resistor_Tmp);
 		Intermediate_Data.H2Resistor_Tmp_1[number2++] = Intermediate_Data.H2Resistor_OilTemp_K*output_data.temperature + Intermediate_Data.H2Resistor_OilTemp_B;
 		if (number2 == sizeof(Intermediate_Data.H2Resistor_Tmp_1)/sizeof(Intermediate_Data.H2Resistor_Tmp_1[0])){
-			number2 = 0;
+		    number2 = 0;
 		}
 		break;
 
@@ -478,6 +489,9 @@ Description:  .
 ***********************************************************/
 void ADC7738_acquisition_output(unsigned char channel)
 {
+	static unsigned char number = 0;
+	static unsigned int number3 = 0;
+	
 	switch (channel){
 		case 1:
 		if (output_data.temperature != 0)
@@ -485,8 +499,25 @@ void ADC7738_acquisition_output(unsigned char channel)
 		break;
 
 		case 2:
-		output_data.H2Resistor = AVERAGE_F(Intermediate_Data.H2Resistor_Tmp_1);
-//		UARTprintf("\r\n %.3f \r\n",Cubic_main(608.899,Hydrogen_Res));
+		Intermediate_Data.H2Resistor_Tmp_2[number3++] = AVERAGE_F(Intermediate_Data.H2Resistor_Tmp_1); /*H2Resistor 1*/
+		if (number3 == sizeof(Intermediate_Data.H2Resistor_Tmp_2)/sizeof(Intermediate_Data.H2Resistor_Tmp_2[0])){
+		    number3 = 0;
+		}
+		filterA(Intermediate_Data.H2Resistor_Tmp_2); /*H2Resistor 2*/
+	
+		if (number == 0)
+		number = sizeof(Intermediate_Data.OHM)/sizeof(Intermediate_Data.OHM[0]);
+
+		if(output_data.H2Resistor < Intermediate_Data.OHM[0]){
+			output_data.H2AG = Intermediate_Data.H2[0];
+			output_data.H2AG1 = Intermediate_Data.H2[0];
+		}else if (output_data.H2Resistor > Intermediate_Data.OHM[number-1]){
+			output_data.H2AG = Intermediate_Data.H2[number-1];
+			output_data.H2AG1 = Intermediate_Data.H2[number-1];
+		}else{
+			output_data.H2AG = Cubic_main(output_data.H2Resistor,Hydrogen_Res);  /*H2AG*/
+			output_data.H2AG1 = quadratic_polynomial(output_data.H2Resistor);
+		}
 		break;
 
 		case 3:

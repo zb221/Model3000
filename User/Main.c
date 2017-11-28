@@ -43,6 +43,10 @@ const char print_menu[] =
 const char debug_menu[] =
 	"\n"
 	"TimeStamp            PcbTemp  H2AG.ppm  OilTemp  H2DG.ppm  H2G.ppm  H2SldAv  DayROC  WeekROC  MonthROC  SensorTemp  H2Resistor  TemResistor  Message  \r\n";\
+const char calibrate_menu[] =
+	"\n"
+	"TimeStamp            PcbTemp  H2AG.ppm  OilTemp  SensorTemp  H2Resistor  TemResistor   Message  \r\n";\
+
 const char *message_menu[]=
 {"rpt",
 "wait",
@@ -68,28 +72,29 @@ Description: all Global variable region init should add here.
 ***********************************************************/
 void init_Global_Variable(void)
 {
-//	float Temp[4] = {10,30,50,70};                            /* zsy */
-//	float Temp_R[4] = {92.130,97.952,104.021,110.174};        /* zsy */
-//	float DAC_Din[5] =  {39577,39677,39877,40000,40200};      /* zsy */
-//	float Din_temp[5] = {45.8,50.8,61.1,66.9,76.9};           /* zsy */
+	float Temp[4] = {10,30,50,70};                            /* zsy */
+	float Temp_R[4] = {92.130,97.952,104.021,110.174};        /* zsy */
+	float DAC_Din[5] =  {39577,39677,39877,40000,40200};      /* zsy */
+	float Din_temp[5] = {45.8,50.8,61.1,66.9,76.9};           /* zsy */
 	float PCB_TEMP_Din[3] =  {11336,11536,11636};
 	float PCB_TEMP_SET[3] = {37.5,42.6,44.9};
-	float Temp[4] = {10,30,50,70};                          /* new sense */
-	float Temp_R[4] = {93.661,100.345,107.373,114.696};     /* new sense */
-	float DAC_Din[5] =  {39777,39877,40000,40200,40300};    /* new sense */
-	float Din_temp[5] = {45.7,49.4,55,63.9,68.3};           /* new sense */
+//	float Temp[4] = {10,30,50,70};                          /* new sense */
+//	float Temp_R[4] = {93.661,100.345,107.373,114.696};     /* new sense */
+//	float DAC_Din[5] =  {39777,39877,40000,40200,40300};    /* new sense */
+//	float Din_temp[5] = {45.7,49.4,55,63.9,68.3};           /* new sense */
 	
 	/*The relationship between H2 and H2_resistance*/
-	unsigned int H2[15] = {1,2,3,4,5,6,8,10,15,20,30,40,60,80,100};
-	float OHM[15] = {607.732,608.799,609.422,611.832,615.097,617.59,619.734,621.5,625.587,628.711,634.544,639.727,648.659,656.587,663.789};
+	float H2[13] = {50,100,200,400,800,1600,3000,5000,10000,30000,40000,60000,100000};
+	float OHM[13] = {957.362,957.512,957.932,958.498,959.230,960.226,961.227,962.232,964.148,968.251,969.743,971.975,975.627};
 	
-	output_data.MODEL_TYPE = 1;/*1->normal model; 2->debug model; 3->calibrate model*/
-	output_data.temperature = 0;
+	output_data.MODEL_TYPE = 3;/*1->normal model; 2->debug model; 3->calibrate model*/
+	output_data.temperature = 50;
 	output_data.PCB_temp = 40;
 	output_data.PcbTemp = 0;
 	output_data.OilTemp = 0;
 	output_data.TempResistor = 0;
 	output_data.H2Resistor = 0;
+	output_data.H2R = 0;
 
 	output_data.H2AG = 0;
 	output_data.H2DG = 0;
@@ -124,7 +129,7 @@ void init_Global_Variable(void)
 	memcpy(Intermediate_Data.Din_temp,Din_temp,sizeof(float)*sizeof(Din_temp)/sizeof(Din_temp[0]));
 	
 	/*cpy DAC8568 Din data - PCB temp control*/
-	memcpy(Intermediate_Data.H2,H2,sizeof(unsigned int)*sizeof(H2)/sizeof(H2[0]));
+	memcpy(Intermediate_Data.H2,H2,sizeof(float)*sizeof(H2)/sizeof(H2[0]));
 	memcpy(Intermediate_Data.OHM,OHM,sizeof(float)*sizeof(OHM)/sizeof(OHM[0]));
 
 	/*cpy DAC8568 Din data - PCB temp control*/
@@ -172,10 +177,13 @@ void command_print(void)
 
   if (output_data.MODEL_TYPE == 1)
     UARTprintf("	%.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f ",output_data.PcbTemp,output_data.H2AG,output_data.OilTemp,output_data.H2DG,output_data.H2G,output_data.H2SldAv,
-		output_data.DayROC,output_data.WeekROC,output_data.MonthROC,output_data.SensorTemp,output_data.H2Resistor,output_data.TempResistor);
+		output_data.DayROC,output_data.WeekROC,output_data.MonthROC);
 	else if (output_data.MODEL_TYPE == 2)
     UARTprintf("	%.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f ",output_data.PcbTemp,output_data.H2AG,output_data.OilTemp,output_data.H2DG,output_data.H2G,output_data.H2SldAv,
 		output_data.DayROC,output_data.WeekROC,output_data.MonthROC,output_data.SensorTemp,output_data.H2Resistor,output_data.TempResistor);
+	else if (output_data.MODEL_TYPE == 3)
+		UARTprintf("	%.3f %.3f %.3f %.3f %.3f %.3f %.3f ",output_data.PcbTemp,output_data.H2AG,output_data.H2AG1,output_data.OilTemp,
+	  output_data.SensorTemp,output_data.H2Resistor,output_data.TempResistor);
 	
 	if(output_data.temperature>=50)
 	{
@@ -327,22 +335,31 @@ Description: main function for Model3000 project.
 ***********************************************************/
 int main (void)  
 {
-	unsigned short i;
-	unsigned char buffer[512];
-  
 	FrecInit();
   
 	init_Global_Variable();
 	init_peripherals();
 	Init_ModBus();
-
-	if (output_data.MODEL_TYPE == 1)
-	    UARTprintf(print_menu);
-	else if (output_data.MODEL_TYPE == 2)
-		UARTprintf(debug_menu);
 	
-	DAC8568_INIT_SET(output_data.temperature,2*65536/5);	/*DOUT-C = xV*65536/5*/
-	DAC8568_PCB_TEMP_SET(output_data.PCB_temp,0x1000);
+	DAC8568_INIT_SET(output_data.temperature,2*65536/5);	/* Set Senseor default temperature :DOUT-C = xV*65536/5 */
+	DAC8568_PCB_TEMP_SET(output_data.PCB_temp,0x1000);    /* Set PCB default temperature */
+
+	switch (output_data.MODEL_TYPE){
+		case 1:
+			UARTprintf(print_menu);
+		break;
+		
+		case 2:
+			UARTprintf(debug_menu);
+		break;
+				
+		case 3:
+			UARTprintf(calibrate_menu);
+		break;
+		
+		default:
+			break;
+	}
 
 	while (1)  
 	{
@@ -433,71 +450,86 @@ int main (void)
 
 		switch (Intermediate_Data.flag1)  {
 			case 1:
-			/* 1-4min capture 3min oil temp */
+			output_data.temperature = 0;
+			DAC8568_INIT_SET(output_data.temperature,0);
 			Intermediate_Data.flag1 = 0;
 			if(flag_screen==0)
 			{
-			UARTprintf("1-4min capture 3min oil temp\n");	
+			    UARTprintf("1-4min capture 3min oil temp\n");	
 			}
 			break;
 
 			case 2:
-			/* 4-1H4min set 50 temp, keep 1H  */
 			output_data.temperature = 50;
 			DAC8568_INIT_SET(output_data.temperature,2*65536/5);
 			Intermediate_Data.flag1 = 0;
-			UARTprintf("4-1H4min set 50 temp, keep 1H\n");
+			if(flag_screen==0)
+			{
+			    UARTprintf("4-1H4min set 50 temp, keep 1H\n");
+			}
 			break;
 
 			case 3:
-			/* 1H4min-1H7min stop heating, capture 3min oil temp */
 			output_data.temperature = 0;
 			DAC8568_INIT_SET(output_data.temperature,0);
 			Intermediate_Data.flag1 = 0;
-			UARTprintf("1H4min-1H7min stop heating, capture 3min oil temp\n");
+			if(flag_screen==0)
+			{
+			    UARTprintf("1H4min-1H7min stop heating, capture 3min oil temp\n");
+			}
 			break;
 
 			case 4:
-			/* 1H7min-2H7min set 50 temp and keep 1H */
 			output_data.temperature = 50;
 			DAC8568_INIT_SET(output_data.temperature,2*65536/5);
 			Intermediate_Data.flag1 = 0;
-			UARTprintf("1H7min-2H7min set 50 temp and keep 1H\n");
+			if(flag_screen==0)
+			{
+			    UARTprintf("1H7min-2H7min set 50 temp and keep 1H\n");
+			}
 			break;
 
 			case 5:
-			/* 2H7min-2H10min stop heating and capture oil temp 3min */
 			output_data.temperature = 0;
 			DAC8568_INIT_SET(output_data.temperature,0);
 			Intermediate_Data.flag1 = 0;
-			UARTprintf("2H7min-2H10min stop heating and capture oil temp 3min\n");
+			if(flag_screen==0)
+			{
+			    UARTprintf("2H7min-2H10min stop heating and capture oil temp 3min\n");
+			}
 			break;
 
 			case 6:
-			/* 2H10min-3H40min set 70 temp and keep 1.5H */
 			output_data.temperature = 70;
 			DAC8568_INIT_SET(output_data.temperature,2*65536/5);
 			Intermediate_Data.flag1 = 0;
-			UARTprintf("2H10min-3H40min set 70 temp and keep 1.5H\n");
+			if(flag_screen==0)
+			{
+			    UARTprintf("2H10min-3H40min set 70 temp and keep 1.5H\n");
+			}
 			break;
 
 			case 7:
-			/* 3H40min-4H10min set 50 temp and keep 0.5H */
 			output_data.temperature = 50;
 			DAC8568_INIT_SET(output_data.temperature,2*65536/5);
 			Intermediate_Data.flag1 = 0;
-			UARTprintf("3H40min-4H10min set 50 temp and keep 0.5H\n");
+			if(flag_screen==0)
+			{
+			    UARTprintf("3H40min-4H10min set 50 temp and keep 0.5H\n");
+			}
 			break;
 
 			case 8:
-			/* 4H10min-4H13min stop heating and capture oil temp 3min */
 			output_data.temperature = 0;
 			DAC8568_INIT_SET(output_data.temperature,0);
 			Intermediate_Data.flag1 = 0;
-			UARTprintf("4H10min-4H13min stop heating and capture oil temp 3min\n");
+			if(flag_screen==0)
+			{
+			    UARTprintf("4H10min-4H13min stop heating and capture oil temp 3min\n");
+			}
 			break;
 
-			default:                                 /* Error Handling              */
+			default:
 			break;
 		}
 
@@ -506,7 +538,7 @@ int main (void)
 			device_checkself();
 			relay_status();
 			LED_status();
-			command_print();
+			
 			UpData_ModbBus(&CurrentTime);
 			update_e2c();
 			Intermediate_Data.flag2 = 0;
@@ -516,18 +548,18 @@ int main (void)
 			Intermediate_Data.flag2 = 0;
 			break;
 
-			default:                                 /* Error Handling              */
+			default:
 			break;
 		}
 
 		if (Intermediate_Data.flag3 == 1)
 		{
-			/*30min FLASH*/
+			Intermediate_Data.flag3 = 0;
+			M25P16_Data_Records();
 			if(flag_screen==0)
 			{
-			UARTprintf("30min FLASH\n");			
+			    UARTprintf("save data into flash\n");			
 			}
-			Intermediate_Data.flag3 = 0;
 		}
 		
 		if (Intermediate_Data.flag4 == 1)
@@ -537,11 +569,12 @@ int main (void)
  			ADC7738_acquisition_output(2);
  			ADC7738_acquisition_output(3);
 			Intermediate_Data.flag4 = 0;
-			M25P16_Data_Records();            /*save data into flash*/
+			command_print();
 		}
 		ADC7738_acquisition(1);
 		ADC7738_acquisition(2);
-		ADC7738_acquisition(3);		
+		ADC7738_acquisition(3);	
+		
 		if(user_parameter.flag.ubit.recept_ok==1)
 		{			
 			Data_Ack_Processor();

@@ -95,6 +95,28 @@ float Heat_R_checkself(void)
 }
 
 /***********************************************************
+Function:	H2AG status.
+Input:	none
+Output: none
+Author: zhuobin
+Date: 2017/11/30
+Description: 
+***********************************************************/
+void H2AG_status(void)
+{
+	static unsigned char number = 0;
+	
+	if (number == 0)
+	number = sizeof(Intermediate_Data.OHM)/sizeof(Intermediate_Data.OHM[0]);
+
+	if(output_data.H2Resistor < Intermediate_Data.OHM[0])
+		output_data.H2AG = Intermediate_Data.H2[0];
+	else if (output_data.H2Resistor > Intermediate_Data.OHM[number-1])
+		output_data.H2AG = Intermediate_Data.H2[number-1];
+
+}
+
+/***********************************************************
 Function:	device checkself.
 Input:	none
 Output: none
@@ -107,6 +129,7 @@ void device_checkself(void)
 	  float Heat_V = 0;
     Heat_V = Heat_R_checkself();
 	  if (Heat_V<200 && output_data.temperature>30){
-		    UARTprintf("\r\n U23-AIN7=%.3f Heating resistance self-check error.\r\n",Heat_V);	
+		    UARTprintf("U23-AIN7=%.3f Heating resistance self-check error.\n",Heat_V);	
 		}
+		
 }

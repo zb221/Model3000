@@ -1,5 +1,5 @@
 /***********************************************
-@		Description: This file is about AD7738 data.
+@		Description: This file is about M25P16 data.
 @		Copyright: Hydrogen Sense(Suzhou)  Technology Co.,Ltd. All rights reserved.
 @		Author: zhuobin.
 @		Date: 2017/9/22.
