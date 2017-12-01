@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include "fitting.h"
 #include "parameter.h"
+#include <math.h>
 
 void Line_Fit(float *X, float *Y)
 {
@@ -86,7 +87,7 @@ void Line_Fit(float *X, float *Y)
             
             Intermediate_Data.H2Resistor_OilTemp_K = ( x_multiply_y - length * x_sum_average * y_sum_average)/(x_square_sum - length * x_sum_average * x_sum_average);
             Intermediate_Data.H2Resistor_OilTemp_B = y_sum_average - Intermediate_Data.H2Resistor_OilTemp_K * x_sum_average;
-            //	UARTprintf("%.3f,%.4f\n",H2Resistor_OilTemp_K,H2Resistor_OilTemp_B);
+            //UARTprintf("%.3f,%.4f\n",Intermediate_Data.H2Resistor_OilTemp_K,Intermediate_Data.H2Resistor_OilTemp_B);
         }
     }else if ((X == Intermediate_Data.Din_temp) && (Y == Intermediate_Data.DAC_Din)){
         if (sizeof(Intermediate_Data.DAC_Din)/sizeof(Intermediate_Data.DAC_Din[0]) == sizeof(Intermediate_Data.Din_temp)/sizeof(Intermediate_Data.Din_temp[0])){
@@ -161,3 +162,39 @@ void Line_Fit(float *X, float *Y)
     }
 }
 
+/***********************************************************
+Function: quadratic polynomial.
+Input: 
+Output:
+Author: zhuobin
+Date: 2017/11/30
+Description: H2-OHM.
+Linear model Poly2:
+       f(x) = p1*x^2 + p2*x + p3
+
+***********************************************************/
+float quadratic_polynomial(float data)
+{
+	static unsigned char number = 0;
+  float tmp = 0;
+	double p1 = 0, p2 = 0, p3 = 0;
+	
+	if (number == 0)
+	    number = sizeof(Intermediate_Data.OHM)/sizeof(Intermediate_Data.OHM[0]);
+	
+	if (data >= Intermediate_Data.OHM[0] && data < Intermediate_Data.OHM[4]){
+	  p1 = 121.8358416;
+    p2 = -233115.092865;
+		p3 = 111507922.798009;
+	}else if (data >= Intermediate_Data.OHM[4] && data < Intermediate_Data.OHM[8]){
+	  p1 = 256.222696;
+    p2 = -490933.428946;
+		p3 = 235162655.440190;
+	}else if (data >= Intermediate_Data.OHM[8] && data < Intermediate_Data.OHM[12]){
+	  p1 = 409.052293;
+    p2 = -785623.724501;
+		p3 = 377220150.322393;
+	}
+	tmp = p1 * data * data + p2 * data + p3;
+	return tmp;
+}

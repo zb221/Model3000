@@ -12,7 +12,7 @@
 void device_checkself(void);
 void relay_status(void);
 void LED_status(void);
-
+void H2AG_status(void);
 
 
 #endif

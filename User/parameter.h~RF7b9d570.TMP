@@ -1084,7 +1084,6 @@ typedef struct Output_Data
 	float H2R;
 
 	float H2AG;
-	float H2AG1;
 	float H2DG;
 	float H2G;
 	float H2SldAv;
