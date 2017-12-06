@@ -1098,7 +1098,13 @@ VARIABLE_EXT OUTPUT_Parameters output_data;
 
 typedef struct Intermediate_Data
 {
-	int flag1, flag2, flag3, flag4;
+	unsigned char flag1, flag2, flag3, flag4, flag5;
+	unsigned char Start_day, Start_week, Start_month;
+	unsigned char Start_print_H2R;
+	
+	float Heat_V;
+
+	float H2G_tmp[48];
 	float PCB_TEMP_Din[3];
 	float PCB_TEMP_SET[3];
 	
