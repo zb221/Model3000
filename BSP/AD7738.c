@@ -280,6 +280,13 @@ float AVERAGE_F(float *p)
 			sum += Intermediate_Data.H2Resistor_Tmp_1[i];
 		}
 		sum = sum / number;
+	}else if (p == Intermediate_Data.H2G_tmp){
+		number = sizeof(Intermediate_Data.H2G_tmp)/sizeof(Intermediate_Data.H2G_tmp[0]);
+		for (i=0;i<number;i++)
+		{
+			sum += Intermediate_Data.H2G_tmp[i];
+		}
+		sum = sum / number;
 	}
 	return sum;
 }
@@ -348,7 +355,10 @@ void filterA(float *arry)
 			sum += Intermediate_Data.H2Resistor_Tmp_2[i];
 
 		}
-		output_data.H2Resistor = sum / (2*effective);
+
+		if (Intermediate_Data.Start_print_H2R == 1){
+		  output_data.H2Resistor = sum / (2*effective);
+		}
 	}
 }
 
@@ -515,9 +525,13 @@ void ADC7738_acquisition_output(unsigned char channel)
 			output_data.H2AG = Intermediate_Data.H2[number-1];
 			output_data.H2AG1 = Intermediate_Data.H2[number-1];
 		}else{
+			if (output_data.temperature == 50){
 			output_data.H2AG = Cubic_main(output_data.H2Resistor,Hydrogen_Res);  /*H2AG*/
 			output_data.H2AG1 = quadratic_polynomial(output_data.H2Resistor);
+			}
 		}
+		output_data.H2DG = output_data.H2AG / 20;
+		output_data.H2G = output_data.H2DG;
 		break;
 
 		case 3:

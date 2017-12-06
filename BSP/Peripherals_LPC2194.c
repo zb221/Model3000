@@ -30,7 +30,7 @@ Description: Global variable region.
 Author: zhuobin
 Date: 2017/10/10
 ***********************************************************/
-int count1 = 0, count2 = 0, count3 = 0, count4 = 0;
+unsigned int count1 = 0, count2 = 0, count3 = 0, count4 = 0, count5 = 0;
 
 unsigned char rcv_buf[100];
 volatile unsigned char rcv_new;
@@ -413,6 +413,7 @@ __irq void TC0_IR (void)
 	count2++;
 	count3++;
 	count4++;
+	count5++;
 
 	switch (output_data.MODEL_TYPE){
 		case 2:	/*debug model*/
@@ -420,6 +421,7 @@ __irq void TC0_IR (void)
 			switch (count1){
 				case 60000:	/* 1-4min capture 3min oil temp */
 				Intermediate_Data.flag1 = 1;
+				Intermediate_Data.Start_print_H2R = 1;
 				break;
 
 				case 240000:	/* 4-1H4min set 50 temp, keep 1H  */
@@ -460,7 +462,7 @@ __irq void TC0_IR (void)
 			break;
 			      
 		case 3:	/*calibrate model*/
-			
+      output_data.temperature = 50;
 			break;
 
 		default:
@@ -501,7 +503,32 @@ __irq void TC0_IR (void)
 		default:
 		break;
 	}
+	
+	if (count5%3600000==0)
+		Intermediate_Data.flag5 = 1; /* calculating day*/
+	else if (count5%14400000==0)
+		Intermediate_Data.flag5 = 2; /* calculating week*/
+	else if (count5%86400000==0){
+		Intermediate_Data.flag5 = 3; /* calculating month*/
+	}
+	switch (count5){
+		case 1800000: /*30min*/
+		Intermediate_Data.Start_day = 1;   /* Start calculating the daily rate of change */
+		break;
+		
+		case 21600000: /*6H*/
+		Intermediate_Data.Start_week = 1;  /* Start calculating the week rate of change */
+		Intermediate_Data.Start_month = 1; /* Start calculating the month rate of change */
+		break;
+		
+		case 604800000: /*7*24H*/
+		count5 = 0;
+		break;
 
+		default:
+		break;
+	}
+	
 	T0IR = 1;                                    /* Clear interrupt flag        */
 	VICVectAddr = 0;                             /* Acknowledge Interrupt       */
 }

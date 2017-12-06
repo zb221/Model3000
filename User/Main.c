@@ -37,30 +37,32 @@ extern unsigned char a;
 extern REALTIMEINFO CurrentTime;
 extern unsigned char flag_mode;
 
+static unsigned int print_count = 0;
+unsigned char print_time = 2;
+
 const char print_menu[] = 
 	"\n"
-	"TimeStamp            PcbTemp  H2AG.ppm  OilTemp  H2DG.ppm  H2G.ppm  H2SldAv  DayROC  WeekROC  MonthROC  Message  \r\n";
+	"TimeStamp    PcbTemp    H2AG.ppm    OilTemp    H2DG.ppm    H2G.ppm    H2SldAv    DayROC    WeekROC    MonthROC    Message    \r\n";
 const char debug_menu[] =
 	"\n"
-	"TimeStamp            PcbTemp  H2AG.ppm  OilTemp  H2DG.ppm  H2G.ppm  H2SldAv  DayROC  WeekROC  MonthROC  SensorTemp  H2Resistor  TemResistor  Message  \r\n";\
+	"TimeStamp    PcbTemp    H2AG.ppm    OilTemp    H2DG.ppm    H2G.ppm    H2SldAv    DayROC    WeekROC    MonthROC    SensorTemp    H2Resistor    TemResistor    Message    \r\n";\
 const char calibrate_menu[] =
 	"\n"
-	"TimeStamp            PcbTemp  H2AG.ppm  OilTemp  SensorTemp  H2Resistor  TemResistor   Message  \r\n";\
+	"TimeStamp    PcbTemp    H2AG.ppm    OilTemp    SensorTemp    H2Resistor    TemResistor    Message    \r\n";\
 
-const char *message_menu[]=
-{"rpt",
-"wait",
-"woff",
-"avg",
-"OVT"
-"htr_off",
-"warm_up",
-"ramp_up",
-"ramp_down",
-"PF",
-"R1",
-"R2",
-"R3"};
+char message0[] = "rpt";
+char message1[] = "wait";
+char message2[] = "woff,";
+char message3[] = "avg,";
+char message4[] = "OVT,";
+char message5[] = "htr_off,";
+char message6[] = "warm_up,";
+char message7[] = "ramp_up,";
+char message8[] = "ramp_down,";
+char message9[] = "PF,";
+char message10[] = "R1,";
+char message11[] = "R2,";
+char message12[] = "R3,";
 
 /***********************************************************
 Function:	INIT Global variable region.
@@ -72,23 +74,25 @@ Description: all Global variable region init should add here.
 ***********************************************************/
 void init_Global_Variable(void)
 {
-	float Temp[4] = {10,30,50,70};                            /* zsy */
-	float Temp_R[4] = {92.130,97.952,104.021,110.174};        /* zsy */
-	float DAC_Din[5] =  {39577,39677,39877,40000,40200};      /* zsy */
-	float Din_temp[5] = {45.8,50.8,61.1,66.9,76.9};           /* zsy */
+//	float Temp[4] = {10,30,50,70};                            /* zsy */
+//	float Temp_R[4] = {92.130,97.952,104.021,110.174};        /* zsy */
+//	float DAC_Din[5] =  {39577,39677,39877,40000,40200};      /* zsy */
+//	float Din_temp[5] = {45.8,50.8,61.1,66.9,76.9};           /* zsy */
 	float PCB_TEMP_Din[3] =  {11336,11536,11636};
 	float PCB_TEMP_SET[3] = {37.5,42.6,44.9};
-//	float Temp[4] = {10,30,50,70};                          /* new sense */
-//	float Temp_R[4] = {93.661,100.345,107.373,114.696};     /* new sense */
-//	float DAC_Din[5] =  {39777,39877,40000,40200,40300};    /* new sense */
-//	float Din_temp[5] = {45.7,49.4,55,63.9,68.3};           /* new sense */
+	float Temp[4] = {10,30,50,70};                          /* new sense */
+	float Temp_R[4] = {93.661,100.345,107.373,114.696};     /* new sense */
+	float DAC_Din[5] =  {39777,39877,40000,40200,40300};    /* new sense */
+	float Din_temp[5] = {45.7,49.4,55,63.9,68.3};           /* new sense */
 	
 	/*The relationship between H2 and H2_resistance*/
 	float H2[13] = {50,100,200,400,800,1600,3000,5000,10000,30000,40000,60000,100000};
 	float OHM[13] = {957.362,957.512,957.932,958.498,959.230,960.226,961.227,962.232,964.148,968.251,969.743,971.975,975.627};
 	
-	output_data.MODEL_TYPE = 3;/*1->normal model; 2->debug model; 3->calibrate model*/
-	output_data.temperature = 50;
+	print_count = 60 / print_time;
+	
+	output_data.MODEL_TYPE = 2;/*1->normal model; 2->debug model; 3->calibrate model*/
+	output_data.temperature = 0;
 	output_data.PCB_temp = 40;
 	output_data.PcbTemp = 0;
 	output_data.OilTemp = 0;
@@ -105,10 +109,19 @@ void init_Global_Variable(void)
 	output_data.MonthROC = 0;
 	output_data.SensorTemp = 0;
 	
+	Intermediate_Data.Heat_V = 0;
+	
 	Intermediate_Data.flag1 = 0;
 	Intermediate_Data.flag2 = 0;
 	Intermediate_Data.flag3 = 0;
 	Intermediate_Data.flag4 = 0;
+	Intermediate_Data.flag5 = 0;
+	
+  Intermediate_Data.Start_day = 0;
+  Intermediate_Data.Start_week = 0;
+	Intermediate_Data.Start_month = 0;
+	
+	Intermediate_Data.Start_print_H2R = 0;
 	
 	Intermediate_Data.H2Resistor_OilTemp_K = 0;
 	Intermediate_Data.H2Resistor_OilTemp_B = 0;
@@ -128,7 +141,7 @@ void init_Global_Variable(void)
 	memcpy(Intermediate_Data.DAC_Din,DAC_Din,sizeof(float)*sizeof(DAC_Din)/sizeof(DAC_Din[0]));
 	memcpy(Intermediate_Data.Din_temp,Din_temp,sizeof(float)*sizeof(Din_temp)/sizeof(Din_temp[0]));
 	
-	/*cpy DAC8568 Din data - PCB temp control*/
+	/*cpy H2-OHM*/
 	memcpy(Intermediate_Data.H2,H2,sizeof(float)*sizeof(H2)/sizeof(H2[0]));
 	memcpy(Intermediate_Data.OHM,OHM,sizeof(float)*sizeof(OHM)/sizeof(OHM[0]));
 
@@ -136,6 +149,7 @@ void init_Global_Variable(void)
 	memcpy(Intermediate_Data.PCB_TEMP_Din,PCB_TEMP_Din,sizeof(float)*sizeof(PCB_TEMP_Din)/sizeof(PCB_TEMP_Din[0]));
 	memcpy(Intermediate_Data.PCB_TEMP_SET,PCB_TEMP_SET,sizeof(float)*sizeof(PCB_TEMP_SET)/sizeof(PCB_TEMP_SET[0]));
 
+	memset(Intermediate_Data.H2G_tmp,0,sizeof(Intermediate_Data.H2G_tmp)/sizeof(Intermediate_Data.H2G_tmp[0]));
 }
 
 /***********************************************************
@@ -176,23 +190,38 @@ void command_print(void)
 	CurrentTime.SpecificTime.day,CurrentTime.SpecificTime.hour,CurrentTime.SpecificTime.min,CurrentTime.SpecificTime.sec);
 
   if (output_data.MODEL_TYPE == 1)
-    UARTprintf("	%.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f ",output_data.PcbTemp,output_data.H2AG,output_data.OilTemp,output_data.H2DG,output_data.H2G,output_data.H2SldAv,
+    UARTprintf("	%.3f	%.3f	%.3f	%.3f	%.3f	%.3f	%.3f	%.3f	%.3f	%.3f	%.3f	%.3f	",output_data.PcbTemp,output_data.H2AG,output_data.OilTemp,output_data.H2DG,output_data.H2G,output_data.H2SldAv,
 		output_data.DayROC,output_data.WeekROC,output_data.MonthROC);
 	else if (output_data.MODEL_TYPE == 2)
-    UARTprintf("	%.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f ",output_data.PcbTemp,output_data.H2AG,output_data.OilTemp,output_data.H2DG,output_data.H2G,output_data.H2SldAv,
+    UARTprintf("	%.3f	%.3f	%.3f	%.3f	%.3f	%.3f	%.3f	%.3f	%.3f	%.3f	%.3f	%.3f	%.3f	",output_data.PcbTemp,output_data.H2AG,output_data.H2AG1,output_data.OilTemp,output_data.H2DG,output_data.H2G,output_data.H2SldAv,
 		output_data.DayROC,output_data.WeekROC,output_data.MonthROC,output_data.SensorTemp,output_data.H2Resistor,output_data.TempResistor);
 	else if (output_data.MODEL_TYPE == 3)
-		UARTprintf("	%.3f %.3f %.3f %.3f %.3f %.3f %.3f ",output_data.PcbTemp,output_data.H2AG,output_data.H2AG1,output_data.OilTemp,
+		UARTprintf("	%.3f	%.3f	%.3f	%.3f	%.3f	%.3f	%.3f	",output_data.PcbTemp,output_data.H2AG,output_data.H2AG1,output_data.OilTemp,
 	  output_data.SensorTemp,output_data.H2Resistor,output_data.TempResistor);
 	
-	if(output_data.temperature>=50)
+	if(output_data.temperature == 50)
 	{
-	UARTprintf(message_menu[1]);
+    UARTprintf(message0);
+		UARTprintf("%d,",print_count--);
+    UARTprintf(message6);
+    UARTprintf(message7);
+	}else{
+	  UARTprintf(message1);
+    UARTprintf("%d,",print_count--);
+		UARTprintf(message8);
 	}
-	else
-	{
-	UARTprintf(message_menu[0]);	
+	
+	if (Intermediate_Data.Heat_V > 100){
+		UARTprintf(message2);
+	}else{
+	  UARTprintf(message5);
 	}
+	
+	if(output_data.temperature == 70){
+    UARTprintf(message6);
+		UARTprintf(message7);
+	}
+	
 	UARTprintf("\r\n");
 }
 void update_e2c(void)//run_parameter all save
@@ -453,6 +482,7 @@ int main (void)
 			output_data.temperature = 0;
 			DAC8568_INIT_SET(output_data.temperature,0);
 			Intermediate_Data.flag1 = 0;
+			print_count = 3*60 / print_time;
 			if(flag_screen==0)
 			{
 			    UARTprintf("1-4min capture 3min oil temp\n");	
@@ -463,6 +493,7 @@ int main (void)
 			output_data.temperature = 50;
 			DAC8568_INIT_SET(output_data.temperature,2*65536/5);
 			Intermediate_Data.flag1 = 0;
+			print_count = 60*60 / print_time;
 			if(flag_screen==0)
 			{
 			    UARTprintf("4-1H4min set 50 temp, keep 1H\n");
@@ -473,6 +504,7 @@ int main (void)
 			output_data.temperature = 0;
 			DAC8568_INIT_SET(output_data.temperature,0);
 			Intermediate_Data.flag1 = 0;
+			print_count = 3*60 / print_time;
 			if(flag_screen==0)
 			{
 			    UARTprintf("1H4min-1H7min stop heating, capture 3min oil temp\n");
@@ -483,6 +515,7 @@ int main (void)
 			output_data.temperature = 50;
 			DAC8568_INIT_SET(output_data.temperature,2*65536/5);
 			Intermediate_Data.flag1 = 0;
+			print_count = 60*60 / print_time;
 			if(flag_screen==0)
 			{
 			    UARTprintf("1H7min-2H7min set 50 temp and keep 1H\n");
@@ -493,6 +526,7 @@ int main (void)
 			output_data.temperature = 0;
 			DAC8568_INIT_SET(output_data.temperature,0);
 			Intermediate_Data.flag1 = 0;
+			print_count = 3*60 / print_time;
 			if(flag_screen==0)
 			{
 			    UARTprintf("2H7min-2H10min stop heating and capture oil temp 3min\n");
@@ -503,6 +537,7 @@ int main (void)
 			output_data.temperature = 70;
 			DAC8568_INIT_SET(output_data.temperature,2*65536/5);
 			Intermediate_Data.flag1 = 0;
+			print_count = 90*60 / print_time;
 			if(flag_screen==0)
 			{
 			    UARTprintf("2H10min-3H40min set 70 temp and keep 1.5H\n");
@@ -513,6 +548,7 @@ int main (void)
 			output_data.temperature = 50;
 			DAC8568_INIT_SET(output_data.temperature,2*65536/5);
 			Intermediate_Data.flag1 = 0;
+			print_count = 30*60 / print_time;
 			if(flag_screen==0)
 			{
 			    UARTprintf("3H40min-4H10min set 50 temp and keep 0.5H\n");
@@ -523,6 +559,7 @@ int main (void)
 			output_data.temperature = 0;
 			DAC8568_INIT_SET(output_data.temperature,0);
 			Intermediate_Data.flag1 = 0;
+			print_count = 3*60 / print_time;
 			if(flag_screen==0)
 			{
 			    UARTprintf("4H10min-4H13min stop heating and capture oil temp 3min\n");
@@ -555,6 +592,7 @@ int main (void)
 		if (Intermediate_Data.flag3 == 1)
 		{
 			Intermediate_Data.flag3 = 0;
+			H2SldAv_24H2G();
 			M25P16_Data_Records();
 			if(flag_screen==0)
 			{
@@ -565,15 +603,16 @@ int main (void)
 		if (Intermediate_Data.flag4 == 1)
  		{
  			/*2S command_print*/
- 			ADC7738_acquisition_output(1);
- 			ADC7738_acquisition_output(2);
- 			ADC7738_acquisition_output(3);
+			ADC7738_acquisition_output(1);
+			ADC7738_acquisition_output(3);
+			Calculate_H2_rate();
 			Intermediate_Data.flag4 = 0;
 			command_print();
 		}
 		ADC7738_acquisition(1);
 		ADC7738_acquisition(2);
-		ADC7738_acquisition(3);	
+		ADC7738_acquisition(3);
+    ADC7738_acquisition_output(2);
 		
 		if(user_parameter.flag.ubit.recept_ok==1)
 		{			

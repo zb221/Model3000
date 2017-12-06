@@ -18,6 +18,7 @@ void AD7738_read_channel_data(unsigned char Register,unsigned char *buf0,unsigne
 void AD7738_SET(void);
 void ADC7738_acquisition(unsigned char channel);
 void ADC7738_acquisition_output(unsigned char channel);
+float AVERAGE_F(float *p);
 
 #endif
 
