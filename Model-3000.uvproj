@@ -448,6 +448,11 @@
               <FileType>1</FileType>
               <FilePath>.\User\ModBus.c</FilePath>
             </File>
+            <File>
+              <FileName>read_me.txt</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\User\read_me.txt</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

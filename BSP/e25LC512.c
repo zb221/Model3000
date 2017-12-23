@@ -23,9 +23,6 @@
 #include "stdio.h"
 #include "Peripherals_LPC2194.h"
 
-char dat[255] = {0x3f,0x06,0x5b,0x4f,0x66,0x6d,0x7d,0x07,0x7f,0x6f,
-				0x77,0x7c,0x39,0x5e,0x79,0x71};//0~F????
-
 void Delay_us(unsigned short value)//hugo add
 {
 	unsigned short k=1;
@@ -51,10 +48,10 @@ void Delay_ms(unsigned short value)//hugo add
 void e2prom512_write_enable(void)
 {
 	LC512_CS_L;
-	Delay_us(1);
+//	Delay_us(1);
 	SPI1_SendDate(WREN);
 	LC512_CS_H;
-	Delay_ms(5);
+//	Delay_ms(5);
 }
 
 void e2prom512_write_disable(void)
@@ -134,7 +131,8 @@ unsigned char e2prom512_byte_read(unsigned short start_address)//?????????0~6553
 	temp_value=SPI1_SendDate(0x00);	
 	LC512_CS_H;
 	return temp_value;
-	}
+}
+
 void e2prom512_chip_erase(void)
 {
 	LC512_CS_L;
@@ -168,7 +166,7 @@ void SPI_nbyte_write(const unsigned int address, const unsigned char *dat, unsig
 	
 	e2prom512_write_enable();	
 	LC512_CS_L;
-	Delay_us(1);
+//	Delay_us(1);
 	SPI1_SendDate(WRITE);	
 	SPI1_SendDate(address/256);//???
 	SPI1_SendDate(address%256);//???	
@@ -177,38 +175,33 @@ void SPI_nbyte_write(const unsigned int address, const unsigned char *dat, unsig
 		SPI1_SendDate(dat[i]);//???
 	}	
 	LC512_CS_H;
-  Delay_ms(5);
+//  Delay_ms(5);
   RW_Status();	
 }
 
-unsigned int e2prom512_write (
-                           const void *buffer,      /* Buffer to save */
-                           unsigned int len,       /* Buffer length */
-                           unsigned int address)   /* FLASH address to write */
+unsigned int e2prom512_write (const void *buffer,      /* Buffer to save */
+                              unsigned int len,       /* Buffer length */
+                              unsigned int address)   /* FLASH address to write */
 {
   const unsigned char *s = buffer;
 	unsigned int temp_address,integer_before,integer_after;
-  	temp_address=address+len;
-	integer_before=address>>7;//cannot bigger than 128byte
-	integer_after=temp_address>>7;
-	if(integer_after>integer_before)//
-		{
+	
+  temp_address = address+len;
+	integer_before = address >> 7;//cannot bigger than 128byte
+	integer_after = temp_address >> 7;
+	
+	if(integer_after>integer_before){
 			SPI_nbyte_write(address,s,(integer_after<<7)-address);//
 			SPI_nbyte_write(integer_after<<7,&s[(integer_after<<7)-address],len-((integer_after<<7)-address));//
-		}
-	else
-		{
+	}else{
 			SPI_nbyte_write(address,s,len);//
-		}	 
-		
-		return 0;
-	
+	}	 
+	return 0;
 }
 
-void e2prom512_read (
-                          unsigned char *buffer,            /* Buffer to fill */
-                          unsigned int len,       /* Bytes to read */
-                          unsigned int address)   /* FLASH address to read from */
+void e2prom512_read (unsigned char *buffer,            /* Buffer to fill */
+                     unsigned int len,       /* Bytes to read */
+                     unsigned int address)   /* FLASH address to read from */
 {
   union
 	{
@@ -223,19 +216,18 @@ void e2prom512_read (
 	
 	unsigned int i;
 	LC512_CS_L;
-	Delay_us(1);
+//	Delay_us(1);
 	SPI1_SendDate(READ); 
 	SPI1_SendDate(add.t.addhigh);
 	SPI1_SendDate(add.t.addlow);
 	
 	for(i=0;i<len;i++)
 	{
-		*buffer=SPI1_SendDate(0);
+		*buffer = SPI1_SendDate(0);
 		 buffer++;
 	}
 	LC512_CS_H;
-	Delay_us(1000);	
-
+//	Delay_us(1000);	
 }
 
 void Initial_e2prom(void)
@@ -247,29 +239,24 @@ void Initial_e2prom(void)
 
 void e2promtest(void)
 {
- unsigned short i;
- unsigned char temp[512];
- unsigned char buffer[512];
- 
- for(i=0;i<256;i++)
-{
-  temp[i]=i;
-	//e2prom512_byte_write(temp[i],i);
-}
- for(i=0;i<256;i++)
-{
-  temp[i+256]=i;
-	//e2prom512_byte_write(temp[i],i);
-}
-e2prom512_write(temp,128,0);
-e2prom512_write(temp+128,128,128);
-e2prom512_write(temp+256,128,256);
-e2prom512_write(temp+384,128,384);
-e2prom512_read(buffer,512,0); 
-for(i=0;i<512;i++)
-{
-	//buffer[i]=e2prom512_byte_read(i);
-	UARTprintf("test %d\n",buffer[i]);
-}
+	unsigned short i;
+	unsigned char temp[512];
+	unsigned char buffer[512];
+
+	for(i=0;i<512;i++)
+	{
+		temp[i]=i;
+	}
+
+	e2prom512_write(temp,128,0);
+	e2prom512_write(temp+128,128,128);
+	e2prom512_write(temp+256,128,256);
+	e2prom512_write(temp+384,128,384);
+	e2prom512_read(buffer,512,0);
+	
+	for(i=0;i<512;i++)
+	{
+    UARTprintf("test %d = %d\n",i,buffer[i]);
+	}
 }
 

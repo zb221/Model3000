@@ -32,10 +32,12 @@ Date: 2017/10/10
 ***********************************************************/
 unsigned int count1 = 0, count2 = 0, count3 = 0, count4 = 0, count5 = 0;
 
-unsigned char rcv_buf[100];
-volatile unsigned char rcv_new;
-unsigned int rcv_cnt;
-
+unsigned char rcv_buf[60] = {0};
+unsigned char rcv_char[60] = {0};
+volatile unsigned char rcv_new = 0;
+unsigned int rcv_cnt = 0;
+unsigned int rcv_char_cnt = 0;
+unsigned char rcv_char_flag = 0;
 /***********************************************************
 Function: Delay .
 Input: none
@@ -122,43 +124,47 @@ Description: serial default interrupt.
 
 __irq void IRQ_UART0(void)
 {
-		volatile unsigned char i;
+		volatile unsigned char i = 0;
 
 		do{
-		switch(U0IIR&0x0e)
-		{
-		case 0x04://接收数据可用
-		for(i=0;i<7;i++)
-		{
-		rcv_buf[rcv_cnt++]=U0RBR;				
-		}
-		break;
-		case 0x0c://接收超时
-		while((U0LSR&0x01)!=0)//U0RBR包含有效数据
-		{
-		rcv_buf[rcv_cnt++]=U0RBR;
-		}
-		break;
-		case 0x02://THRE中断
-		break;
-		case 0x06://接收线状态
-		i=U0LSR;
-		break;
-		default:				 
-		break;	
-		}
+			switch(U0IIR&0x0e)
+			{
+				case 0x04://接收数据可用
+				for(i=0;i<7;i++)
+				{
+					rcv_buf[rcv_cnt++] = U0RBR;
+					rcv_char[rcv_char_cnt++] = rcv_buf[rcv_cnt-1];
+				}
+				break;
+				
+				case 0x0c://接收超时
+				while((U0LSR&0x01)!=0)//U0RBR包含有效数据
+				{
+					rcv_buf[rcv_cnt++] = U0RBR;
+					rcv_char[rcv_char_cnt++] = rcv_buf[rcv_cnt-1];
+				}
+				break;
+				
+				case 0x02://THRE中断
+				break;
+				
+				case 0x06://接收线状态
+				i = U0LSR;
+				break;
+				
+				default:				 
+				break;	
+			}
 		}while((U0IIR&0x01)==0);//没有挂起的中断
-	if(0x0A==rcv_buf[rcv_cnt-1] && 0x0D==rcv_buf[rcv_cnt-2])
-	{
-		rcv_new=1;
-	}
-	else
-	{
-		if(rcv_cnt>=CMD_LEN)
-		{
-		rcv_cnt=0;
+		
+		if(0x0A==rcv_buf[rcv_cnt-1] && 0x0D==rcv_buf[rcv_cnt-2]){
+			rcv_new = 1;
+		}else{
+			if(rcv_cnt>=CMD_LEN){
+				rcv_cnt=0;
+			}
 		}
-	}
+    rcv_char_flag = 1;
 		VICVectAddr=0;
 }
 
@@ -349,7 +355,6 @@ void SPI0_INIT(void)
 	S0SPCR = 0x00|(0 << 3)|(1 << 4)|(1 << 5)|(0 << 6)|(0 << 7);  /* Master mode*/
 	S0SPCCR = SPI0_CLK;                                         /* SPI Clock Counter: PCLK / SnSPCCR=12MHz/12*/
 }
-
 /***********************************************************
 Function: Initialize SPI 1 interface.
 Input: none
@@ -426,6 +431,12 @@ __irq void TC0_IR (void)
 
 				case 240000:	/* 4-1H4min set 50 temp, keep 1H  */
 				Intermediate_Data.flag1 = 2;
+        Intermediate_Data.wait_1min = 0;
+				break;
+				
+				case 300000: /* wait 1min for 4-1H4min set 50 temp, keep 1H */
+				Intermediate_Data.wait_1min = 1;
+				Intermediate_Data.unready_current = 1;
 				break;
 
 				case 3840000: /* 1H4min-1H7min stop heating, capture 3min oil temp */
@@ -434,6 +445,11 @@ __irq void TC0_IR (void)
 
 				case 4020000: /* 1H7min-2H7min set 50 temp and keep 1H */
 				Intermediate_Data.flag1 = 4;
+        Intermediate_Data.wait_1min = 0;
+				break;
+				
+				case 4080000: /* wait 1min for 1H7min-2H7min set 50 temp and keep 1H */
+				Intermediate_Data.wait_1min = 1;
 				break;
 
 				case 7620000: /* 2H7min-2H10min stop heating and capture oil temp 3min */
@@ -446,7 +462,12 @@ __irq void TC0_IR (void)
 
 				case 13200000: /* 3H40min-4H10min set 50 temp and keep 0.5H */
 				Intermediate_Data.flag1 = 7;
-				break;	
+        Intermediate_Data.wait_1min = 0;
+				break;
+
+				case 13260000: /* wait 1min for 3H40min-4H10min set 50 temp and keep 0.5H */
+				Intermediate_Data.wait_1min = 1;
+				break;
 
 				case 15000000: /* 4H10min-4H13min stop heating and capture oil temp 3min */
 				Intermediate_Data.flag1 = 8;

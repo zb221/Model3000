@@ -1100,7 +1100,7 @@ typedef struct Intermediate_Data
 {
 	unsigned char flag1, flag2, flag3, flag4, flag5;
 	unsigned char Start_day, Start_week, Start_month;
-	unsigned char Start_print_H2R;
+	unsigned char Start_print_H2R, wait_1min;
 	
 	float Heat_V;
 
@@ -1132,6 +1132,14 @@ typedef struct Intermediate_Data
 
 	float Temp_R_K;
 	float Temp_R_B;
+	
+	unsigned int da_H2ppm;
+	unsigned int db_H2ppm;
+	
+	unsigned char unready_current;
+	
+	unsigned char sector; 
+	unsigned short page;
 
 }Intermediate_Parameters;
 VARIABLE_EXT Intermediate_Parameters Intermediate_Data;

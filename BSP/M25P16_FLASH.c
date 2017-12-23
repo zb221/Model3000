@@ -9,6 +9,8 @@
 #include "M25P16_FLASH.h"
 #include <string.h>
 #include "parameter.h"
+#include "e25LC512.h"
+#include "DS1390.h"
 
 unsigned char spi_flash_buffer[256] = {0};//flash Êý¾Ý»º´æ
 unsigned char buffer[256] = {0};
@@ -65,7 +67,7 @@ void M25P16_read_ID(unsigned char *pbuffer)
 }
 
 /***********************************************************
-Function:	M25P16_erase_4Kmap.
+Function:	M25P16_erase_map.
 Input:	block_address
 Output: none
 Author: zhuobin
@@ -284,44 +286,65 @@ void M25P16_write_data_anywhere(unsigned short data_count,unsigned int start_add
 	}		
 }
 
-void M25P16_TEST(void)
-{
-	UARTprintf("flash test start\n");
-	
-	M25P16_reset();
-	M25P16_read_ID(ID_buffer);
-	
-	int i = 0, page = 0, flag = 0;
-	
-	/*SE test*/
-	M25P16_erase_map(0x000000,SE);
-	spi_flash_buffer[0] = 18;
-	M25P16_write_data_anywhere(1,0x123);
-	M25P16_read_data_anywhere(1,0x123);
-	UARTprintf("buffer[0] = %d\n",buffer[0]);
-		
-	/*write and read all 16Mbit*/
-	M25P16_erase_map(0,BE);
-	for (page=0;page<8192;page++){
-			flag = 0;
-			for (i=0;i<256;i++)
-			{
-				spi_flash_buffer[i] = i;
-			}
-		
-			M25P16_Write_Data(spi_flash_buffer,256,page*256);
-			M25P16_Read_Data(buffer,256,page*256);
+//void M25P16_TEST(void)
+//{
+//	UARTprintf("flash test start\n");
+//	
+//	M25P16_reset();
+//	M25P16_read_ID(ID_buffer);
+//	
+//	static unsigned char sector = 0, flag = 0; 
+//	static int page = 0;
+//	
+//	spi_flash_buffer[254] = sector;
+//	spi_flash_buffer[255] = page;
+//	
+//	/*SE test*/
+//  if (page == 0)
+//	M25P16_erase_map(sector*0x10000,SE);
 
-			for (i=0;i<256;i++)
-			{
-				if (spi_flash_buffer[i] != buffer[i]){
-					UARTprintf("spi_flash_buffer[%d]=%d buffer[%d]=%d\n",i,spi_flash_buffer[i],i,buffer[i]);
-					flag++;
-				}
-			}
-		}
-	UARTprintf("flash test over\n");
-}
+//	M25P16_Write_Data(spi_flash_buffer,256,sector*0x10000+page*256);
+
+//	page++;
+
+//	if (page == 256){
+//		sector++;
+//		page = 0;
+//	}
+//	if (sector == 32){
+//		sector = 0;
+//	}
+//  /*read test*/
+//	if (page == 0){
+//    M25P16_Read_Data(buffer,256,(sector-1)*0x10000+255*256);
+//	}else{
+//		M25P16_Read_Data(buffer,256,sector*0x10000+(page-1)*256);
+//  }
+//	UARTprintf("sector = %d\n",buffer[254]);
+//	UARTprintf("page = %d\n",buffer[255]);
+//		
+//	/*write and read all 16Mbit*/
+////	M25P16_erase_map(0,BE);
+////	for (page=0;page<8192;page++){
+////			flag = 0;
+////			for (i=0;i<256;i++)
+////			{
+////				spi_flash_buffer[i] = i;
+////			}
+////		
+////			M25P16_Write_Data(spi_flash_buffer,256,page*256);
+////			M25P16_Read_Data(buffer,256,page*256);
+
+////			for (i=0;i<256;i++)
+////			{
+////				if (spi_flash_buffer[i] != buffer[i]){
+////					UARTprintf("spi_flash_buffer[%d]=%d buffer[%d]=%d\n",i,spi_flash_buffer[i],i,buffer[i]);
+////					flag++;
+////				}
+////			}
+////		}
+//	UARTprintf("flash test over\n");
+//}
 
 void Init_M25P16(void)
 {
@@ -332,56 +355,80 @@ void Init_M25P16(void)
 void M25P16_Data_Records(void)
 {
 	unsigned int i = 0;
-	float tmp_buffer[12] = {0};
-	static unsigned char sector = 0; 
-	static int page = 0;
 	
-	spi_flash_buffer[0] = CurrentTime.SpecificTime.year+2000;
-	spi_flash_buffer[1] = '/';
-	spi_flash_buffer[2] = CurrentTime.SpecificTime.month;
-	spi_flash_buffer[3] = '/';
-	spi_flash_buffer[4] = CurrentTime.SpecificTime.day;
-	spi_flash_buffer[5] = ' ';
-	spi_flash_buffer[6] = CurrentTime.SpecificTime.hour;
-	spi_flash_buffer[7] = ':';
-	spi_flash_buffer[8] = CurrentTime.SpecificTime.min;
-	spi_flash_buffer[9] = ':';
-	spi_flash_buffer[10] = CurrentTime.SpecificTime.sec;
-	spi_flash_buffer[11] = ' ';
-	
-	tmp_buffer[0] = output_data.PcbTemp;
-	tmp_buffer[1] = output_data.H2AG;
-	tmp_buffer[2] = output_data.OilTemp;
-	tmp_buffer[3] = output_data.H2DG;
-	tmp_buffer[4] = output_data.H2G;
-	tmp_buffer[5] = output_data.H2SldAv;
-	tmp_buffer[6] = output_data.DayROC;
-	tmp_buffer[7] = output_data.WeekROC;
-	tmp_buffer[8] = output_data.MonthROC;
-	
-	tmp_buffer[9] = output_data.SensorTemp;
-	tmp_buffer[10] = output_data.H2Resistor;
-	tmp_buffer[11] = output_data.TempResistor;
-	
-	memcpy(spi_flash_buffer+12,tmp_buffer,sizeof(tmp_buffer));
-	
-	spi_flash_buffer[254] = sector;
-	spi_flash_buffer[255] = page;
+	unsigned char a = 0, b = 0; 
 
-  if (page == 0)
-	M25P16_erase_map(sector*0x10000,SE);
+	spi_flash_buffer[0] = 0x5A;
+	spi_flash_buffer[1] = run_parameter.reserved_parameter35 >> 8;
+	spi_flash_buffer[2] = run_parameter.reserved_parameter35 & 0xFF;
+	spi_flash_buffer[3] = run_parameter.reserved_parameter341 >> 8;
+	spi_flash_buffer[4] = run_parameter.reserved_parameter341 & 0xFF;
+	spi_flash_buffer[5] = run_parameter.reserved_parameter36 & 0xFF;
+	spi_flash_buffer[6] = run_parameter.reserved_parameter37 >> 8;
+	spi_flash_buffer[7] = run_parameter.reserved_parameter37 & 0xFF;
 	
-	M25P16_Write_Data(spi_flash_buffer,256,sector*0x10000+page*256);
+//	tmp_buffer[0] = output_data.PcbTemp;
+//	tmp_buffer[1] = output_data.H2AG;
+//	tmp_buffer[2] = output_data.OilTemp;
+//	tmp_buffer[3] = output_data.H2DG;
+//	tmp_buffer[4] = output_data.H2G;
+//	tmp_buffer[5] = output_data.H2SldAv;
+//	tmp_buffer[6] = output_data.DayROC;
+//	tmp_buffer[7] = output_data.WeekROC;
+//	tmp_buffer[8] = output_data.MonthROC;
+//	
+//	tmp_buffer[9] = output_data.SensorTemp;
+//	tmp_buffer[10] = output_data.H2Resistor;
+//	tmp_buffer[11] = output_data.TempResistor;
 
-	page++;
+	spi_flash_buffer[8] = (unsigned int)output_data.H2DG >> 24;
+	spi_flash_buffer[9] = ((unsigned int)output_data.H2DG >> 16) & 0xFF;
+	spi_flash_buffer[10] = ((unsigned int)output_data.H2DG >> 8) & 0xFF;
+	spi_flash_buffer[11] = (unsigned int)output_data.H2DG & 0xFF;
 
-	if (page == 256){
-		sector++;
-		page = 0;
+	spi_flash_buffer[12] = run_parameter.oil_temperature_celsius.ubit.hi;
+	spi_flash_buffer[13] = run_parameter.oil_temperature_celsius.ubit.lo;
+	
+	spi_flash_buffer[14] = (unsigned int)output_data.DayROC >> 24;
+	spi_flash_buffer[15] = ((unsigned int)output_data.DayROC >> 16) & 0xFF;
+	spi_flash_buffer[16] = ((unsigned int)output_data.DayROC >> 8) & 0xFF;
+	spi_flash_buffer[17] = (unsigned int)output_data.DayROC & 0xFF;
+	
+	spi_flash_buffer[18] = 0xA5;
+	
+	
+	e2prom512_read(&a,sizeof(unsigned char),0);
+	e2prom512_read(&b,sizeof(unsigned char),1);
+//	UARTprintf("sector=%d,page=%d: %d\n",a,b,a*256+b);
+	
+	if (a > 30)
+		Intermediate_Data.sector = 0;
+	else
+	  Intermediate_Data.sector = a;
+	
+	Intermediate_Data.page = b;
+	
+	spi_flash_buffer[254] = Intermediate_Data.sector;
+	spi_flash_buffer[255] = Intermediate_Data.page;
+
+  if (Intermediate_Data.page == 0)
+	M25P16_erase_map(Intermediate_Data.sector*0x10000,SE);
+	
+	M25P16_Write_Data(spi_flash_buffer,256,Intermediate_Data.sector*0x10000+Intermediate_Data.page*256);
+
+	Intermediate_Data.page++;
+
+	if (Intermediate_Data.page == 256){
+		Intermediate_Data.sector++;
+		Intermediate_Data.page = 0;
 	}
-	if (sector == 32){
-		sector = 0;
+	if (Intermediate_Data.sector == 31){
+		Intermediate_Data.sector = 0;
 	}
+	
+	e2prom512_write(&Intermediate_Data.sector,sizeof(unsigned char),0);
+	e2prom512_write(&Intermediate_Data.page,sizeof(unsigned char),1);
+	
   /*read test*/
 //	if (page == 0){
 //    M25P16_Read_Data(buffer,256,(sector-1)*0x10000+255*256);
@@ -390,4 +437,77 @@ void M25P16_Data_Records(void)
 //  }
 //	UARTprintf("sector = %d\n",buffer[254]);
 //	UARTprintf("page = %d\n",buffer[255]);
+	
+//	e2prom512_read(&a,sizeof(unsigned char),0);
+//	e2prom512_read(&b,sizeof(unsigned char),1);
+//	UARTprintf("a=%d,b=%d\n",a,b);
+}
+
+void M25P16_Alarm_Log_Records(void)
+{
+	unsigned int i = 0;
+	unsigned char a = 0, b = 0; 
+
+	spi_flash_buffer[0] = 0x5A;
+	spi_flash_buffer[1] = run_parameter.reserved_parameter35 >> 8;
+	spi_flash_buffer[2] = run_parameter.reserved_parameter35 & 0xFF;
+	spi_flash_buffer[3] = run_parameter.reserved_parameter341 >> 8;
+	spi_flash_buffer[4] = run_parameter.reserved_parameter341 & 0xFF;
+	spi_flash_buffer[5] = run_parameter.reserved_parameter36 & 0xFF;
+	spi_flash_buffer[6] = run_parameter.reserved_parameter37 >> 8;
+	spi_flash_buffer[7] = run_parameter.reserved_parameter37 & 0xFF;
+
+	spi_flash_buffer[8] = (unsigned int)output_data.H2DG >> 24;
+	spi_flash_buffer[9] = ((unsigned int)output_data.H2DG >> 16) & 0xFF;
+	spi_flash_buffer[10] = ((unsigned int)output_data.H2DG >> 8) & 0xFF;
+	spi_flash_buffer[11] = (unsigned int)output_data.H2DG & 0xFF;
+
+	spi_flash_buffer[12] = run_parameter.oil_temperature_celsius.ubit.hi;
+	spi_flash_buffer[13] = run_parameter.oil_temperature_celsius.ubit.lo;
+	
+	spi_flash_buffer[14] = (unsigned int)output_data.DayROC >> 24;
+	spi_flash_buffer[15] = ((unsigned int)output_data.DayROC >> 16) & 0xFF;
+	spi_flash_buffer[16] = ((unsigned int)output_data.DayROC >> 8) & 0xFF;
+	spi_flash_buffer[17] = (unsigned int)output_data.DayROC & 0xFF;
+	
+	spi_flash_buffer[18] = 0xA5;
+
+	e2prom512_read(&a,sizeof(unsigned char),2);
+	e2prom512_read(&b,sizeof(unsigned char),3);
+//	UARTprintf("sector=%d,page=%d: %d\n",a,b,a*256+b);
+	
+	if (a != 31)
+		Intermediate_Data.sector = 31;
+	else
+	  Intermediate_Data.sector = a;
+	
+	Intermediate_Data.page = b;
+	
+	spi_flash_buffer[254] = Intermediate_Data.sector;
+	spi_flash_buffer[255] = Intermediate_Data.page;
+	
+	M25P16_Write_Data(spi_flash_buffer,256,Intermediate_Data.sector*0x10000+Intermediate_Data.page*256);
+
+	Intermediate_Data.page++;
+
+	if (Intermediate_Data.page == 256){
+		Intermediate_Data.page = 0;
+	}
+	
+	e2prom512_write(&Intermediate_Data.sector,sizeof(unsigned char),2);
+	e2prom512_write(&Intermediate_Data.page,sizeof(unsigned char),3);
+	
+//  /*read test*/
+//	if (Intermediate_Data.page == 0){
+//    M25P16_Read_Data(buffer,256,Intermediate_Data.sector*0x10000+255*256);
+//	}else{
+//		M25P16_Read_Data(buffer,256,Intermediate_Data.sector*0x10000+(Intermediate_Data.page-1)*256);
+//  }
+
+//	UARTprintf("sector = %d\n",buffer[254]);
+//	UARTprintf("page = %d\n",buffer[255]);
+	
+//	e2prom512_read(&a,sizeof(unsigned char),2);
+//	e2prom512_read(&b,sizeof(unsigned char),3);
+//	UARTprintf("a=%d,b=%d\n",a,b);
 }

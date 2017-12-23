@@ -518,19 +518,20 @@ void ADC7738_acquisition_output(unsigned char channel)
 		if (number == 0)
 		number = sizeof(Intermediate_Data.OHM)/sizeof(Intermediate_Data.OHM[0]);
 
-		if(output_data.H2Resistor < Intermediate_Data.OHM[0]){
-			output_data.H2AG = Intermediate_Data.H2[0];
-			output_data.H2AG1 = Intermediate_Data.H2[0];
-		}else if (output_data.H2Resistor > Intermediate_Data.OHM[number-1]){
-			output_data.H2AG = Intermediate_Data.H2[number-1];
-			output_data.H2AG1 = Intermediate_Data.H2[number-1];
-		}else{
-			if (output_data.temperature == 50){
-			output_data.H2AG = Cubic_main(output_data.H2Resistor,Hydrogen_Res);  /*H2AG*/
-			output_data.H2AG1 = quadratic_polynomial(output_data.H2Resistor);
-			}
+    if (output_data.temperature == 50 && Intermediate_Data.wait_1min == 1){
+			if(output_data.H2Resistor < Intermediate_Data.OHM[0]){
+				output_data.H2AG = Intermediate_Data.H2[0];
+				output_data.H2AG1 = Intermediate_Data.H2[0];
+			}else if (output_data.H2Resistor > Intermediate_Data.OHM[number-1]){
+				output_data.H2AG = Intermediate_Data.H2[number-1];
+				output_data.H2AG1 = Intermediate_Data.H2[number-1];
+			}else{
+				output_data.H2AG = Cubic_main(output_data.H2Resistor,Hydrogen_Res);  /*H2AG*/
+				output_data.H2AG1 = quadratic_polynomial(output_data.H2Resistor);
+      }
 		}
 		output_data.H2DG = output_data.H2AG / 20;
+		output_data.H2DG += (float)((run_parameter.h2_ppm_calibration_gas_h16.hilo << 16) | run_parameter.h2_ppm_calibration_gas_l16.hilo);
 		output_data.H2G = output_data.H2DG;
 		break;
 
