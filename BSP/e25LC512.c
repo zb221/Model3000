@@ -237,26 +237,26 @@ void Initial_e2prom(void)
 	LC512_SCK_H;
 }
 
-void e2promtest(void)
-{
-	unsigned short i;
-	unsigned char temp[512];
-	unsigned char buffer[512];
+//void e2promtest(void)
+//{
+//	unsigned short i;
+//	unsigned char temp[512];
+//	unsigned char buffer[512];
 
-	for(i=0;i<512;i++)
-	{
-		temp[i]=i;
-	}
+//	for(i=0;i<512;i++)
+//	{
+//		temp[i]=i;
+//	}
 
-	e2prom512_write(temp,128,0);
-	e2prom512_write(temp+128,128,128);
-	e2prom512_write(temp+256,128,256);
-	e2prom512_write(temp+384,128,384);
-	e2prom512_read(buffer,512,0);
-	
-	for(i=0;i<512;i++)
-	{
-    UARTprintf("test %d = %d\n",i,buffer[i]);
-	}
-}
+//	e2prom512_write(temp,128,0);
+//	e2prom512_write(temp+128,128,128);
+//	e2prom512_write(temp+256,128,256);
+//	e2prom512_write(temp+384,128,384);
+//	e2prom512_read(buffer,512,0);
+//	
+//	for(i=0;i<512;i++)
+//	{
+//    UARTprintf("test %d = %d\n",i,buffer[i]);
+//	}
+//}
 

@@ -80,8 +80,12 @@ void relay_status(void)
 	else
   	Relay2_Pin_CLR
 
-	if (output_data.OilTemp >= run_parameter.OilTemp_Alarm_celsius.hilo)
+	if (output_data.OilTemp >= run_parameter.OilTemp_Alarm_celsius.hilo){
 	  Relay3_Pin_SET
+		run_parameter.status_flag.ubit.senser_state0=0;
+		run_parameter.status_flag.ubit.senser_state1=0;
+		run_parameter.status_flag.ubit.senser_state2=1;
+	}
 	else
 	  Relay3_Pin_CLR
 }

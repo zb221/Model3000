@@ -13,6 +13,7 @@
 #include "Cubic.h"
 #include "fitting.h"
 #include "parameter.h"
+#include "DAC8568.h"
 
 /***********************************************************
 Description: Global variable region.
@@ -356,7 +357,10 @@ void filterA(float *arry)
 
 		}
 
-		if (Intermediate_Data.Start_print_H2R == 1){
+		if (((output_data.MODEL_TYPE == 1)||(output_data.MODEL_TYPE == 2))&&(Intermediate_Data.Start_print_H2R == 1)){
+		  output_data.H2Resistor = sum / (2*effective);
+		}
+		if ((output_data.MODEL_TYPE == 3)&&(Intermediate_Data.Start_print_calibrate_H2R == 2)){
 		  output_data.H2Resistor = sum / (2*effective);
 		}
 	}
@@ -373,7 +377,7 @@ Description: .
 void Temperature_of_resistance_Parameter(void)
 {	
 	static unsigned int number = 0;
-	static unsigned char flag = 0;
+	static unsigned char flag = 0, run_type = 0;
 	
 	if (flag == 0){
 	    Line_Fit(Intermediate_Data.Temp_R, Intermediate_Data.Temp);
@@ -382,9 +386,37 @@ void Temperature_of_resistance_Parameter(void)
 
 	output_data.TempResistor = (Channel_OilTemp/AD7738_resolution_NP25-2500)/Current_of_Temperature_resistance;
 
-	if (output_data.temperature == 0){
-	    output_data.OilTemp = Intermediate_Data.Temp_R_K*output_data.TempResistor + Intermediate_Data.Temp_R_B;
-			output_data.SensorTemp = output_data.OilTemp;
+	switch (output_data.temperature){
+		case 0:
+	    output_data.SensorTemp = Intermediate_Data.Temp_R_K*output_data.TempResistor + Intermediate_Data.Temp_R_B;
+			output_data.OilTemp = output_data.SensorTemp;
+			run_parameter.status_flag.ubit.senser_state0=0;
+			run_parameter.status_flag.ubit.senser_state1=1;
+			run_parameter.status_flag.ubit.senser_state2=0;
+			break;
+		
+		case 50:
+			if (output_data.MODEL_TYPE == 3){
+				output_data.SensorTemp = Intermediate_Data.Temp_R_K*output_data.TempResistor + Intermediate_Data.Temp_R_B;
+				break;
+			}
+		case 70:
+	    output_data.SensorTemp = Intermediate_Data.Temp_R_K*output_data.TempResistor + Intermediate_Data.Temp_R_B;
+		  if ((output_data.SensorTemp > (output_data.temperature + 2)) && Intermediate_Data.wait_1min == 1){
+				output_data.OilTemp = output_data.SensorTemp;
+				output_data.MODEL_TYPE = 4;
+				DAC8568_INIT_SET(0,0*65536/5);	/* The oil temperature exceeds the working temperature*/
+				Intermediate_Data.Operat_temp_alarm = 1;
+			}else{
+        output_data.MODEL_TYPE = 1;
+			}
+			if (output_data.OilTemp < output_data.temperature){
+			  Intermediate_Data.Operat_temp_alarm = 0;
+			}
+			break;
+		
+		default:
+			break;
 	}
 	Intermediate_Data.OilTemp_Tmp[number++] = Intermediate_Data.Temp_R_K*output_data.TempResistor + Intermediate_Data.Temp_R_B;
 //	UARTprintf("%.4f	",Intermediate_Data.OilTemp_Tmp[number-1]);
@@ -504,8 +536,6 @@ void ADC7738_acquisition_output(unsigned char channel)
 	
 	switch (channel){
 		case 1:
-		if (output_data.temperature != 0)
-		    output_data.SensorTemp = output_data.temperature;
 		break;
 
 		case 2:
@@ -518,17 +548,30 @@ void ADC7738_acquisition_output(unsigned char channel)
 		if (number == 0)
 		number = sizeof(Intermediate_Data.OHM)/sizeof(Intermediate_Data.OHM[0]);
 
-    if (output_data.temperature == 50 && Intermediate_Data.wait_1min == 1){
-			if(output_data.H2Resistor < Intermediate_Data.OHM[0]){
-				output_data.H2AG = Intermediate_Data.H2[0];
-				output_data.H2AG1 = Intermediate_Data.H2[0];
-			}else if (output_data.H2Resistor > Intermediate_Data.OHM[number-1]){
-				output_data.H2AG = Intermediate_Data.H2[number-1];
-				output_data.H2AG1 = Intermediate_Data.H2[number-1];
+		if (Intermediate_Data.Operat_temp_alarm == 0){
+			if (output_data.temperature == 50 && Intermediate_Data.wait_1min == 1){
+				if(output_data.H2Resistor < Intermediate_Data.OHM[0]){
+					output_data.H2AG = Intermediate_Data.H2[0];
+					output_data.H2AG1 = Intermediate_Data.H2[0];
+				}else if (output_data.H2Resistor > Intermediate_Data.OHM[number-1]){
+					output_data.H2AG = Intermediate_Data.H2[number-1];
+					output_data.H2AG1 = Intermediate_Data.H2[number-1];
+				}else{
+					output_data.H2AG = Cubic_main(output_data.H2Resistor,Hydrogen_Res);  /*H2AG*/
+					output_data.H2AG1 = quadratic_polynomial(output_data.H2Resistor);
+				}
+				run_parameter.status_flag.ubit.senser_state0=1;
+				run_parameter.status_flag.ubit.senser_state1=0;
+				run_parameter.status_flag.ubit.senser_state2=0;
 			}else{
-				output_data.H2AG = Cubic_main(output_data.H2Resistor,Hydrogen_Res);  /*H2AG*/
-				output_data.H2AG1 = quadratic_polynomial(output_data.H2Resistor);
-      }
+				run_parameter.status_flag.ubit.senser_state0=1;
+				run_parameter.status_flag.ubit.senser_state1=1;
+				run_parameter.status_flag.ubit.senser_state2=0;
+			}
+	  }else{
+			run_parameter.status_flag.ubit.senser_state0=1;
+			run_parameter.status_flag.ubit.senser_state1=0;
+			run_parameter.status_flag.ubit.senser_state2=1;
 		}
 		output_data.H2DG = output_data.H2AG / 20;
 		output_data.H2DG += (float)((run_parameter.h2_ppm_calibration_gas_h16.hilo << 16) | run_parameter.h2_ppm_calibration_gas_l16.hilo);

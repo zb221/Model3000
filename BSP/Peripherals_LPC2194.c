@@ -419,6 +419,8 @@ __irq void TC0_IR (void)
 	count3++;
 	count4++;
 	count5++;
+	
+	Intermediate_Data.count7++;
 
 	switch (output_data.MODEL_TYPE){
 		case 2:	/*debug model*/
@@ -458,6 +460,11 @@ __irq void TC0_IR (void)
 
 				case 7800000: /* 2H10min-3H40min set 70 temp and keep 1.5H */
 				Intermediate_Data.flag1 = 6;
+				Intermediate_Data.wait_1min = 0;
+				break;
+				
+				case 7860000: /* wait 1min for 2H10min-3H40min set 70 temp and keep 1.5H */
+				Intermediate_Data.wait_1min = 1;
 				break;
 
 				case 13200000: /* 3H40min-4H10min set 50 temp and keep 0.5H */
@@ -483,11 +490,23 @@ __irq void TC0_IR (void)
 			break;
 			      
 		case 3:	/*calibrate model*/
-      output_data.temperature = 50;
+			  if (Intermediate_Data.Start_print_calibrate_H2R == 1){
+					Intermediate_Data.count6++;
+					if (Intermediate_Data.count6 == 60000){
+						Intermediate_Data.Start_print_calibrate_H2R = 2;
+						Intermediate_Data.count6 = 0;
+					}
+				}
+				break;
+		
+		case 4:	/*OilTemp model*/
+			count1 = 0;
+			Intermediate_Data.flag1 = 0;
+			Intermediate_Data.Start_print_H2R = 0;
 			break;
 
 		default:
-		break;
+			break;
 	}
 	
 	switch (count2){

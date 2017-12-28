@@ -127,7 +127,7 @@ void Spi_Flash_Data_read(void)
 		temp_read_start_address = run_parameter.reserved_parameter13;
 		temp_read_end_address = run_parameter.reserved_parameter14;
 		
-		if((temp_read_start_address>8192)||(temp_read_end_address>8192)||(temp_read_start_address>=temp_read_end_address))
+		if((temp_read_start_address>(8192-512))||(temp_read_end_address>(8192-512))||(temp_read_start_address>=temp_read_end_address))
 		{
 			run_parameter.reserved_parameter13=0;
 			run_parameter.reserved_parameter14=0;
@@ -587,6 +587,13 @@ int RW_ModBus_Data (void)
 		{
 //			UARTprintf("read FLASH DATA\n");
 			Spi_Flash_Data_read();
+			break;
+		}
+		
+		case 102: //Write Flash
+		{
+      UARTprintf("Write FLASH DATA\n");
+			M25P16_Write_Sensor_Data();
 			break;
 		}
 		

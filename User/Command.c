@@ -193,17 +193,20 @@ void alarm_arg(void)//还需增加将继电器状态值存入E2P中
 					case 0x31:
 						UARTprintf("Enter Trigger (ppm H2):");
 						flag_relay1 = 1;
-						flag_function = 7;						
+						flag_function = 7;
+						run_parameter.status_flag.ubit.relay1=1;
 					break;
 					case 0x32:
 						UARTprintf("Enter Trigger (ppm H2/day):");
 						flag_relay1 = 2;
-						flag_function = 8;							
+						flag_function = 8;
+						run_parameter.status_flag.ubit.relay1=1;					
 					break;
 					case 0x33:
 						UARTprintf("Enter Trigger (Oil temperature):");
 						flag_relay1 = 3;
-						flag_function = 9;							
+						flag_function = 9;
+						run_parameter.status_flag.ubit.relay1=1;					
 					break;
 					default:
 						UARTprintf("not a illegal interger, set 0-3 at here\n");
@@ -242,17 +245,20 @@ void alarm_arg(void)//还需增加将继电器状态值存入E2P中
 					case 0x31:
 						UARTprintf("2 Enter Trigger (ppm H2):");
 						flag_relay2 = 1;
-						flag_function = 7;						
+						flag_function = 7;
+						run_parameter.status_flag.ubit.relay2=1;					
 					break;
 					case 0x32:
 						UARTprintf("2 Enter Trigger (ppm H2/day):");
 						flag_relay2 = 2;
-						flag_function = 8;							
+						flag_function = 8;
+						run_parameter.status_flag.ubit.relay2=1;					
 					break;
 					case 0x33:
 						UARTprintf("2 Enter Trigger (Oil temperature):");
 						flag_relay2 = 3;
-						flag_function = 9;							
+						flag_function = 9;
+						run_parameter.status_flag.ubit.relay2=1;					
 					break;
 					default:
 						UARTprintf("not a illegal interger, set 0-3 at here\n");
@@ -291,17 +297,20 @@ void alarm_arg(void)//还需增加将继电器状态值存入E2P中
 						case 0x31:
 							UARTprintf("3 Enter Trigger (ppm H2):");
 							flag_relay3 = 1;
-							flag_function = 7;						
+							flag_function = 7;
+						  run_parameter.status_flag.ubit.relay3=1;						
 						break;
 						case 0x32:
 							UARTprintf("3 Enter Trigger (ppm H2/day):");
 							flag_relay3 = 2;
-							flag_function = 8;							
+							flag_function = 8;	
+						  run_parameter.status_flag.ubit.relay3=1;						
 						break;
 						case 0x33:
 							UARTprintf("3 Enter Trigger (Oil temperature):");
 							flag_relay3 = 3;
-							flag_function = 9;							
+							flag_function = 9;	
+						  run_parameter.status_flag.ubit.relay3=1;						
 						break;
 						default:
 							UARTprintf("not a illegal interger, set 0-3 at here\n");
@@ -1594,11 +1603,11 @@ void install_arg(void)//is
 	switch(flag_function){
 		case 0:
 			UARTprintf("Erase All Data Log\r\n");
-			M25P16_erase_map(0,BE);
-			Intermediate_Data.page = 0;
-			Intermediate_Data.sector = 0;
-			e2prom512_write(&Intermediate_Data.sector,sizeof(unsigned char),0);
-			e2prom512_write(&Intermediate_Data.page,sizeof(unsigned char),1);
+		  for (i=0;i<30;i++)
+      M25P16_erase_map(i*0x10000,SE);
+
+		  Intermediate_Data.M25P16_Data_Addr = 0;
+      e2prom512_write((unsigned char *)&Intermediate_Data.M25P16_Data_Addr,sizeof(unsigned int),234*2);
 			UARTprintf("...wait...\r\n");
 			flag_function++;
 			flag_chaoshi = 0;
@@ -2151,9 +2160,9 @@ void date_arg(void)//rs
 
 void record_arg(void)//t
 {
-	unsigned char i = 0;
-    unsigned char buffer[256] = {0};
-	unsigned char a = 0, b = 0; 
+	unsigned short i = 0;
+  unsigned char buffer[256] = {0};
+	unsigned char b = 0; 
 	switch(flag_function){
 		case 0:
 		UARTprintf("Trace Functions:\r\n\
@@ -2212,7 +2221,7 @@ void record_arg(void)//t
 				switch(cmd_tmp[0]){
 					case 0x79://y             
 					flag_function++;
-                    M25P16_erase_map(31*0x10000,SE);
+					M25P16_erase_map(31*0x10000,SE);
 					UARTprintf("All clear\n");
 					break;
 					case 0x6e://n            
@@ -2286,21 +2295,19 @@ void record_arg(void)//t
 		UARTprintf("DayROCppm    ");
 		UARTprintf("Msg    \r\n");	
 		//从存储中打印数据
-		e2prom512_read(&a,sizeof(unsigned char),2);
-		e2prom512_read(&b,sizeof(unsigned char),3);
-		UARTprintf("a=%d,b=%d\n",a,b);
-		Intermediate_Data.sector = a;
-		Intermediate_Data.page = b;
+		e2prom512_read(&b,sizeof(unsigned char),233*2);
+		Intermediate_Data.Alarm_page = b;
+//		UARTprintf("Alarm_page=%d\n",Intermediate_Data.Alarm_page);
 		if (readlog_number <= 256 && readlog_number > 0){
 			for (i=0;i<readlog_number;i++){
-				Intermediate_Data.page--;
-				if (Intermediate_Data.page > 255)
-					Intermediate_Data.page = 255;
+				Intermediate_Data.Alarm_page--;
+				if (Intermediate_Data.Alarm_page > 255)
+					Intermediate_Data.Alarm_page = 255;
 				
-				  M25P16_Read_Data(buffer,256,Intermediate_Data.sector*0x10000+Intermediate_Data.page*256);
+				  M25P16_Read_Data(buffer,256,31*0x10000+Intermediate_Data.Alarm_page*256);
 				
-				UARTprintf("%x-%x-%x %x:%x:%x %x %.2f %x \n",(buffer[1]<<8)|buffer[2],buffer[3],buffer[4],buffer[5],
-				buffer[6],buffer[7],(buffer[8]<<24)|(buffer[9]<<16)|(buffer[10]<<8)|buffer[11],(float)((buffer[12]<<8)|buffer[13])/100.0,(buffer[14]<<24)|(buffer[15]<<16)|(buffer[16]<<8)|buffer[17]);
+				UARTprintf("%x-%x-%x %x:%x:%x %x %.2f %x \n",(buffer[0]<<8)|buffer[1],buffer[2],buffer[3],buffer[4],
+				buffer[5],buffer[6],(buffer[7]<<24)|(buffer[8]<<16)|(buffer[9]<<8)|buffer[10],(float)((buffer[11]<<8)|buffer[12])/100.0,(buffer[13]<<24)|(buffer[14]<<16)|(buffer[15]<<8)|buffer[16]);
 			}
 		}else{
 		  UARTprintf("max.256 alarm log. Please set 1-256 at here.\n");
@@ -2465,7 +2472,7 @@ void ci_arg(void)//ci
 		break;
 		
 		case 3:
-		UARTprintf("Set to 3.000mA, Enter actual value: ");	
+		UARTprintf("Set to 4.000mA, Enter actual value: ");	
 		flag_function++;
 		flag_chaoshi=0;	
 		memset(cmd_tmp,0,sizeof(cmd_tmp));
@@ -2491,7 +2498,10 @@ void ci_arg(void)//ci
 				}
 				if(flag_done==0)
 				{
-					run_parameter.h2_ppm_out_current_low.hilo=(short)(atof(cmd_tmp)*100);//此parameter有待修改
+//					run_parameter.h2_ppm_out_current_low.hilo=(short)(atof(cmd_tmp)*100);//此parameter有待修改
+					run_parameter.h2_ppm_out_current_low.hilo = atof(cmd_tmp)*100;
+					UARTprintf("run_parameter.h2_ppm_out_current_low.hilo=%d\n",run_parameter.h2_ppm_out_current_low.hilo);
+					e2prom512_write(&run_parameter.h2_ppm_out_current_low.ubit.lo,2,145*2);
 					flag_function++;
 				}
 		}
@@ -2500,7 +2510,7 @@ void ci_arg(void)//ci
 		break;
 		
 		case 5:
-		UARTprintf("Set to 19.000mA, Enter actual value: ");
+		UARTprintf("Set to 20.000mA, Enter actual value: ");
 		flag_function++;
 		flag_chaoshi = 0;
 		memset(cmd_tmp,0,sizeof(cmd_tmp));
@@ -2526,7 +2536,10 @@ void ci_arg(void)//ci
 				}
 				if(flag_done==0)
 				{
-					run_parameter.h2_ppm_out_current_high.hilo=(short)(atof(cmd_tmp)*100);//此parameter有待修改
+//					run_parameter.h2_ppm_out_current_high.hilo=(short)(atof(cmd_tmp)*100);//此parameter有待修改
+					run_parameter.h2_ppm_out_current_high.hilo = atof(cmd_tmp)*100;
+					UARTprintf("run_parameter.h2_ppm_out_current_high.hilo=%d\n",run_parameter.h2_ppm_out_current_high.hilo);
+					e2prom512_write(&run_parameter.h2_ppm_out_current_high.ubit.lo,2,146*2);
 					UARTprintf("Test the output\n");
 					flag_function++;
 				}
@@ -2536,7 +2549,7 @@ void ci_arg(void)//ci
 		break;
 		
 		case 7:
-		UARTprintf("Set to 3.000mA, Is this good (Y/N)?");
+		UARTprintf("Set to 4.000mA, Is this good (Y/N)?");
 		flag_function++;
 		flag_chaoshi=0;
 		memset(cmd_tmp,0,sizeof(cmd_tmp));
@@ -2571,7 +2584,7 @@ void ci_arg(void)//ci
 		break;
 		
 		case 9:
-		UARTprintf("Set to 19.000mA, Is this good (Y/N)?");
+		UARTprintf("Set to 20.000mA, Is this good (Y/N)?");
 		flag_function++;
 		flag_chaoshi = 0;
 		memset(cmd_tmp,0,sizeof(cmd_tmp));
@@ -2583,7 +2596,7 @@ void ci_arg(void)//ci
 		{
 				switch(cmd_tmp[0]){
 					case 0x79://y
-					UARTprintf("Calibrate %u-%umA output\n",run_parameter.h2_ppm_out_current_low.hilo,run_parameter.h2_ppm_out_current_high.hilo);
+					UARTprintf("Calibrate %.2f-%.2fmA output\n",(float)run_parameter.h2_ppm_out_current_low.hilo/100,(float)run_parameter.h2_ppm_out_current_high.hilo/100);
 					UARTprintf("\n...Wait...SAVED  Done......\r\n\r\n");
 					flag_function=2;
 					break;
@@ -2727,18 +2740,24 @@ void cf_arg(void)
 					case 0x31://n 
 						UARTprintf("change mode to normal Success, exit cf OK.\n");
 						output_data.MODEL_TYPE = 1;
+				    UARTprintf(print_menu);
 					  flag_screen = 0;
 						flag_function++;						
 					break;
 					case 0x32:
 						UARTprintf("change mode to debug Success, exit cf OK.\n");
 						output_data.MODEL_TYPE = 2;
+				    UARTprintf(debug_menu);
 					  flag_screen = 0;
 						flag_function++;
 					break;
 					case 0x33:
 						UARTprintf("change mode to calibration Success, exit cf OK.\n");
 						output_data.MODEL_TYPE = 3;
+						UARTprintf(calibrate_menu);
+						output_data.temperature = 50;
+						DAC8568_INIT_SET(output_data.temperature,2*65536/5);	/* Set Senseor temperature :DOUT-C = xV*65536/5 */
+		        Intermediate_Data.Start_print_calibrate_H2R = 1;
 					  flag_screen = 0;
 						flag_function++;
 					break;
