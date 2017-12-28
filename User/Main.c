@@ -10,7 +10,7 @@
 #include <LPC21xx.H>                    /* LPC21xx definitions               */
 #include <string.h>
 #include <stdlib.h>
-#include <string.h>
+
 #include "main.h"                    /* global project definition file    */
 #include "config.h"
 #include "Peripherals_LPC2194.h"
@@ -23,32 +23,36 @@
 #include "e25LC512.h"
 #include "parameter.h"
 #include "ModBus.h"
+#include "AD420.h"
 
 /*-------------------------Global variable region----------------------*/
 extern unsigned char flag_command;
 extern unsigned char flag_function;
-extern unsigned char rcv_buf[100];
+extern unsigned char rcv_buf[60];
+extern unsigned char rcv_char[60];
 extern volatile unsigned char rcv_new;
 extern unsigned int rcv_cnt;
+extern unsigned int rcv_char_cnt;
 extern unsigned char cmd_tmp[CMD_LEN];
 extern unsigned char cmd_buf[CMD_LEN];
 extern unsigned char flag_screen;
 extern unsigned char a;
 extern REALTIMEINFO CurrentTime;
 extern unsigned char flag_mode;
+extern unsigned char rcv_char_flag;
 
-static unsigned int print_count = 0;
-unsigned char print_time = 2;
+static unsigned int print_count = 0; /* Countdown to each state */
+unsigned char print_time = 2; /* console print cycle */
 
 const char print_menu[] = 
 	"\n"
-	"TimeStamp    PcbTemp    H2AG.ppm    OilTemp    H2DG.ppm    H2G.ppm    H2SldAv    DayROC    WeekROC    MonthROC    Message    \r\n";
+	"TimeStamp               PcbTemp    H2AG.ppm    OilTemp    H2DG.ppm    H2G.ppm    H2SldAv    DayROC    WeekROC    MonthROC    Message    \r\n";
 const char debug_menu[] =
 	"\n"
-	"TimeStamp    PcbTemp    H2AG.ppm    OilTemp    H2DG.ppm    H2G.ppm    H2SldAv    DayROC    WeekROC    MonthROC    SensorTemp    H2Resistor    TemResistor    Message    \r\n";\
+	"TimeStamp               PcbTemp    H2AG.ppm    OilTemp    H2DG.ppm    H2G.ppm    H2SldAv    DayROC    WeekROC    MonthROC    SensorTemp    H2Resistor    TemResistor    Message    \r\n";\
 const char calibrate_menu[] =
 	"\n"
-	"TimeStamp    PcbTemp    H2AG.ppm    OilTemp    SensorTemp    H2Resistor    TemResistor    Message    \r\n";\
+	"TimeStamp               PcbTemp    H2AG.ppm    OilTemp    SensorTemp    H2Resistor    TemResistor    Message    \r\n";\
 
 char message0[] = "rpt";
 char message1[] = "wait";
@@ -91,7 +95,7 @@ void init_Global_Variable(void)
 	
 	print_count = 60 / print_time;
 	
-	output_data.MODEL_TYPE = 2;/*1->normal model; 2->debug model; 3->calibrate model*/
+	output_data.MODEL_TYPE = 1;/*1->normal model; 2->debug model; 3->calibrate model*/
 	output_data.temperature = 0;
 	output_data.PCB_temp = 40;
 	output_data.PcbTemp = 0;
@@ -122,6 +126,8 @@ void init_Global_Variable(void)
 	Intermediate_Data.Start_month = 0;
 	
 	Intermediate_Data.Start_print_H2R = 0;
+	Intermediate_Data.Start_print_calibrate_H2R = 0;
+	Intermediate_Data.wait_1min = 1;
 	
 	Intermediate_Data.H2Resistor_OilTemp_K = 0;
 	Intermediate_Data.H2Resistor_OilTemp_B = 0;
@@ -134,6 +140,21 @@ void init_Global_Variable(void)
 
 	Intermediate_Data.Temp_R_K = 0;
 	Intermediate_Data.Temp_R_B = 0;
+	
+	Intermediate_Data.da_H2ppm = 0;
+	Intermediate_Data.db_H2ppm = 0;
+	
+	Intermediate_Data.unready_current = 0;
+
+	Intermediate_Data.M25P16_Data_Addr = 0;
+//	Intermediate_Data.sector = 0;
+//	Intermediate_Data.page = 0;
+	Intermediate_Data.Alarm_page = 0;
+	
+	Intermediate_Data.count6 = 0;
+  Intermediate_Data.count7 = 0;
+	
+	Intermediate_Data.Operat_temp_alarm = 0;
 
   /*copy Temp-Temp_R Temp-DAC_Din*/
 	memcpy(Intermediate_Data.Temp,Temp,sizeof(float)*sizeof(Temp)/sizeof(Temp[0]));
@@ -190,13 +211,13 @@ void command_print(void)
 	CurrentTime.SpecificTime.day,CurrentTime.SpecificTime.hour,CurrentTime.SpecificTime.min,CurrentTime.SpecificTime.sec);
 
   if (output_data.MODEL_TYPE == 1)
-    UARTprintf("	%.3f	%.3f	%.3f	%.3f	%.3f	%.3f	%.3f	%.3f	%.3f	%.3f	%.3f	%.3f	",output_data.PcbTemp,output_data.H2AG,output_data.OilTemp,output_data.H2DG,output_data.H2G,output_data.H2SldAv,
+    UARTprintf("	%.3f	%.3f	%.3f	%.3f	%.3f	%.3f	%.3f	%.3f	%.3f	",output_data.PcbTemp,output_data.H2AG,output_data.OilTemp,output_data.H2DG,output_data.H2G,output_data.H2SldAv,
 		output_data.DayROC,output_data.WeekROC,output_data.MonthROC);
 	else if (output_data.MODEL_TYPE == 2)
     UARTprintf("	%.3f	%.3f	%.3f	%.3f	%.3f	%.3f	%.3f	%.3f	%.3f	%.3f	%.3f	%.3f	%.3f	",output_data.PcbTemp,output_data.H2AG,output_data.H2AG1,output_data.OilTemp,output_data.H2DG,output_data.H2G,output_data.H2SldAv,
 		output_data.DayROC,output_data.WeekROC,output_data.MonthROC,output_data.SensorTemp,output_data.H2Resistor,output_data.TempResistor);
 	else if (output_data.MODEL_TYPE == 3)
-		UARTprintf("	%.3f	%.3f	%.3f	%.3f	%.3f	%.3f	%.3f	",output_data.PcbTemp,output_data.H2AG,output_data.H2AG1,output_data.OilTemp,
+		UARTprintf("	%.3f	%.3f	%.3f	%.3f	%.3f	%.3f	",output_data.PcbTemp,output_data.H2AG,output_data.H2AG1,
 	  output_data.SensorTemp,output_data.H2Resistor,output_data.TempResistor);
 	
 	if(output_data.temperature == 50)
@@ -226,28 +247,19 @@ void command_print(void)
 }
 void update_e2c(void)//run_parameter all save
 {
- unsigned char *p;
- p=&(run_parameter.h2_ppm_h16.ubit.lo);
-//	  e2prom512_write(p,128,0);
-//		e2prom512_write(p+128,128,128);
-//		e2prom512_write(p+256,128,256);
-//		e2prom512_write(p+384,128,384);
 
-	e2prom512_read(p+150*2,2,150*2);
-	e2prom512_read(p+141*2,4,141*2);
-	e2prom512_read(p+143*2,4,143*2);
-	e2prom512_read(p+145*2,8,145*2);
-	e2prom512_read(p+152*2,4,152*2);
-	e2prom512_read(p+154*2,4,154*2);
-	e2prom512_read(p+156*2,2,156*2);
-	e2prom512_read(p+201*2,20,201*2);
-	e2prom512_read(p+211*2,20,211*2);
-	e2prom512_read(p+221*2,20,221*2);
-//	for(i=0;i<512;i++)//test save accuracy
-//	{
-//	 UARTprintf("buffer %d %x\n",i,buffer[i]);
-//	}
+	e2prom512_read(&run_parameter.unit_id.ubit.lo,2,150*2);
+	e2prom512_read(&run_parameter.h2_ppm_report_low_h16.ubit.lo,4,141*2);
+	e2prom512_read(&run_parameter.h2_ppm_report_high_h16.ubit.lo,4,143*2);
+	e2prom512_read(&run_parameter.h2_ppm_out_current_low.ubit.lo,8,145*2);
+	e2prom512_read(&run_parameter.h2_ppm_alert_low_h16.ubit.lo,4,152*2);
+	e2prom512_read(&run_parameter.h2_ppm_alarm_low_h16.ubit.lo,4,154*2);
+	e2prom512_read(&run_parameter.OilTemp_Alarm_celsius.ubit.lo,2,156*2);
+	e2prom512_read(&run_parameter.own_id.own_id_sstr.character1,20,201*2);
+	e2prom512_read(&run_parameter.sub_station_id.sub_station_id_sstr.character1,20,211*2);
+	e2prom512_read(&run_parameter.transformer_id.transformer_id_sstr.character1,20,221*2);
 	
+	e2prom512_read(&run_parameter.calibration_date.day,4,128*2);
 	
 }
 void UpData_ModbBus(REALTIMEINFO *Time)
@@ -255,46 +267,41 @@ void UpData_ModbBus(REALTIMEINFO *Time)
 	unsigned char Temp;
 	unsigned char Tens, units;
 	REALTIMEINFO TimeBCD;   //BCD码时间		
-/////////////////////////////////////////////////////ModBus协议变量////////////////////////////////////////////////////////////////////
+/*-------------------------------------------------ModBus协议变量----------------------------------------*/
+	run_parameter.h2_ppm_h16.hilo = (unsigned int)(output_data.H2DG) >> 16;  //H2AG->0、1
+	run_parameter.h2_ppm_l16.hilo = (unsigned int)(output_data.H2DG) & 0xFFFF;	
 
-////0、1
-run_parameter.h2_ppm_h16.hilo=0;//油中氢(带小数点)
-run_parameter.h2_ppm_l16.hilo=400;	
-//run_parameter.h2_ppm_l16.hilo=300;	
-////4、5
-run_parameter.h2_ppm_max_h16.hilo=0;//N2 Air 氢
-run_parameter.h2_ppm_max_l16.hilo=800;
-//run_parameter.h2_ppm_max_l16.hilo=300;
-////2、3	
-run_parameter.h2_ppm_dga_h16.hilo=0;//油中氢
-run_parameter.h2_ppm_dga_l16.hilo=500;
-//run_parameter.h2_ppm_dga_l16.hilo=300;
-////6
-run_parameter.die_temperature_celsius.hilo=50*100.F;//Sense温度
+	run_parameter.h2_ppm_max_h16.hilo = (unsigned int)(output_data.H2G) >> 16;  //N2 Air 氢 ->4、5
+	run_parameter.h2_ppm_max_l16.hilo = (unsigned int)(output_data.H2G) & 0xFFFF;
 
-////7
-run_parameter.pcb_temperature_celsius.hilo=50*100.F;//PCB温度	
+	run_parameter.h2_ppm_dga_h16.hilo = (unsigned int)(output_data.H2DG) >> 16;  //油中氢 ->2、3
+	run_parameter.h2_ppm_dga_l16.hilo = (unsigned int)(output_data.H2DG) & 0xFFFF;
 
-////8
-run_parameter.oil_temperature_celsius.hilo=50*100.F;//油温
-////9、10
+	run_parameter.die_temperature_celsius.hilo = (unsigned int)(output_data.SensorTemp*100.F);//Sense温度
 
-////11、12
-run_parameter.h2_ppm_24hour_average_h16.hilo=10;//24h变化率
-run_parameter.h2_ppm_24hour_average_l16.hilo=80;
+	////7
+	run_parameter.pcb_temperature_celsius.hilo = (unsigned int)(output_data.PcbTemp*100.F);//PCB温度	
 
-////13、14
-run_parameter.h2_ppm_DRC_h16.hilo=20;//天变化率
-run_parameter.h2_ppm_DRC_l16.hilo=30;
+	////8
+	run_parameter.oil_temperature_celsius.hilo = (unsigned int)(output_data.OilTemp*100.F);//油温
+	////9、10
 
-////15、16
-run_parameter.h2_ppm_WRC_h16.hilo=40;//周变化率
-run_parameter.h2_ppm_WRC_l16.hilo=50;
+	////11、12
+	run_parameter.h2_ppm_24hour_average_h16.hilo = (unsigned int)(output_data.H2SldAv) >> 16;//24h变化率
+	run_parameter.h2_ppm_24hour_average_l16.hilo = (unsigned int)(output_data.H2SldAv) & 0xFFFF;
 
-////17、18
-run_parameter.h2_ppm_MRC_h16.hilo=60;//月变化率
-run_parameter.h2_ppm_MRC_l16.hilo=70;
-//19-30保留
+	////13、14
+	run_parameter.h2_ppm_DRC_h16.hilo = (unsigned int)(output_data.DayROC) >> 16;//天变化率
+	run_parameter.h2_ppm_DRC_l16.hilo = (unsigned int)(output_data.DayROC) & 0xFFFF;
+
+	////15、16
+	run_parameter.h2_ppm_WRC_h16.hilo = (unsigned int)(output_data.WeekROC) >> 16;//周变化率
+	run_parameter.h2_ppm_WRC_l16.hilo = (unsigned int)(output_data.WeekROC) & 0xFFFF;
+
+	////17、18
+	run_parameter.h2_ppm_MRC_h16.hilo = (unsigned int)(output_data.MonthROC) >> 16;//月变化率
+	run_parameter.h2_ppm_MRC_l16.hilo = (unsigned int)(output_data.MonthROC) & 0xFFFF;
+	//19-30保留
 
 	DS1390_GetTime(&CurrentTime);
 	Temp = Time->SpecificTime.sec;		//
@@ -332,27 +339,19 @@ run_parameter.h2_ppm_MRC_l16.hilo=70;
 	units = Temp % 10;
 	TimeBCD.SpecificTime.year = ((Tens << 4) & 0xF0) | (units & 0x0F);
 	
-	run_parameter.reserved_parameter35=(0x20<<8 | TimeBCD.SpecificTime.year);//?
-	run_parameter.reserved_parameter341=(TimeBCD.SpecificTime.month<<8 | TimeBCD.SpecificTime.day);
-	run_parameter.reserved_parameter36=TimeBCD.SpecificTime.hour;
-	run_parameter.reserved_parameter37=(TimeBCD.SpecificTime.min<<8 | TimeBCD.SpecificTime.sec);
-//	run_parameter.reserved_parameter35=CurrentTime.SpecificTime.year;//?
-//	run_parameter.reserved_parameter341=CurrentTime.SpecificTime.month<<8 |CurrentTime.SpecificTime.day;
-//	run_parameter.reserved_parameter36=CurrentTime.SpecificTime.hour;
-//	run_parameter.reserved_parameter37=CurrentTime.SpecificTime.min<<8 | CurrentTime.SpecificTime.sec;
+	run_parameter.reserved_parameter35 = (0x20<<8 | TimeBCD.SpecificTime.year);//?
+	run_parameter.reserved_parameter341 = (TimeBCD.SpecificTime.month<<8 | TimeBCD.SpecificTime.day);
+	run_parameter.reserved_parameter36 = TimeBCD.SpecificTime.hour;
+	run_parameter.reserved_parameter37 = (TimeBCD.SpecificTime.min<<8 | TimeBCD.SpecificTime.sec);
 
-if(Runtimes>=0xFFFFFFFFFFFFFFFF)Runtimes=0;
-run_parameter.run_time_in_secends_hh32.hilo=((Runtimes>>48)&0xFFFF);
-run_parameter.run_time_in_secends_h32.hilo=((Runtimes>>32)&0xFFFF);
-run_parameter.run_time_in_secends_ll32.hilo=((Runtimes>>16)&0xFFFF);
-run_parameter.run_time_in_secends_l32.hilo=Runtimes&0xFFFF;
+	if(Runtimes >= 0xFFFFFFFFFFFFFFFF)
+		Runtimes=0;
+	
+	run_parameter.run_time_in_secends_hh32.hilo=((Runtimes>>48)&0xFFFF);
+	run_parameter.run_time_in_secends_h32.hilo=((Runtimes>>32)&0xFFFF);
+	run_parameter.run_time_in_secends_ll32.hilo=((Runtimes>>16)&0xFFFF);
+	run_parameter.run_time_in_secends_l32.hilo=Runtimes&0xFFFF;
 
-//run_parameter.h2_ppm_out_current_low.hilo=(unsigned short)(cmd_ConfigData.LowmA*100.F);
-//run_parameter.h2_ppm_out_current_high.hilo=(unsigned short)(cmd_ConfigData.HighmA*100.F);
-//run_parameter.h2_ppm_error_out_current.hilo=(unsigned short)(cmd_ConfigData.ErrmA*100.F);
-//run_parameter.h2_ppm_no_ready_out_current.hilo=(unsigned short)(cmd_ConfigData.NotRmA*100.F);
-//e2prom512_write(&run_parameter.h2_ppm_out_current_low.ubit.lo,8,145*2);
-update_e2c();
 }
 /***********************************************************
 Function:	Main function.
@@ -369,10 +368,11 @@ int main (void)
 	init_Global_Variable();
 	init_peripherals();
 	Init_ModBus();
-	
-	DAC8568_INIT_SET(output_data.temperature,2*65536/5);	/* Set Senseor default temperature :DOUT-C = xV*65536/5 */
-	DAC8568_PCB_TEMP_SET(output_data.PCB_temp,0x1000);    /* Set PCB default temperature */
 
+  DAC8568_INIT_SET(output_data.temperature,2*65536/5);	/* Set Senseor temperature :DOUT-C = xV*65536/5 */
+	DAC8568_PCB_TEMP_SET(output_data.PCB_temp,0x1000);    /* Set PCB default temperature */
+	M25P16_erase_map(31*0x10000,SE);
+	
 	switch (output_data.MODEL_TYPE){
 		case 1:
 			UARTprintf(print_menu);
@@ -392,89 +392,108 @@ int main (void)
 
 	while (1)  
 	{
+    if (rcv_char_flag == 1){
+			UART0_SendData(rcv_char,rcv_char_cnt);
+			memset(rcv_char,0,sizeof(rcv_char));
+			rcv_char_cnt = 0;
+			flag_screen = 1;
+			rcv_char_flag = 0;
+		}
+		
 		if(rcv_new==1)
 		{
-      rcv_new=0;
-      UART0_SendData(rcv_buf,rcv_cnt);
-      //UARTprintf("\n");
-      a=get_true_char_stream(cmd_tmp,rcv_buf);
-      //UART0_SendData(cmd_tmp,a);
-      //UARTprintf("\n");
-      UARTprintf("a=%d\n",a);
-      memset(rcv_buf,0,rcv_cnt);
-      rcv_cnt=0;
-		}
-
-		if(flag_command==0)
-		{
-			if(findcmdfunction(cmd_tmp)==1)
-			{
-				memset(cmd_tmp,0,a);
-				a=0;
-				flag_screen=1;
-				UARTprintf("guanbihuixian\n");
-			}		
+      a = get_true_char_stream(cmd_tmp,rcv_buf);
+      memset(rcv_buf,0,sizeof(rcv_buf));
+			rcv_cnt = 0;
+      rcv_new = 0;
 		}
 
 		switch(flag_command){
+			case 0:
+				if(findcmdfunction(cmd_tmp) == 1){
+					memset(cmd_tmp,0,sizeof(cmd_tmp));
+					a = 0;
+					flag_screen = 1;
+					UARTprintf("Close the echo\n\n");
+				}
+				break;
+			
 			case 1:
-			alarm_arg();			
-			break;
+				alarm_arg();			
+				break;
+			
 			case 2:
-			config_arg_d1();
-			break;
+				config_arg_d1();
+				break;
+			
 			case 3:
-			da_arg();
-			break;
+				da_arg();
+				break;
+			
 			case 4:
-			db_arg();
-			break;
+				db_arg();
+				break;
+			
 			case 5:
-			dx_arg();
-			break;
+				dx_arg();
+				break;
+			
 			case 6:
-			gg_arg();
-			break;
+				gg_arg();
+				break;
+			
 			case 7:
-			aop_arg();
-			break;
+				aop_arg();
+				break;
+			
 			case 8:
-			aoerr_arg();
-			break;
+				aoerr_arg();
+				break;
+			
 			case 9:
-			install_arg();
-			break;
+				install_arg();
+				break;
+			
 			case 10:
-			date_arg();
-			break;
+				date_arg();
+				break;
+			
 			case 11:
-			record_arg();
-			break;
+				record_arg();
+				break;
+			
 			case 12:
-			clear_arg();
-			break;
+				clear_arg();
+				break;
+			
 			case 13:
-			ci_arg();
-			break;
+				ci_arg();
+				break;
+			
 			case 14:
-			setmid_arg();
-			break;
+				setmid_arg();
+				break;
+			
 			case 15:
-			cf_arg();
-			break;
+				cf_arg();
+				break;
+			
 			case 16:
-			config_arg_d0();
-			break;
+				config_arg_d0();
+				break;
+			
 			case 17:
-			config_arg_d2();
-			break;
+				config_arg_d2();
+				break;
+			
 			case 18:
-			config_arg_d3();
-			break;
+				config_arg_d3();
+				break;
+			
 			default:
-			memset(cmd_tmp,0,strlen(cmd_tmp));
-			a=0;
-			break;			
+				memset(cmd_tmp,0,sizeof(cmd_tmp));
+				a = 0;
+				break;
 		}
 
 		switch (Intermediate_Data.flag1)  {
@@ -599,15 +618,31 @@ int main (void)
 			    UARTprintf("save data into flash\n");			
 			}
 		}
-		
+
 		if (Intermediate_Data.flag4 == 1)
  		{
  			/*2S command_print*/
 			ADC7738_acquisition_output(1);
 			ADC7738_acquisition_output(3);
 			Calculate_H2_rate();
+			
+			if (Intermediate_Data.unready_current == 0){
+				AD420_OUTPUT_SET((65535.0/20.0)*2);
+				run_parameter.status_flag.ubit.senser_state0=0;
+				run_parameter.status_flag.ubit.senser_state1=0;
+				run_parameter.status_flag.ubit.senser_state2=0;
+			}
+			if (output_data.temperature == 50 && Intermediate_Data.wait_1min == 1)
+			  AD420_OUTPUT_SET((65535.0/20.0)*(4.0+(16.0/5000.0)*output_data.H2DG));
+			
+			if (output_data.OilTemp >= run_parameter.OilTemp_Alarm_celsius.hilo || output_data.DayROC >= run_parameter.h2_ppm_alarm_low_l16.hilo || output_data.H2DG >= run_parameter.h2_ppm_alert_low_l16.hilo)
+				M25P16_Alarm_Log_Records();
+
 			Intermediate_Data.flag4 = 0;
-			command_print();
+			if(flag_screen==0)
+			{
+			  command_print();
+			}
 		}
 		ADC7738_acquisition(1);
 		ADC7738_acquisition(2);

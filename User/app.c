@@ -9,7 +9,7 @@
 #include "Peripherals_LPC2194.h"
 #include "parameter.h"
 #include "AD7738.h"
-
+#include "AD420.h"
 
 unsigned char Heating_R_failure = 0;
 /***********************************************************
@@ -44,20 +44,20 @@ void LED_status(void)
     LED_BLUE_SET
 	}
 	if (Heating_R_failure == 1){
+		AD420_OUTPUT_SET((65535.0/20.0)*3.0); /*output error current 3mA*/
 		LED_RED_SET
 	  LED_BLUE_SET
 	}
 	
-	if (output_data.OilTemp >= 55 || output_data.DayROC >= 100 || output_data.H2DG >= 500) /* OilTemp  too high, DGA over, DGA dayROC over */
+	if (output_data.OilTemp >= run_parameter.OilTemp_Alarm_celsius.hilo || output_data.DayROC >= run_parameter.h2_ppm_alarm_low_l16.hilo || output_data.H2DG >= run_parameter.h2_ppm_alert_low_l16.hilo) /* OilTemp  too high, DGA over, DGA dayROC over */
 	{
+		AD420_OUTPUT_SET((65535.0/20.0)*3.0); /*output error current 3mA*/
 		if (LED_RED_FLAG%2 == 0)
 			LED_RED_SET
 		else
 			LED_RED_CLR
 		LED_BLUE_SET
 	}
-		
-	
 }
 
 /***********************************************************
@@ -70,18 +70,22 @@ Description:
 ***********************************************************/
 void relay_status(void)
 {
-	if (output_data.H2DG >= 500)
+	if (output_data.H2DG >= run_parameter.h2_ppm_alert_low_l16.hilo)
 	  Relay1_Pin_SET
 	else
   	Relay1_Pin_CLR
 	
-	if (output_data.DayROC >= 100)
+	if (output_data.DayROC >= run_parameter.h2_ppm_alarm_low_l16.hilo)
     Relay2_Pin_SET
 	else
   	Relay2_Pin_CLR
 
-	if (output_data.OilTemp >= 55)
+	if (output_data.OilTemp >= run_parameter.OilTemp_Alarm_celsius.hilo){
 	  Relay3_Pin_SET
+		run_parameter.status_flag.ubit.senser_state0=0;
+		run_parameter.status_flag.ubit.senser_state1=0;
+		run_parameter.status_flag.ubit.senser_state2=1;
+	}
 	else
 	  Relay3_Pin_CLR
 }
@@ -145,8 +149,8 @@ void device_checkself(void)
     Intermediate_Data.Heat_V = Heat_R_checkself();
 	  Heating_R_failure = 0;
 	  if (Intermediate_Data.Heat_V<200 && output_data.temperature>30){
-		    UARTprintf("U23-AIN7=%.3f Heating resistance self-check error.\n",Intermediate_Data.Heat_V);
-        Heating_R_failure = 1;			
+//					UARTprintf("%.3f Heating resistance self-check error.\n",Intermediate_Data.Heat_V);
+					Heating_R_failure = 1;
 		}
 		
 }

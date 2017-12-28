@@ -988,11 +988,11 @@ union
 		char transformer_id_str[20];
 }transformer_id;
     unsigned short modbus_id;//230
-//	unsigned short reserved_parameter76;//231
-		unsigned short reserved_parameter77;//232
-		unsigned short reserved_parameter78;//233
-		unsigned short reserved_parameter79;//234
-		unsigned short reserved_parameter80;//235
+
+		unsigned short reserved_parameter77;//232 -> M25P16_Data_Records: Sector and page
+		unsigned short reserved_parameter78;//233 -> M25P16_Alarm_Log_Records: address
+		unsigned short reserved_parameter79;//234 -> M25P16_Data_Records: Intermediate_Data.M25P16_Data_Addr
+		unsigned short reserved_parameter80;//235 -> M25P16_Data_Records: Intermediate_Data.M25P16_Data_Addr
 		unsigned short reserved_parameter81;//236
 		unsigned short reserved_parameter82;//237
 		unsigned short reserved_parameter83;//238
@@ -1100,7 +1100,7 @@ typedef struct Intermediate_Data
 {
 	unsigned char flag1, flag2, flag3, flag4, flag5;
 	unsigned char Start_day, Start_week, Start_month;
-	unsigned char Start_print_H2R;
+	unsigned char Start_print_H2R, wait_1min,Start_print_calibrate_H2R;
 	
 	float Heat_V;
 
@@ -1132,8 +1132,41 @@ typedef struct Intermediate_Data
 
 	float Temp_R_K;
 	float Temp_R_B;
+	
+	unsigned int da_H2ppm;
+	unsigned int db_H2ppm;
+	
+	unsigned char unready_current;
+	
+	unsigned int M25P16_Data_Addr;
+//	unsigned char sector;
+//	unsigned short page;
+	unsigned short Alarm_page;
+	
+	unsigned int count6, count7;
+	
+	unsigned char Operat_temp_alarm;
+	
 
 }Intermediate_Parameters;
 VARIABLE_EXT Intermediate_Parameters Intermediate_Data;
+
+typedef struct Sensor_Data
+{
+	unsigned char original_data[80];
+	unsigned char Sensor_Fit_Para[72];
+	
+	double p1;
+	double p2;
+	double p3;
+	double p4;
+	double p5;
+	double p6;
+	double p7;
+	double p8;
+	double p9;
+	
+}Sensor_Parameters;
+VARIABLE_EXT Sensor_Parameters Sensor_Data;
 #endif
 

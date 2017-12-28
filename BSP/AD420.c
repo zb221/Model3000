@@ -7,6 +7,7 @@
 
 #include <LPC21xx.H>                     /* LPC21xx definitions               */
 #include "Peripherals_LPC2194.h"
+#include "AD420.h"
 
 /***********************************************************
 Function:	init SPI0 for AD420.
@@ -16,12 +17,13 @@ Author: zhuobin
 Date: 2017/9/22
 Description: 
 ***********************************************************/
-void AD420_SPI_SET(void)
+void AD420_SPI_SET(unsigned char bits)
 {
 /*---------------------------------SPI0-----------------------------------------------*/
-	PINSEL0 = (PINSEL0 & 0xFFFF00FF) | 0x15<<8; /*SPI0 PIN SEL*/
-	S0SPCR = BitEnable_X | CPHA_first | CPOL_high | MSTR_master | LSBF_MSB_first | SPI_interrupt_disable | BITS_16;
-	S0SPCCR = SPI0_CLK;
+	if (bits == 16)
+    S0SPCR = BitEnable_X | CPHA_first | CPOL_high | MSTR_master | LSBF_MSB_first | SPI_interrupt_disable | BITS_16;
+	else if (bits == 8)
+    S0SPCR = 0x00|(0 << 3)|(1 << 4)|(1 << 5)|(0 << 6)|(0 << 7);
 }
 
 /***********************************************************
@@ -71,8 +73,10 @@ Description: 16bit value -> 0-20mA output
 ***********************************************************/
 void AD420_OUTPUT_SET(unsigned short value)
 {
+	AD420_SPI_SET(16);
 	AD420_LATCH_SET(0);
 	SPI0_SendDate_16Bit(value);
 //	DelayNS(1);
 	AD420_LATCH_SET(1);
+	AD420_SPI_SET(8);
 }

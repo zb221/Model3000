@@ -1,12 +1,10 @@
-/******************************************************************************/
-/* MEASURE.C: Remote Measurement Recorder                                     */
-/******************************************************************************/
-/* This file is part of the uVision/ARM development tools.                    */
-/* Copyright (c) 2005-2006 Keil Software. All rights reserved.                */
-/* This software may only be used under the terms of a valid, current,        */
-/* end user licence from KEIL for a compatible version of KEIL software       */
-/* development tools. Nothing else gives you the right to use this software.  */
-/******************************************************************************/
+/***********************************************
+@		Description: This file is about ModBus data.
+@		Copyright: Hydrogen Sense(Suzhou)  Technology Co.,Ltd. All rights reserved.
+@		Author: zhuobin.
+@		Date: 2017/12/13.
+***********************************************/
+
 #include <stdio.h>                      /* standard I/O .h-file              */
 #include <stdlib.h>
 #include <ctype.h>                      /* character functions               */
@@ -21,6 +19,7 @@
 #include "DS1390.h"
 #include "M25P16_FLASH.h"
 #include "e25LC512.h"
+
 REALTIMEINFO	RealTime_Modbus;     //??????
 
 //宏定义Stop   hugo add 
@@ -113,427 +112,64 @@ const unsigned char auchCRCLo[] = {
 
 void Init_io(void)//hugo add
 {
-	IO1DIR |=EN_485_DE;
+	IO1DIR |= EN_485_DE;
 	//IO1SET = EN_485_DE;
-	AT25_CS_H;// 不使能AT25
-	}
+	AT25_CS_H; // 不使能AT25
+}
 
-//void Delay_ms(unsigned short value)//hugo add
-//{
-//	unsigned short k=50000;
-//	unsigned short i,j;
-//	for(i=0;i<value;i++)
-//	{
-//		for(j=0;j<k;j++);
-//		}
-//	}
-//void Delay_us(unsigned short value)//hugo add
-//{
-//	unsigned short k=1;
-//	unsigned short i,j;
-//	for(i=0;i<value;i++)
-//	{
-//		for(j=0;j<k;j++);
-//		}
-//	}	
-	
-//void Init_Pll(void)//hugo add 60MHz      VPB 60/4  MHz
-//	{
-//		PLLCON=1;					
-//		PLLCFG=0X24;
-//		PLLFEED=0XAA;
-//		PLLFEED=0X55;
-//		while((PLLSTAT&(1<<10))==0);
-//		PLLCON=3;
-//		PLLFEED=0XAA;
-//		PLLFEED=0X55;	
-//		}
-
-//void init_spi(void)//hugo add mclk 60MHz Fpclk 15MHz
-//	{
-//		PINSEL1 |= 0x000000A8;                  /* Enable SPI1   SCK MISO MOSI            */
-//		S1SPCCR = 16;														//分频系数
-//		S1SPCR= (0<<3)|													//CPHA=0;数据在sck的第一个时钟沿采样
-//						(1<<4)|													//CPLO=1；SCK为低有效//默认是1
-//						(1<<5)|                         //MSTR=1，SPI处于主模式
-//						(0<<6)|													//LSBF=0;数据传输高位在前
-//						(0<<7);													//SPIE=0，SPI中断禁止				
-//		
-//		}
-		
-//void Spi_write_data(unsigned char data)//spi 写数据
-//{
-//unsigned char i;
-//DS1390_CS_H;
-//LC512_CS_H;
-//	
-//	for(i=0;i<8;i++)
-//	{
-//		LC512_SCK_L;
-//		delay_ms(1);		
-//		if((data&0x80)==0x80)
-//		{
-//			LC512_SI_H;
-//		}
-//    else
-//    {
-//      LC512_SI_L;
-//    }		
-//		data = data<<1; 
-//		LC512_SCK_H; 
-//		delay_ms(1); 
-//	}		
-//}	
-
-//void AT25df16_reset(void)//RESET
-//{
-//	AT25_CS_L;// 使能AT25
-//	Delay_us(100);
-//  AT25_CS_H;// 不使能AT25
-//}
-	
-//unsigned char Spi_read_data(void)//spi 读数据
-//{
-//unsigned char tmp = 0, i;
-//	
-//	for(i=0;i<8;i++)
-//	{
-//		LC512_SCK_L;
-//		delay_ms(1);		
-//		tmp <<= 1; 
-//    if(LC512_SO_IN!=0)
-//      {
-//       tmp |= 0x01;
-//      }	
-//    else
-//      {
-//       tmp &= 0xFE;
-//      }			
-//		LC512_SCK_H;
-//		delay_ms(1);
-//	}	
-//	return tmp;
-//}	
-
-//void AT25df16_write_data(unsigned char *pbuffer,unsigned short data_count,unsigned int start_address)//spi 页任意地址写数据
-//{
-//	unsigned char ic_status;
-//	union
-//	{
-//		struct
-//		{
-//			unsigned char addlow;
-//			unsigned char addmid;
-//			unsigned char addhigh;
-//			unsigned char addhigher;
-//			}t;
-//			unsigned int temp_address;
-//		}add;
-//	
-//	add.temp_address=start_address;
-//		
-//	AT25_CS_L;// 使能AT25
-//	Delay_us(1);
-//	Spi_write_data(0x06);//发写使能指令 
-//	AT25_CS_H;// 不使能AT25
-//		
-//	Delay_us(1);
-//		
-//	AT25_CS_L;// 使能AT25
-//	Delay_us(1);
-//	Spi_write_data(0x02);//发写数据命?
-//	
-//	Spi_write_data(add.t.addhigh);
-//	Spi_write_data(add.t.addmid);
-//	Spi_write_data(add.t.addlow);
-//		
-//	while(data_count--)
-//	{
-//		Spi_write_data(*pbuffer);
-//		pbuffer++;
-//		}	
-//	AT25_CS_H;// 不使能AT25
-//	Delay_us(1);
-//	do
-//	{
-//	AT25_CS_L;// 使能AT25
-//	Delay_us(1);
-//	Spi_write_data(0x05);//发写读状态命令
-//	Spi_write_data(0xff);
-//	ic_status=Spi_read_data();
-//	AT25_CS_H;// 不使能AT25
-//	Delay_us(1);
-//		}while(ic_status & 0x01);//待芯片空闲
-//	AT25_CS_L;// 使能AT25
-//	Delay_us(1);
-//	Spi_write_data(0x02);//发写禁止指令
-//	AT25_CS_H;// 不使能AT25	
-//	}
-
-
-//void AT25df16_erase_4Kmap(unsigned int block_address)//4K擦除  0~511
-//{
-//	unsigned char ic_status;
-//	union
-//	{
-//		struct
-//		{
-//			unsigned char addlow;
-//			unsigned char addmid;
-//			unsigned char addhigh;
-//			unsigned char addhigher;
-//			}t;
-//			unsigned int temp_address;
-//		}add;
-//	block_address*=4096;
-//	add.temp_address=block_address;
-//	AT25_CS_L;// 使能AT25
-//	Delay_us(1);
-//	Spi_write_data(0x06);//发写使能指令 
-//	AT25_CS_H;// 不使能AT25
-//	Delay_us(1);
-//	
-//	do
-//	{
-//	AT25_CS_L;// 使能AT25
-//	Delay_us(1);
-//	Spi_write_data(0x05);//发写读状态命令
-//	Spi_write_data(0xff);
-//	ic_status=Spi_read_data();
-//	AT25_CS_H;// 不使能AT25
-//	Delay_us(1);
-//		}while(ic_status & 0x01);//待芯片空闲
-//	AT25_CS_L;// 使能AT25
-//	Delay_us(1);
-//	Spi_write_data(0x02);//发写禁止指令
-//	AT25_CS_H;// 不使能AT25	
-//	Delay_us(1);
-//	AT25_CS_L;// 使能AT25
-//	Spi_write_data(0x20);//发写块擦除命令
-//	Spi_write_data(add.t.addhigh);
-//	Spi_write_data(add.t.addmid);
-//	Spi_write_data(add.t.addlow);
-//	AT25_CS_H;// 不使能AT25
-//	Delay_us(1);
-//	
-//	do
-//	{
-//	AT25_CS_L;// 使能AT25
-//	Delay_us(1);
-//	Spi_write_data(0x05);//发写读状态命令
-//	Spi_write_data(0xff);
-//	ic_status=Spi_read_data();
-//	AT25_CS_H;// 不使能AT25
-//	Delay_us(1);
-//		}while(ic_status & 0x01);//待芯片空闲
-//	
-//	}
-
-//void AT25df16_write_data_anywhere(unsigned short data_count,unsigned int start_address)//spi 芯片任意地址，写任意个数据，数据量小于等于256
-//{
-//	unsigned int temp_address,integer_before,integer_after;
-//	temp_address=start_address+data_count;//起始地址+写入字节数
-//	integer_before=start_address>>12;//4K  除以4096byte  一扇区
-//	integer_after=temp_address>>12;	
-//	if(integer_after>integer_before)//跨扇区操作
-//		{
-//			if(integer_before==511)//最后2k预留
-//				{
-//					return;
-//					}
-//			AT25df16_erase_4Kmap(integer_after);//擦除下一个4K区间
-//			}
-//			
-//	temp_address=start_address+data_count;
-//	integer_before=start_address>>8;//256字节  一页
-//	integer_after=temp_address>>8;
-//	if(integer_after>integer_before)//跨page操作
-//		{
-//			AT25df16_write_data(user_parameter.spi_flash_buffer,(integer_after<<8)-start_address,start_address);//当前页写完
-//			AT25df16_write_data(&user_parameter.spi_flash_buffer[(integer_after<<8)-start_address],data_count-((integer_after<<8)-start_address),integer_after<<8);//写入新页
-//			//接着剩下的地址写?user_parameter.spi_flash_buffer[(integer_after<<8)-start_address]
-//		}
-//	else
-//		{
-//			AT25df16_write_data(user_parameter.spi_flash_buffer,data_count,start_address);//直接连续写
-//			}		
-//			
-//	}
-//	
-//void AT25df16_erase_block(unsigned int block_address)//块擦除  0~31
-//{
-//	unsigned char ic_status;
-//	union
-//	{
-//		struct
-//		{
-//			unsigned char addlow;
-//			unsigned char addmid;
-//			unsigned char addhigh;
-//			unsigned char addhigher;
-//			}t;
-//			unsigned int temp_address;
-//		}add;
-//	block_address*=65536;
-//	add.temp_address=block_address;
-//	AT25_CS_L;// 使能AT25
-//	Delay_us(1);
-//	Spi_write_data(0x06);//发写使能指令 
-//	AT25_CS_H;// 不使能AT25
-//	Delay_us(1);
-//	
-//	do
-//	{
-//	AT25_CS_L;// 使能AT25
-//	Delay_us(1);
-//	Spi_write_data(0x05);//发写读状态命令
-//	Spi_write_data(0xff);
-//	ic_status=Spi_read_data();
-//	AT25_CS_H;// 不使能AT25
-//	Delay_us(1);
-//		}while(ic_status & 0x01);//待芯片空闲
-//	AT25_CS_L;// 使能AT25
-//	Delay_us(1);
-//	Spi_write_data(0x02);//发写禁止指令
-//	AT25_CS_H;// 不使能AT25	
-//	Delay_us(1);
-//	AT25_CS_L;// 使能AT25
-//	Spi_write_data(0xD8);//发写块擦除命令
-//	Spi_write_data(add.t.addhigh);
-//	Spi_write_data(add.t.addmid);
-//	Spi_write_data(add.t.addlow);
-//	AT25_CS_H;// 不使能AT25
-//	Delay_us(1);
-//	
-//	do
-//	{
-//	AT25_CS_L;// 使能AT25
-//	Delay_us(1);
-//	Spi_write_data(0x05);//发写读状态命令
-//	Spi_write_data(0xff);
-//	ic_status=Spi_read_data();
-//	AT25_CS_H;// 不使能AT25
-//	Delay_us(1);
-//		}while(ic_status & 0x01);//待芯片空闲
-//	
-//	}
-
-//void AT25df16_read_data(unsigned char *pbuffer,unsigned short data_count,unsigned int start_address)//spi ????????
-//{
-//	union
-//	{
-//		struct
-//		{
-//			unsigned char addlow;
-//			unsigned char addmid;
-//			unsigned char addhigh;
-//			unsigned char addhigher;
-//			}t;
-//			unsigned int temp_address;
-//		}add;
-//	
-//	add.temp_address=start_address;
-//	AT25_CS_L;
-//	Delay_us(10);
-//	Spi_write_data(0x03);
-//		
-//	Spi_write_data(add.t.addhigh);
-//	Spi_write_data(add.t.addmid);
-//	Spi_write_data(add.t.addlow);		
-//		
-//	while(data_count--)
-//	{
-////		Spi_write_data(0xff);		
-//		*pbuffer=Spi_read_data();
-//		pbuffer++;
-//		}	
-//	AT25_CS_H;// ???AT25
-//	}
-//	
-//void AT25df16_read_data_anywhere(unsigned short data_count,unsigned int start_address)//spi ??????,??????,???????256
-//{
-//	unsigned int temp_address,integer_before,integer_after;
-//	temp_address=start_address+data_count;
-//	integer_before=start_address>>8;
-//	integer_after=temp_address>>8;
-//	if(integer_after>integer_before)
-//		{
-//			AT25df16_read_data(user_parameter.spi_flash_buffer,(integer_after<<8)-start_address,start_address);
-//			AT25df16_read_data(&user_parameter.spi_flash_buffer[(integer_after<<8)-start_address],data_count-((integer_after<<8)-start_address),integer_after<<8);
-//			}
-//	else
-//		{
-//			AT25df16_read_data(user_parameter.spi_flash_buffer,data_count,start_address);
-//			}
-//	
-//	}
-//	
-//void AT25df16_read_ID(unsigned char *pbuffer)//debug
-//{	
-//	unsigned char data_count=3;
-//	AT25_CS_L;// 使能AT25
-//	Delay_us(10);
-//	Spi_write_data(0x9f);//发读ID
-//	while(data_count--)
-//	{
-//		Spi_write_data(0xff);
-//		*pbuffer=Spi_read_data();
-//		pbuffer++;
-//		}	
-//	AT25_CS_H;// 不使能AT25
-//	}
-
-void Spi_Flash_Data_read(void)//?SPI??
+void Spi_Flash_Data_read(void)
 {
-	unsigned short temp_read_start_address,temp_read_end_address,k;
-	unsigned int tt;
+	unsigned short temp_read_start_address = 0, temp_read_end_address = 0, page = 0;
+	unsigned short number = 0;
 	
-	if(run_parameter.reserved_parameter15==1001)
+//	UARTprintf("%d %d %d\n",run_parameter.reserved_parameter13,run_parameter.reserved_parameter14,run_parameter.reserved_parameter15);
+	if(run_parameter.reserved_parameter15 == 1001){
+		temp_read_start_address = run_parameter.reserved_parameter13;
+		temp_read_end_address = run_parameter.reserved_parameter14;
+		
+		if((temp_read_start_address>(8192-512))||(temp_read_end_address>(8192-512))||(temp_read_start_address>=temp_read_end_address))
 		{
-			temp_read_start_address=run_parameter.reserved_parameter13;
-			temp_read_end_address=run_parameter.reserved_parameter14;
-			if((temp_read_start_address>8190)||(temp_read_end_address>8190)||(temp_read_start_address>=temp_read_end_address))
-				{
-					run_parameter.reserved_parameter13=0;
-					run_parameter.reserved_parameter14=0;
-					run_parameter.reserved_parameter15=0;
-					return;
-					}
-			for(tt=temp_read_start_address;tt<temp_read_end_address;tt++)
-  			{
-  				
-  				M25P16_read_data_anywhere(256,tt<<8);
-  				for(k=0;k<256;k++)
-  				{
-  					IO1SET	=EN_485_DE;
-						Delay_us(1);
-						Uart1_SentByte(user_parameter.spi_flash_buffer[k]);
-						IO1CLR	=EN_485_DE;
-  					  					
-  				}
-				}
-			IO1SET	=EN_485_DE;
-			Delay_us(1);
-			Uart1_SentByte(0xaa);
-			Uart1_SentByte(0xbb);
-			Uart1_SentByte(0xcc);
-			Uart1_SentByte(0xdd);
-			IO1CLR	=EN_485_DE;	
 			run_parameter.reserved_parameter13=0;
 			run_parameter.reserved_parameter14=0;
 			run_parameter.reserved_parameter15=0;
+			return;
+		}
+		
+		for(page=temp_read_start_address;page<temp_read_end_address;page++)
+		{
+			M25P16_Read_Data(user_parameter.spi_flash_buffer,256,page*256);
+			for(number=0;number<256;number++)
+			{
+//				UARTprintf("%d\n",user_parameter.spi_flash_buffer[number]);
+				IO1SET = EN_485_DE;
+				Delay_us(1);
+				Uart1_SentByte(user_parameter.spi_flash_buffer[number]);
+				IO1CLR = EN_485_DE;
 			}
-	
+		}
+		
+		IO1SET = EN_485_DE;
+		Delay_us(1);
+		Uart1_SentByte(0xaa);
+		Uart1_SentByte(0xbb);
+		Uart1_SentByte(0xcc);
+		Uart1_SentByte(0xdd);
+		IO1CLR = EN_485_DE;	
+		
+		run_parameter.reserved_parameter13=0;
+		run_parameter.reserved_parameter14=0;
+		run_parameter.reserved_parameter15=0;
 	}
+}
 	
 void Init_interrupt(void)//hugo add 
-	{
+{
 		
 	VICIntSelect = 0x00000000;												// ????????IRQ??
 	VICVectCntl5 = 0x20 | 7;													// UART1???IRQ slot0,??????
 	VICVectAddr5=(unsigned long)IRQ_UART1;//选择中断入口地址的程?
 	VICIntEnable |= 1 << 0x07;							// ??UART1??
-		}	
+}
 
 void Data_Analysis(unsigned char data)//hugo add 
 {
@@ -818,214 +454,120 @@ return (uchCRCHi << 8 | uchCRCLo) ;
  
 }
 
-//void UpData_ModbBus()
-//{
-//	unsigned char Temp;
-//	unsigned char Tens, units;
-//	//REALTIMEINFO TimeBCD;   //BCD码时间		
-///////////////////////////////////////////////////////ModBus协议变量////////////////////////////////////////////////////////////////////
-
-//////0、1
-//run_parameter.h2_ppm_h16.hilo=300;//油中氢(带小数点)
-//run_parameter.h2_ppm_l16.hilo=400;	
-////run_parameter.h2_ppm_l16.hilo=300;	
-//////2、3	
-//run_parameter.h2_ppm_dga_h16.hilo=600;//油中氢
-//run_parameter.h2_ppm_dga_l16.hilo=500;
-////run_parameter.h2_ppm_dga_l16.hilo=300;
-//	
-//////4、5
-//run_parameter.h2_ppm_max_h16.hilo=700;//N2 Air 氢
-//run_parameter.h2_ppm_max_l16.hilo=800;
-////run_parameter.h2_ppm_max_l16.hilo=300;
-//	
-//////6
-//run_parameter.die_temperature_celsius.hilo=50*100.F;//Sense温度
-
-//////7
-//run_parameter.pcb_temperature_celsius.hilo=50*100.F;//PCB温度	
-
-//////8
-//run_parameter.oil_temperature_celsius.hilo=50*100.F;//油温
-//////9、10
-
-//////11、12
-//run_parameter.h2_ppm_24hour_average_h16.hilo=10;//24h变化率
-//run_parameter.h2_ppm_24hour_average_l16.hilo=80;
-
-//////13、14
-//run_parameter.h2_ppm_DRC_h16.hilo=20;//天变化率
-//run_parameter.h2_ppm_DRC_l16.hilo=30;
-
-//////15、16
-//run_parameter.h2_ppm_WRC_h16.hilo=40;//周变化率
-//run_parameter.h2_ppm_WRC_l16.hilo=50;
-
-//////17、18
-//run_parameter.h2_ppm_MRC_h16.hilo=60;//月变化率
-//run_parameter.h2_ppm_MRC_l16.hilo=70;
-////19-30保留
-
-////        //*
-////	Temp = Time->SpecificTime.sec;		//
-////	Tens = Temp / 10;
-////	units = Temp % 10;
-////	TimeBCD.SpecificTime.sec = ((Tens << 4) & 0xF0) | (units & 0x0F);
-
-////	Temp = Time->SpecificTime.min;		//
-////	Tens = Temp / 10;
-////	units = Temp % 10;
-////	TimeBCD.SpecificTime.min = ((Tens << 4) & 0xF0) | (units & 0x0F);
-
-////	Temp = Time->SpecificTime.hour;		//
-////	Tens = Temp / 10;
-////	units = Temp % 10;
-////	TimeBCD.SpecificTime.hour = ((Tens << 4) & 0xF0) | (units & 0x0F);
-
-////	Temp = Time->SpecificTime.week;		//
-////	Tens = Temp / 10;
-////	units = Temp % 10;
-////	TimeBCD.SpecificTime.week = ((Tens << 4) & 0xF0) | (units & 0x0F);	
-////	
-////	Temp = Time->SpecificTime.day;		//
-////	Tens = Temp / 10;
-////	units = Temp % 10;
-////	TimeBCD.SpecificTime.day = ((Tens << 4) & 0xF0) | (units & 0x0F);
-
-////	Temp = Time->SpecificTime.month;		//
-////	Tens = Temp / 10;
-////	units = Temp % 10;
-////	TimeBCD.SpecificTime.month = ((Tens << 4) & 0xF0) | (units & 0x0F);
-
-////	Temp = Time->SpecificTime.year;		//
-////	Tens = Temp / 10;
-////	units = Temp % 10;
-////	TimeBCD.SpecificTime.year = ((Tens << 4) & 0xF0) | (units & 0x0F);
-//	
-////	run_parameter.reserved_parameter35=(0x20<<8 | TimeBCD.SpecificTime.year);//?
-////	run_parameter.reserved_parameter34=(TimeBCD.SpecificTime.month<<8 | TimeBCD.SpecificTime.day);
-////	run_parameter.reserved_parameter36=TimeBCD.SpecificTime.hour;
-////	run_parameter.reserved_parameter37=(TimeBCD.SpecificTime.min<<8 | TimeBCD.SpecificTime.sec);
-
-//if(Runtimes>=0xFFFFFFFFFFFFFFFF)Runtimes=0;
-//run_parameter.run_time_in_secends_hh32.hilo=((Runtimes>>48)&0xFFFF);
-//run_parameter.run_time_in_secends_h32.hilo=((Runtimes>>32)&0xFFFF);
-//run_parameter.run_time_in_secends_ll32.hilo=((Runtimes>>16)&0xFFFF);
-//run_parameter.run_time_in_secends_l32.hilo=Runtimes&0xFFFF;
-//}
-
 ///******************************************************************************/
 ///***************************      MAIN PROGRAM      ***************************/
 ///******************************************************************************/
 int Init_ModBus (void)  
 {
-//  int i;
-//	unsigned char ch;	
-//	float date;
-//	char month[2],day[2];
-//	char year[5];
-//	unsigned char buffer[20];
-//	unsigned char i;
+
 	Init_io();	
 	Init_interrupt();
-	//debug parameter init
+
 	run_parameter.reserved_parameter100=0x0240;//255	
+
+/*---------------------------------------------------ModBus协议常量------------------------------------------------------------------*/
+	user_parameter.flag.ubit.recept_write = 0;
+	//31-40
+	strcpy(run_parameter.model_number.model_number_str,"3000");
+	//41-50
+	strcpy(run_parameter.product_serial_number.product_serial_number_str,"180000001");
+	//51-60
+	strcpy(run_parameter.sensor_serial_number.sensor_serial_number_str,"S2.3.01893");
+	//61-70
+	strcpy(run_parameter.sensor_board_serial_number.sensor_board_serial_number_str,"12345678");//productInf.SensorBoardNum
+	//71-80
+	strcpy(run_parameter.interface_board_serial_number.interface_board_serial_number_str,"12345678");//productInf.InterfaceBoardNum
+	//81-82
+	run_parameter.manufacturing_date.month = 01;
+	run_parameter.manufacturing_date.day = 01;
+	run_parameter.manufacturing_date.year = 2018;
+
+	//83、84
+	//date=atof(month);
+	run_parameter.factory_calibration_date.month = 01;
+	//date=atof(day);
+	run_parameter.factory_calibration_date.day = 01;
+	//date=atof(year);
+	run_parameter.factory_calibration_date.year = 2018;
+	//85、86
+	run_parameter.field_calibration_date.month = 01;
+	run_parameter.field_calibration_date.day = 01;
+	run_parameter.field_calibration_date.year = 2018;
+	//87、88
+	run_parameter.dissolved_gas_calibration_date.month = 01;
+	run_parameter.dissolved_gas_calibration_date.day = 01;
+	run_parameter.dissolved_gas_calibration_date.year = 2018;
+	//89-98
+	strcpy(run_parameter.firmware_revesion.firmware_revesion_str,"V2.0");
+	strcpy(run_parameter.hardware_version.hardware_version_str,"V3.0");
+	strcpy(run_parameter.factory.factory_str,"V1.0");
+	//99-110保留
+
+	//111
+	//run_parameter.status_flag.all=0x00;//16位
+	run_parameter.status_flag.ubit.senser_state0=0;
+	run_parameter.status_flag.ubit.senser_state1=0;
+	run_parameter.status_flag.ubit.senser_state2=0;	//000- 未准备好 001-正常运行 010-测量油温 011-基准循环 100-过温		
+	run_parameter.status_flag.ubit.reserved7=0;				 
+	run_parameter.status_flag.ubit.relay1=0;//继电器1			  
+	run_parameter.status_flag.ubit.relay2=0;//继电器2				 
+	run_parameter.status_flag.ubit.relay3=0;//继电器3				  		
+	run_parameter.status_flag.ubit.reserved6=0;				 
+	run_parameter.status_flag.ubit.reserved5=0;				  
+	run_parameter.status_flag.ubit.reserved4=0;				  
+	run_parameter.status_flag.ubit.reserved3=0;				  
+	run_parameter.status_flag.ubit.reserved2=0;				  
+	run_parameter.status_flag.ubit.error=0;						  
+	run_parameter.status_flag.ubit.reserved1=0;				  
+	run_parameter.status_flag.ubit.new_data_available=0; 
+	run_parameter.status_flag.ubit.unit_ready=1;
+	//112-120保留
+	run_parameter.h2_ppm_report_high_h16.hilo = 0;
+	run_parameter.h2_ppm_report_high_l16.hilo = 5000;
+	e2prom512_write(&run_parameter.h2_ppm_report_high_h16.ubit.lo,4,143*2);
+		
+	run_parameter.h2_ppm_report_low_h16.hilo = 0;
+	run_parameter.h2_ppm_report_low_l16.hilo = 0;
+	e2prom512_write(&run_parameter.h2_ppm_report_low_h16.ubit.lo,4,141*2);
+
+	//150
+	run_parameter.unit_id.ubit.lo = 1;
+	e2prom512_write(&run_parameter.unit_id.ubit.lo,2,150*2);
+	//201-210
+	strcpy(run_parameter.own_id.own_id_str,"user 01");
+	e2prom512_write(&run_parameter.own_id.own_id_str,sizeof(run_parameter.own_id.own_id_str),201*2);
+	//211-220
+	strcpy(run_parameter.sub_station_id.sub_station_id_str,"Sub-Station 01");
+	e2prom512_write(&run_parameter.sub_station_id.sub_station_id_str,sizeof(run_parameter.own_id.own_id_str),211*2);
+	//221-230
+	strcpy(run_parameter.transformer_id.transformer_id_str,"Transformer 01");
+	e2prom512_write(&run_parameter.transformer_id.transformer_id_str,sizeof(run_parameter.own_id.own_id_str),221*2);
+
+
+	run_parameter.h2_ppm_alarm_low_h16.hilo = 0;
+	run_parameter.h2_ppm_alarm_low_l16.hilo = 2500;
 	
-//	run_parameter.h2_ppm_h16.hilo=10000;
-//	run_parameter.h2_ppm_l16.hilo=20000;
-///////////////////////////////////////////////////////ModBus协议常量////////////////////////////////////////////////////////////////////
-user_parameter.flag.ubit.recept_write=0;
-//31-40
-strcpy(run_parameter.model_number.model_number_str,"3000");
-//41-50
-strcpy(run_parameter.product_serial_number.product_serial_number_str,"170000001");
-//51-60
-strcpy(run_parameter.sensor_serial_number.sensor_serial_number_str,"S2.3.01893");
-//61-70
-strcpy(run_parameter.sensor_board_serial_number.sensor_board_serial_number_str,"12345678");//productInf.SensorBoardNum
-//71-80
-strcpy(run_parameter.interface_board_serial_number.interface_board_serial_number_str,"12345678");//productInf.InterfaceBoardNum
-//81-82
-run_parameter.manufacturing_date.month=01;
-run_parameter.manufacturing_date.day=01;
-run_parameter.manufacturing_date.year=2000;
-
-//83、84
-//date=atof(month);
-run_parameter.factory_calibration_date.month=11;
-//date=atof(day);
-run_parameter.factory_calibration_date.day=14;
-//date=atof(year);
-run_parameter.factory_calibration_date.year=2017;
-//85、86
-run_parameter.field_calibration_date.month=11;
-run_parameter.field_calibration_date.day=14;
-run_parameter.field_calibration_date.year=2017;
-//87、88
-run_parameter.dissolved_gas_calibration_date.month=01;
-run_parameter.dissolved_gas_calibration_date.day=01;
-run_parameter.dissolved_gas_calibration_date.year=2000;
-//89-98
-strcpy(run_parameter.firmware_revesion.firmware_revesion_str,"demo");
-//99-110保留
-
-//111
-//run_parameter.status_flag.all=0x00;//16位
-run_parameter.status_flag.ubit.senser_state0=0;
-run_parameter.status_flag.ubit.senser_state1=0;
-run_parameter.status_flag.ubit.senser_state2=0;	//000- 未准备好 001-正常运行 010-测量油温 011-基准循环 100-过温		
-run_parameter.status_flag.ubit.reserved7=0;				 
-run_parameter.status_flag.ubit.relay1=0;//继电器1			  
-run_parameter.status_flag.ubit.relay2=0;//继电器2				 
-run_parameter.status_flag.ubit.relay3=0;//继电器3				  		
-run_parameter.status_flag.ubit.reserved6=0;				 
-run_parameter.status_flag.ubit.reserved5=0;				  
-run_parameter.status_flag.ubit.reserved4=0;				  
-run_parameter.status_flag.ubit.reserved3=0;				  
-run_parameter.status_flag.ubit.reserved2=0;				  
-run_parameter.status_flag.ubit.error=0;						  
-run_parameter.status_flag.ubit.reserved1=0;				  
-run_parameter.status_flag.ubit.new_data_available=0; 
-run_parameter.status_flag.ubit.unit_ready=1;
-//112-120保留
-run_parameter.h2_ppm_report_high_h16.hilo=0;
-run_parameter.h2_ppm_report_high_l16.hilo=5000;
+	run_parameter.h2_ppm_alert_low_h16.hilo = 0;
+	run_parameter.h2_ppm_alert_low_l16.hilo = 2500;
 	
-run_parameter.h2_ppm_report_low_h16.hilo=0;
-run_parameter.h2_ppm_report_low_l16.hilo=100;
+	run_parameter.OilTemp_Alarm_celsius.hilo = 70;
+	
+	e2prom512_write(&run_parameter.h2_ppm_alert_low_h16.ubit.lo,4,152*2);
+	e2prom512_write(&run_parameter.h2_ppm_alarm_low_h16.ubit.lo,4,154*2);
+	e2prom512_write(&run_parameter.OilTemp_Alarm_celsius.ubit.lo,2,156*2);
+	
+	run_parameter.h2_ppm_out_current_low.hilo = 400;
+	run_parameter.h2_ppm_out_current_high.hilo = 2000;
+	run_parameter.h2_ppm_error_out_current.hilo = 300;
+	run_parameter.h2_ppm_no_ready_out_current.hilo = 200;
+	
+	e2prom512_write(&run_parameter.h2_ppm_out_current_low.ubit.lo,8,145*2);
 
-//150
-run_parameter.unit_id.ubit.lo=1;	
-//201-210
-strcpy(run_parameter.own_id.own_id_str,"user 01");
-e2prom512_write(&run_parameter.own_id.own_id_str,sizeof(run_parameter.own_id.own_id_str),201*2);
-//211-220
-strcpy(run_parameter.sub_station_id.sub_station_id_str,"Sub-Station 01");
-e2prom512_write(&run_parameter.sub_station_id.sub_station_id_str,sizeof(run_parameter.own_id.own_id_str),211*2);
-//221-230
-strcpy(run_parameter.transformer_id.transformer_id_str,"Transformer 01");
-e2prom512_write(&run_parameter.transformer_id.transformer_id_str,sizeof(run_parameter.own_id.own_id_str),221*2);
-
-run_parameter.h2_ppm_report_high_l16.hilo=200;
-run_parameter.h2_ppm_report_low_l16.hilo=100;
-
-run_parameter.h2_ppm_alarm_low_l16.hilo=100;
-run_parameter.h2_ppm_alert_low_l16.hilo=10;
-run_parameter.OilTemp_Alarm_celsius.hilo=70;
-
-//231-255保留
-DS1390_CS_H;
-LC512_CS_H;
-
-  		//AT25df16_reset();
-M25P16_reset();
-  		//AT25df16_read_ID(user_parameter.spi_flash_buffer);
-M25P16_read_ID(user_parameter.spi_flash_buffer);
-//			flash_read(&SpiFlash_Addr[0], 4, 120);
-//e2prom512_read(&SpiFlash_Addr[0], 4, 120);
-//UpData_ModbBus();
-			
-return 0;
+	//231-255保留
+	DS1390_CS_H;
+	LC512_CS_H;
+	
+	return 0;
 }
 
 
@@ -1035,464 +577,200 @@ return 0;
 /******************************************************************************/
 int RW_ModBus_Data (void)  
 {
-
-//	unsigned int wr;
 	unsigned int db_H2ppm;	
-/////////////////////////////////////////////////////ModBus协议常量write////////////////////////////////////////////////////////////////////
-////	UARTprintf("point=%d\r\n",user_parameter.function_point);
+	/*--------------------------------ModBus协议常量write-------------------------------------------------------*/
+	//UARTprintf("point=%d\r\n",user_parameter.function_point);
 	//99-110保留
-switch (user_parameter.function_point)
-{	
-//************************************************
-//读Flash
-  case 101:
-	{
-  Spi_Flash_Data_read();
-	break;		
-	}		
-//************************************************	
-  case 121:
-	{		
-//    UARTprintf("Current H2 value is %5u ppm H2\n",(unsigned int)((SenseData.h2*10000)/20));
-//    cmd_ConfigData.h2cdata_ka=SenseData.h2;		
-//    float_char(cmd_ConfigData.h2cdata_ka,systemInf.Cal_Ka);
-		
- 	break;		
-	}
-  case 122:
+	switch (user_parameter.function_point)
 	{	
-//首先写126 127   128 129 在写122 写0确认
-    db_H2ppm = (run_parameter.h2_ppm_calibration_gas_h16.hilo<<16 |run_parameter.h2_ppm_calibration_gas_l16.hilo);
-	
-//		UARTprintf("Set hydrogen to %d ppm\r\n",db_H2ppm);//126 127	
-//    cmd_ConfigData.h2cdata_kb = (((float)(db_H2ppm*20)/10000.F) - cmd_ConfigData.h2cdata_ka);
-//    float_char(cmd_ConfigData.h2cdata_kb,systemInf.Cal_Kb);
-////自动写入校准时间
-//    cmd_ConfigData.Caldate=(CurrentTime.SpecificTime.year<<16 | CurrentTime.SpecificTime.month<<8 | CurrentTime.SpecificTime.day);		 		
-//    UARTprintf("Calibration Gas finished\n");
-	break;		
-	}
-  case 123:
-	{	
-//首先写126 127   128 129 在写122 写0确认
-    db_H2ppm = (run_parameter.h2_ppm_calibration_gas_h16.hilo<<16 |run_parameter.h2_ppm_calibration_gas_l16.hilo);
-	
-//		UARTprintf("Set hydrogen to %d ppm\r\n",db_H2ppm);//126 127	
-//    cmd_ConfigData.h2cdata_kb = (((float)(db_H2ppm*20)/10000.F) - cmd_ConfigData.h2cdata_ka);
-//    float_char(cmd_ConfigData.h2cdata_kb,systemInf.Cal_Kb);
-////自动写入校准时间
-//    cmd_ConfigData.Caldate=(CurrentTime.SpecificTime.year<<16 | CurrentTime.SpecificTime.month<<8 | CurrentTime.SpecificTime.day);		 		
-//    UARTprintf("Calibration Gas finished\n");	
-	break;		
-	}	
-	
-	case 150:
-	{
-//150
-//		systemInf.ModbusID=hex2dec(run_parameter.uint_id.ubit.lo);//systemInf.CallID=(systemInf.CallID-50);
-//		systemInf.ModbusID=(unsigned char)run_parameter.uint_id.ubit.lo;//systemInf.CallID=(systemInf.CallID-50);		
-//    UARTprintf("Set ModbusID to:%d\r\n", (unsigned int)systemInf.ModbusID);		
-//run_parameter.uint_id.ubit.lo=0x01;//默认ID
-		e2prom512_write(&run_parameter.unit_id.ubit.lo,2,150*2);
-	break;
-	}
-	
-	case 133:
-	{	
-//130 131 132 133
+		case 101: //读Flash
+		{
+//			UARTprintf("read FLASH DATA\n");
+			Spi_Flash_Data_read();
+			break;
+		}
 		
-RealTime_Modbus.Real_Time[1]=run_parameter.reserved_parameter341>>8;//月
-RealTime_Modbus.Real_Time[2]=run_parameter.reserved_parameter341&0xFF;//日	
-RealTime_Modbus.Real_Time[0]=run_parameter.reserved_parameter35&0xFF;//年
+		case 102: //Write Flash
+		{
+      UARTprintf("Write FLASH DATA\n");
+			M25P16_Write_Sensor_Data();
+			break;
+		}
 		
-RealTime_Modbus.Real_Time[4]=run_parameter.reserved_parameter36&0xFF;//时	
-RealTime_Modbus.Real_Time[5]=run_parameter.reserved_parameter37>>8;//分
-RealTime_Modbus.Real_Time[6]=run_parameter.reserved_parameter37&0xFF;//秒
-    UARTprintf("Change time to 20%x-%x-%x %x:%x:%x",\
-	  (long int)RealTime_Modbus.Real_Time[0],\
-		(long int)RealTime_Modbus.Real_Time[1],\
-    (long int)RealTime_Modbus.Real_Time[2],(long int)RealTime_Modbus.Real_Time[4],\
-    (long int)RealTime_Modbus.Real_Time[5],(long int)RealTime_Modbus.Real_Time[6]);		
-//*/
-	Write1390(REG_STATUS,0x80); //写入允许
-	Write1390(REG_YEAR,RealTime_Modbus.Real_Time[0]); 
-	Write1390(REG_MONTH,RealTime_Modbus.Real_Time[1]);
-	Write1390(REG_DAY,RealTime_Modbus.Real_Time[2]);
-////	Write1390(REG_WEEK,TimeBCD.SpecificTime.week);	
-	Write1390(REG_HOUR,RealTime_Modbus.Real_Time[4]);
-	Write1390(REG_MIN,RealTime_Modbus.Real_Time[5]);
-	Write1390(REG_SEC,RealTime_Modbus.Real_Time[6]);
-	Write1390(REG_STATUS,0x00); //禁止写入		
+		case 121:
+		{		
+			//    UARTprintf("Current H2 value is %5u ppm H2\n",(unsigned int)((SenseData.h2*10000)/20));
+			//    cmd_ConfigData.h2cdata_ka=SenseData.h2;		
+			//    float_char(cmd_ConfigData.h2cdata_ka,systemInf.Cal_Ka);
+			break;
+		}
 		
-//    DS1390_AdjustTime(&RealTime_Modbus);
-break;
-	}
-case 142:
-{
-//141-142	
-cmd_ConfigData.H2low = (double)(((run_parameter.h2_ppm_report_low_h16.hilo<<16 |run_parameter.h2_ppm_report_low_l16.hilo)/10000.F)*20.F);
-e2prom512_write(&run_parameter.h2_ppm_report_low_h16.ubit.lo,4,141*2);	
-	//float_char(cmd_ConfigData.H2low,systemInf.LowH2);		
-break;
-}	
-case 144:
-{
-//143-144	
-cmd_ConfigData.H2high = (double)(((run_parameter.h2_ppm_report_high_h16.hilo<<16 |run_parameter.h2_ppm_report_high_l16.hilo)/10000.F)*20.F);
-e2prom512_write(&run_parameter.h2_ppm_report_high_h16.ubit.lo,4,143*2);	
-//float_char(cmd_ConfigData.H2high,systemInf.HighH2);		
-	break;
-}
-	case 148:
-{
-//145 146 147 148
-cmd_ConfigData.LowmA=(double)((run_parameter.h2_ppm_out_current_low.hilo)/100.F);
-cmd_ConfigData.HighmA=(double)((run_parameter.h2_ppm_out_current_high.hilo)/100.F);
-cmd_ConfigData.ErrmA=(double)((run_parameter.h2_ppm_error_out_current.hilo)/100.F);
-cmd_ConfigData.NotRmA=(double)((run_parameter.h2_ppm_no_ready_out_current.hilo)/100.F);
+		case 122:
+		{	
+			//首先写126 127   128 129 在写122 写0确认
+			db_H2ppm = (run_parameter.h2_ppm_calibration_gas_h16.hilo<<16 |run_parameter.h2_ppm_calibration_gas_l16.hilo);
 
-e2prom512_write(&run_parameter.h2_ppm_out_current_low.ubit.lo,8,145*2);
+			//		UARTprintf("Set hydrogen to %d ppm\r\n",db_H2ppm);//126 127	
+			//    cmd_ConfigData.h2cdata_kb = (((float)(db_H2ppm*20)/10000.F) - cmd_ConfigData.h2cdata_ka);
+			//    float_char(cmd_ConfigData.h2cdata_kb,systemInf.Cal_Kb);
+			////自动写入校准时间
+			//    cmd_ConfigData.Caldate=(CurrentTime.SpecificTime.year<<16 | CurrentTime.SpecificTime.month<<8 | CurrentTime.SpecificTime.day);		 		
+			//    UARTprintf("Calibration Gas finished\n");
+			break;		
+		}
+		
+		case 123:
+		{	
+			//首先写126 127   128 129 在写122 写0确认
+			db_H2ppm = (run_parameter.h2_ppm_calibration_gas_h16.hilo<<16 |run_parameter.h2_ppm_calibration_gas_l16.hilo);
 
-//    float_char(cmd_ConfigData.LowmA,systemInf.Out_mA_Low);//float?char  ??????
-//    float_char(cmd_ConfigData.HighmA,systemInf.Out_mA_High);
-//    float_char(cmd_ConfigData.ErrmA,systemInf.Out_mA_Err);
-//    float_char(cmd_ConfigData.NotRmA,systemInf.Out_mA_NotR);
-break;
-	}
-//150
-	
-//152 153
-case 153:
-{	
-cmd_ConfigData.MaxAlertH2 = (double)((run_parameter.h2_ppm_alert_low_h16.hilo<<16 |run_parameter.h2_ppm_alert_low_l16.hilo)/10000.F);
-e2prom512_write(&run_parameter.h2_ppm_alert_low_h16.ubit.lo,4,152*2);
-	
-//float_char(cmd_ConfigData.MaxAlertH2,systemInf.AlertH2);		
-break;
-}
+			//		UARTprintf("Set hydrogen to %d ppm\r\n",db_H2ppm);//126 127	
+			//    cmd_ConfigData.h2cdata_kb = (((float)(db_H2ppm*20)/10000.F) - cmd_ConfigData.h2cdata_ka);
+			//    float_char(cmd_ConfigData.h2cdata_kb,systemInf.Cal_Kb);
+			////自动写入校准时间
+			//    cmd_ConfigData.Caldate=(CurrentTime.SpecificTime.year<<16 | CurrentTime.SpecificTime.month<<8 | CurrentTime.SpecificTime.day);		 		
+			//    UARTprintf("Calibration Gas finished\n");	
+			break;		
+		}	
 
-//154 155
-case 155:
-{	
-cmd_ConfigData.MaxAlarmH2 = (double)((run_parameter.h2_ppm_alarm_low_h16.hilo<<16 |run_parameter.h2_ppm_alarm_low_l16.hilo)/10000.F);
-e2prom512_write(&run_parameter.h2_ppm_alarm_low_h16.ubit.lo,4,154*2);
-//float_char(cmd_ConfigData.MaxAlarmH2,systemInf.AlarmH2);		
-break;
-}
+		case 150:
+		{
+			//150
+			//		systemInf.ModbusID=hex2dec(run_parameter.uint_id.ubit.lo);//systemInf.CallID=(systemInf.CallID-50);
+			//		systemInf.ModbusID=(unsigned char)run_parameter.uint_id.ubit.lo;//systemInf.CallID=(systemInf.CallID-50);		
+			//    UARTprintf("Set ModbusID to:%d\r\n", (unsigned int)systemInf.ModbusID);		
+			//run_parameter.uint_id.ubit.lo=0x01;//默认ID
+			e2prom512_write(&run_parameter.unit_id.ubit.lo,2,150*2);
+			break;
+		}
 
-//156
-case 156:
-{	
-cmd_ConfigData.MaxAlarmOil = (double)(run_parameter.OilTemp_Alarm_celsius.hilo/100.F);
-e2prom512_write(&run_parameter.OilTemp_Alarm_celsius.ubit.lo,2,156*2);
-	//float_char(cmd_ConfigData.MaxAlarmOil,systemInf.AlarmOil);		
-break;
-}
+		case 133:
+		{	
+			//130 131 132 133
 
-	case 210:
-{
-//				 wr=Msg8StartAdr;//????0x0100?  ???257????						 
-// 				 strcpy(productInf.Own_id, run_parameter.own_id.own_id_str);//??        write_opera);//    cmd_analyze.processed_buf
-//	       flash_write (&productInf.Own_id[0],EElength, wr);//wr????EE??
-e2prom512_write(&run_parameter.own_id.own_id_sstr.character1,20,201*2);
-break;
-}
+			RealTime_Modbus.Real_Time[1]=run_parameter.reserved_parameter341>>8;//月
+			RealTime_Modbus.Real_Time[2]=run_parameter.reserved_parameter341&0xFF;//日	
+			RealTime_Modbus.Real_Time[0]=run_parameter.reserved_parameter35&0xFF;//年
+
+			RealTime_Modbus.Real_Time[4]=run_parameter.reserved_parameter36&0xFF;//时	
+			RealTime_Modbus.Real_Time[5]=run_parameter.reserved_parameter37>>8;//分
+			RealTime_Modbus.Real_Time[6]=run_parameter.reserved_parameter37&0xFF;//秒
+			UARTprintf("Change time to 20%x-%x-%x %x:%x:%x",\
+			(long int)RealTime_Modbus.Real_Time[0],\
+			(long int)RealTime_Modbus.Real_Time[1],\
+			(long int)RealTime_Modbus.Real_Time[2],(long int)RealTime_Modbus.Real_Time[4],\
+			(long int)RealTime_Modbus.Real_Time[5],(long int)RealTime_Modbus.Real_Time[6]);		
+			//*/
+			Write1390(REG_STATUS,0x80); //写入允许
+			Write1390(REG_YEAR,RealTime_Modbus.Real_Time[0]); 
+			Write1390(REG_MONTH,RealTime_Modbus.Real_Time[1]);
+			Write1390(REG_DAY,RealTime_Modbus.Real_Time[2]);
+			////	Write1390(REG_WEEK,TimeBCD.SpecificTime.week);	
+			Write1390(REG_HOUR,RealTime_Modbus.Real_Time[4]);
+			Write1390(REG_MIN,RealTime_Modbus.Real_Time[5]);
+			Write1390(REG_SEC,RealTime_Modbus.Real_Time[6]);
+			Write1390(REG_STATUS,0x00); //禁止写入		
+
+			//    DS1390_AdjustTime(&RealTime_Modbus);
+			break;
+		}
+		
+		case 142:
+		{
+			//141-142	
+			cmd_ConfigData.H2low = (double)(((run_parameter.h2_ppm_report_low_h16.hilo<<16 |run_parameter.h2_ppm_report_low_l16.hilo)/10000.F)*20.F);
+			e2prom512_write(&run_parameter.h2_ppm_report_low_h16.ubit.lo,4,141*2);	
+			//float_char(cmd_ConfigData.H2low,systemInf.LowH2);		
+			break;
+		}	
+		
+		case 144:
+		{
+			//143-144	
+			cmd_ConfigData.H2high = (double)(((run_parameter.h2_ppm_report_high_h16.hilo<<16 |run_parameter.h2_ppm_report_high_l16.hilo)/10000.F)*20.F);
+			e2prom512_write(&run_parameter.h2_ppm_report_high_h16.ubit.lo,4,143*2);	
+			//float_char(cmd_ConfigData.H2high,systemInf.HighH2);		
+			break;
+		}
+		
+		case 148:
+		{
+			//145 146 147 148
+			cmd_ConfigData.LowmA = (double)((run_parameter.h2_ppm_out_current_low.hilo)/100.F);
+			cmd_ConfigData.HighmA = (double)((run_parameter.h2_ppm_out_current_high.hilo)/100.F);
+			cmd_ConfigData.ErrmA = (double)((run_parameter.h2_ppm_error_out_current.hilo)/100.F);
+			cmd_ConfigData.NotRmA = (double)((run_parameter.h2_ppm_no_ready_out_current.hilo)/100.F);
+
+			e2prom512_write(&run_parameter.h2_ppm_out_current_low.ubit.lo,8,145*2);
+
+			//    float_char(cmd_ConfigData.LowmA,systemInf.Out_mA_Low);//float?char  ??????
+			//    float_char(cmd_ConfigData.HighmA,systemInf.Out_mA_High);
+			//    float_char(cmd_ConfigData.ErrmA,systemInf.Out_mA_Err);
+			//    float_char(cmd_ConfigData.NotRmA,systemInf.Out_mA_NotR);
+			break;
+		}
+		//150
+
+		//152 153
+		case 153:
+		{	
+			cmd_ConfigData.MaxAlertH2 = (double)((run_parameter.h2_ppm_alert_low_h16.hilo<<16 |run_parameter.h2_ppm_alert_low_l16.hilo)/10000.F);
+			e2prom512_write(&run_parameter.h2_ppm_alert_low_h16.ubit.lo,4,152*2);
+
+			//float_char(cmd_ConfigData.MaxAlertH2,systemInf.AlertH2);		
+			break;
+		}
+
+		//154 155
+		case 155:
+		{	
+			cmd_ConfigData.MaxAlarmH2 = (double)((run_parameter.h2_ppm_alarm_low_h16.hilo<<16 |run_parameter.h2_ppm_alarm_low_l16.hilo)/10000.F);
+			e2prom512_write(&run_parameter.h2_ppm_alarm_low_h16.ubit.lo,4,154*2);
+			//float_char(cmd_ConfigData.MaxAlarmH2,systemInf.AlarmH2);		
+			break;
+		}
+
+		//156
+		case 156:
+		{	
+			cmd_ConfigData.MaxAlarmOil = (double)(run_parameter.OilTemp_Alarm_celsius.hilo/100.F);
+			e2prom512_write(&run_parameter.OilTemp_Alarm_celsius.ubit.lo,2,156*2);
+			UARTprintf("OilTemp_Alarm_celsius = %d\n",run_parameter.OilTemp_Alarm_celsius.hilo);
+			//float_char(cmd_ConfigData.MaxAlarmOil,systemInf.AlarmOil);		
+			break;
+		}
+
+		case 210:
+		{
+			//				 wr=Msg8StartAdr;//????0x0100?  ???257????						 
+			// 				 strcpy(productInf.Own_id, run_parameter.own_id.own_id_str);//??        write_opera);//    cmd_analyze.processed_buf
+			//	       flash_write (&productInf.Own_id[0],EElength, wr);//wr????EE??
+			e2prom512_write(&run_parameter.own_id.own_id_sstr.character1,20,201*2);
+			break;
+		}
+		
 		case 220:
-{
-//				 wr=Msg9StartAdr;//????0x0100?  ???257????						 
-// 				 strcpy(productInf.Sub_station_id, run_parameter.sub_station_id.sub_station_id_str);//??        write_opera);//    cmd_analyze.processed_buf
-//	       flash_write (&productInf.Sub_station_id[0],EElength, wr);//wr????EE??
-e2prom512_write(&run_parameter.sub_station_id.sub_station_id_sstr.character1,20,211*2);
-break;
-}
+		{
+			//				 wr=Msg9StartAdr;//????0x0100?  ???257????						 
+			// 				 strcpy(productInf.Sub_station_id, run_parameter.sub_station_id.sub_station_id_str);//??        write_opera);//    cmd_analyze.processed_buf
+			//	       flash_write (&productInf.Sub_station_id[0],EElength, wr);//wr????EE??
+			e2prom512_write(&run_parameter.sub_station_id.sub_station_id_sstr.character1,20,211*2);
+			break;
+		}
+		
 		case 230:
-{
-//				 wr=Msg10StartAdr;//????0x0100?  ???257????						 
-// 				 strcpy(productInf.Transformer_id,run_parameter.transformer_id.transformer_id_str);//??        write_opera);//    cmd_analyze.processed_buf
-//	       flash_write (&productInf.Transformer_id[0],EElength, wr);//wr????EE??
-e2prom512_write(&run_parameter.transformer_id.transformer_id_sstr.character1,20,221*2);
-break;
+		{
+			//				 wr=Msg10StartAdr;//????0x0100?  ???257????						 
+			// 				 strcpy(productInf.Transformer_id,run_parameter.transformer_id.transformer_id_str);//??        write_opera);//    cmd_analyze.processed_buf
+			//	       flash_write (&productInf.Transformer_id[0],EElength, wr);//wr????EE??
+			e2prom512_write(&run_parameter.transformer_id.transformer_id_sstr.character1,20,221*2);
+			break;
+		}
+		//231-255保留
+	}
+
+	user_parameter.flag.ubit.recept_write=0;			
+	//return 0;
+	//wFLASHconfig(sys_addr,(unsigned char *)&systemInf);
+	return 0;
 }
-//231-255保留
-}
-
-user_parameter.flag.ubit.recept_write=0;			
-//return 0;
-//wFLASHconfig(sys_addr,(unsigned char *)&systemInf);
-return 0;
-}
-
-
-void Spi_Flash_Addr_RW(unsigned long ddr)
-{
-SpiFlash_Addr[0]=((ddr & 0xFFFFFFFF) >> 24);
-SpiFlash_Addr[1]=((ddr & 0xFFFFFF) >> 16);
-SpiFlash_Addr[2]=((ddr & 0xFFFF) >> 8);
-SpiFlash_Addr[3]=ddr&0xFF;			
-//e2prom512_write(&SpiFlash_Addr[0],4, 120);	
-}
-
-//unsigned long Spi_Flash_Addr_R(void)
-//{
-//unsigned int i=0;
-//unsigned int wr;	
-//unsigned long ddr;	
-//flash_read(&SpiFlash_Addr[0], 4, 120);
-//ddr=((unsigned long)SpiFlash_Addr[0]<<24 | SpiFlash_Addr[1]<<16 | SpiFlash_Addr[2]<<8 | SpiFlash_Addr[3]);
-
-//if(ddr==0xFFFFFFFF)
-//{
-//ddr=0;
-//UARTprintf("Erase Sector0\r\n");	
-//UARTprintf("...wait...\r\n");
-//EE25LC_Erase_Sector(0);//擦除首扇区	
-//AT25df16_erase_4Kmap(0);//擦除首扇区	
-
-////执行默认配置.		
-//		cmd_ConfigData.h2cdata_kb=0;//????kb 
-//    float_char(cmd_ConfigData.h2cdata_kb,systemInf.Cal_Kb);
-//		cmd_ConfigData.Caldate=run_parameter.factory_calibration_date.year<<16 | run_parameter.factory_calibration_date.month<<8 | run_parameter.factory_calibration_date.day;//??????
-//    systemInf.CaliDate[0]=((cmd_ConfigData.Caldate>>16)&0xFFFF)>>8; //| (Caldate&0xFFFF)>>8
-//    systemInf.CaliDate[1]=(cmd_ConfigData.Caldate>>16)&0xFF;    
-//    systemInf.CaliDate[2]=((cmd_ConfigData.Caldate&0xFFFF)>>8);
-//    systemInf.CaliDate[3]=(cmd_ConfigData.Caldate&0xFF);
-//		//??????		
-//    cmd_ConfigData.inter_time = 30;//??30?     
-//    systemInf.tt[0]=(unsigned char)((cmd_ConfigData.inter_time&0xFFFF)>>8);//??????
-//    systemInf.tt[1]=(unsigned char)(cmd_ConfigData.inter_time&0xFF);//??????
-//		//??????		
-//		cmd_ConfigData.H2low  = RangeLow;//??200-40000ppm
-//    cmd_ConfigData.H2high  = RangeHigh;
-//    float_char(cmd_ConfigData.H2low,systemInf.LowH2);
-//    float_char(cmd_ConfigData.H2high,systemInf.HighH2);	    		
-//		//??????		
-//    cmd_ConfigData.MaxAlertH2 = 0.4;//??Alert:10000ppm  Alarm:20000ppm					   
-//		cmd_ConfigData.MaxAlarmH2 = 0.5;
-//    float_char(cmd_ConfigData.MaxAlertH2,systemInf.AlertH2);
-//    float_char(cmd_ConfigData.MaxAlarmH2,systemInf.AlarmH2);	 			
-//		//??????    
-//    cmd_ConfigData.LowmA=4.0;//??4-20mA   3.5  2.0
-//    cmd_ConfigData.HighmA=20.0;
-//    cmd_ConfigData.ErrmA=3.5;
-//    cmd_ConfigData.NotRmA=2.0;
-//    float_char(cmd_ConfigData.LowmA,systemInf.Out_mA_Low);//float?char  ??????
-//    float_char(cmd_ConfigData.HighmA,systemInf.Out_mA_High);
-//    float_char(cmd_ConfigData.ErrmA,systemInf.Out_mA_Err);
-//    float_char(cmd_ConfigData.NotRmA,systemInf.Out_mA_NotR);
-//		//??????    
-//    cmd_ConfigData.LowVout=0.5;//??0.5-4.5V   5.0  0.0
-//    cmd_ConfigData.HighVout=4.5;
-//    cmd_ConfigData.ErrVout=5.0;
-//    cmd_ConfigData.NotRVout=0.0;
-//    float_char(cmd_ConfigData.LowVout,systemInf.Out_Vout_Low);
-//    float_char(cmd_ConfigData.HighVout,systemInf.Out_Vout_High);
-//    float_char(cmd_ConfigData.ErrVout,systemInf.Out_Vout_Err);
-//    float_char(cmd_ConfigData.NotRVout,systemInf.Out_Vout_NotR);
-//		//????????
-//		cmd_ConfigData.OutCi_ka=1.0;//????ka
-//		cmd_ConfigData.OutCi_kb=0;//????kb 
-//    float_char(cmd_ConfigData.OutCi_ka,systemInf.OutCi_Ka);
-//    float_char(cmd_ConfigData.OutCi_kb,systemInf.OutCi_Kb);
-
-//    cmd_ConfigData.OutCv_ka=1.0;//????ka
-//		cmd_ConfigData.OutCv_kb=0;//????kb 
-//    float_char(cmd_ConfigData.OutCv_ka,systemInf.OutCv_Ka);
-//    float_char(cmd_ConfigData.OutCv_kb,systemInf.OutCv_Kb);		
-//		
-//		wFLASHconfig(sys_addr,(unsigned char *)&systemInf);//??????! 
-//    UARTprintf("Returns to last factory calibration data\n");
-//    UARTprintf("...Wait......\n"); 	
-
-//for(i=0;i<10;i++)
-//{
-//switch(i)
-//{
-//   case 0:
-//	 				wr=Msg1StartAdr;			 		  	
-//					memset(buffer,0,CMD_BUF_LEN);				 
-// 				  strcpy(buffer, "3000");				
-//	        flash_write (&buffer[0],EElength, wr);			 
-//			   break;
-//   case 1: 					 
-//				 wr=Msg2StartAdr;		 				  	
-//					memset(buffer,0,CMD_BUF_LEN);				 
-// 				  strcpy(buffer, "D0000001");
-//	        flash_write (&buffer[0],EElength, wr);				 
-//			   break;
-//   case 2: 					 
-//				 wr=Msg3StartAdr;				 				  	
-//					memset(buffer,0,CMD_BUF_LEN);			 
-// 				  strcpy(buffer, "1.0");	
-//	        flash_write (&buffer[0],EElength, wr);			 
-//			   break;
-//   case 3: 					 
-//				 wr=Msg4StartAdr;			 				  	
-//					memset(buffer,0,CMD_BUF_LEN);				 
-// 				  strcpy(buffer, "S2.3.01999");		
-//	        flash_write (&buffer[0],EElength, wr);			 
-//			   break;
-//   case 4: 				 
-//				 wr=Msg5StartAdr;				 			  	
-//					memset(buffer,0,CMD_BUF_LEN);					 
-// 				  strcpy(buffer, "4WRes-200V3");			
-//	        flash_write (&buffer[0],EElength, wr);			 
-//			   break;
-//   case 5: 					 
-//				 wr=Msg6StartAdr;			 				  	
-//					memset(buffer,0,CMD_BUF_LEN);			 
-// 				  strcpy(buffer, "P/N20000001");		
-//	        flash_write (&buffer[0],EElength, wr);				 
-//			   break;
-//   case 6: 				 
-//				 wr=Msg7StartAdr;			 				  	
-//					memset(buffer,0,CMD_BUF_LEN);				 
-// 				  strcpy(buffer, "17A-200V3-1001");		
-//	        flash_write (&buffer[0],EElength, wr);			 
-//			   break;
-//					
-//   case 7: 				 
-//				 wr=Msg8StartAdr;			 				  	
-//					memset(buffer,0,CMD_BUF_LEN);				 
-// 				  strcpy(buffer, "1");			
-//	        flash_write (&buffer[0],EElength, wr);			 
-//			   break;
-//   case 8: 				 
-//				 wr=Msg9StartAdr;		 			  	
-//					memset(buffer,0,CMD_BUF_LEN);				 
-// 				  strcpy(buffer, "2");			
-//	        flash_write (&buffer[0],EElength, wr);				 
-//			   break;
-//   case 9: 				 
-//				 wr=Msg10StartAdr;			 			  	
-//					memset(buffer,0,CMD_BUF_LEN);				 
-// 				  strcpy(buffer, "3");			
-//	        flash_write (&buffer[0],EElength, wr);				 
-//			   break;										
-//   default :
-//			   break;				 
-//}
-//    UARTprintf("...Wait...SAVED - Done\n");
-//    ReadEEProductInf();//
-
-//}
-
-//EEpromData_Addr = EE_Sector1_addr;//??	 
-//EEPROM_Addr[0]=((EEpromData_Addr & 0xFFFF) >> 8);
-//EEPROM_Addr[1]=EEpromData_Addr&0xFF; 
-//flash_write(&EEPROM_Addr[0],2, 124);
-
-//EEpromAlarmData_Addr = EE_Sector3_addr;//??
-//EEPROM_ALARM_Addr[0]=((EEpromAlarmData_Addr & 0xFFFF) >> 8);
-//EEPROM_ALARM_Addr[1]=EEpromAlarmData_Addr&0xFF; 
-//flash_write(&EEPROM_ALARM_Addr[0],2, 126);
-
-//Spi_Flash_Addr_RW(0);
-//////UARTprintf("SPI_Flash_Addr=%lu\r\n",ddr);
-//return ddr;	
-//}
-//////UARTprintf("SPI_Flash_Addr=%lu\r\n",ddr);
-//return ddr;
-//}
-
-//unsigned int save_parameter(unsigned int address)
-//  		{
-//	unsigned char Temp;
-//	unsigned char Tens, units;				
-//	REALTIMEINFO TimeBCD;   //BCD码时间
-//        //*
-//	Temp = CurrentTime.SpecificTime.sec;		//
-//	Tens = Temp / 10;
-//	units = Temp % 10;
-//	TimeBCD.SpecificTime.sec = ((Tens << 4) & 0xF0) | (units & 0x0F);
-
-//	Temp = CurrentTime.SpecificTime.min;		//
-//	Tens = Temp / 10;
-//	units = Temp % 10;
-//	TimeBCD.SpecificTime.min = ((Tens << 4) & 0xF0) | (units & 0x0F);
-
-//	Temp = CurrentTime.SpecificTime.hour;		//
-//	Tens = Temp / 10;
-//	units = Temp % 10;
-//	TimeBCD.SpecificTime.hour = ((Tens << 4) & 0xF0) | (units & 0x0F);
-
-//	Temp = CurrentTime.SpecificTime.week;		//
-//	Tens = Temp / 10;
-//	units = Temp % 10;
-//	TimeBCD.SpecificTime.week = ((Tens << 4) & 0xF0) | (units & 0x0F);	
-//	
-//	Temp = CurrentTime.SpecificTime.day;		//
-//	Tens = Temp / 10;
-//	units = Temp % 10;
-//	TimeBCD.SpecificTime.day = ((Tens << 4) & 0xF0) | (units & 0x0F);
-
-//	Temp = CurrentTime.SpecificTime.month;		//
-//	Tens = Temp / 10;
-//	units = Temp % 10;
-//	TimeBCD.SpecificTime.month = ((Tens << 4) & 0xF0) | (units & 0x0F);
-
-//	Temp = CurrentTime.SpecificTime.year;		//
-//	Tens = Temp / 10;
-//	units = Temp % 10;
-//	TimeBCD.SpecificTime.year = ((Tens << 4) & 0xF0) | (units & 0x0F);				
-//				
-//  			user_parameter.spi_flash_buffer[0]=0x5A;				
-//				
-//  			user_parameter.spi_flash_buffer[1]=0x20;//130~133 Time->SpecificTime.year
-//  			user_parameter.spi_flash_buffer[2]=TimeBCD.SpecificTime.year;//?
-//  			user_parameter.spi_flash_buffer[3]=TimeBCD.SpecificTime.month;
-//  			user_parameter.spi_flash_buffer[4]=TimeBCD.SpecificTime.day;
-//  			user_parameter.spi_flash_buffer[5]=TimeBCD.SpecificTime.hour;
-//  			user_parameter.spi_flash_buffer[6]=TimeBCD.SpecificTime.min;
-//  			user_parameter.spi_flash_buffer[7]=TimeBCD.SpecificTime.sec;
-
-//run_parameter.h2_ppm_h16.hilo=(unsigned int)(SenseData.H2G*10000)>>16;//油中氢
-//run_parameter.h2_ppm_l16.hilo=(unsigned int)(SenseData.H2G*10000)&0xFFFF;
-//		
-//run_parameter.oil_temperature_celsius.hilo=(unsigned int)(SenseData.Ot*100.F);//油温
-//	
-//run_parameter.h2_ppm_DRC_h16.hilo=(unsigned int)(SenseData.DayROC*10000)>>16;//天变化率
-//run_parameter.h2_ppm_DRC_l16.hilo=(unsigned int)(SenseData.DayROC*10000)&0xFFFF;
-
-//				
-//  			user_parameter.spi_flash_buffer[8]=run_parameter.h2_ppm_h16.ubit.hi;//??
-//  			user_parameter.spi_flash_buffer[9]=run_parameter.h2_ppm_h16.ubit.lo;
-//  			user_parameter.spi_flash_buffer[10]=run_parameter.h2_ppm_l16.ubit.hi;
-//  			user_parameter.spi_flash_buffer[11]=run_parameter.h2_ppm_l16.ubit.lo;
-
-//				
-//  			user_parameter.spi_flash_buffer[12]=run_parameter.oil_temperature_celsius.ubit.hi;//??
-//  			user_parameter.spi_flash_buffer[13]=run_parameter.oil_temperature_celsius.ubit.lo;
-//				
-//  			user_parameter.spi_flash_buffer[14]=run_parameter.h2_ppm_DRC_h16.ubit.hi;//????
-//  			user_parameter.spi_flash_buffer[15]=run_parameter.h2_ppm_DRC_h16.ubit.lo;
-//  			user_parameter.spi_flash_buffer[16]=run_parameter.h2_ppm_DRC_l16.ubit.hi;
-//  			user_parameter.spi_flash_buffer[17]=run_parameter.h2_ppm_DRC_l16.ubit.lo;
-//  			user_parameter.spi_flash_buffer[18]=0xA5;
-//  			AT25df16_write_data_anywhere(19,address);
-//  			address+=19;
-//  			return address;				
-//  			}
-
-//void Read_Flash(void)
-//{
-//unsigned int i,n;
-
-//unsigned int m;
-
-//m=((FlashData_Addr/256)+1);
-//	
-//for(i=0;i<m;i++)	
-//{	
-//M25P16_read_data_anywhere(256,256*i);	
-
-//for(n=0;n<256;n++)	
-//{
-//								IO1SET	=EN_485_DE;// 使能输入 485 发送
-//								Delay_us(1);
-//								Uart0_SentByte(user_parameter.spi_flash_buffer[n]);
-//								IO1CLR	=EN_485_DE;// 使能输入 485 发送	
-//}
-//}
-//}
-
-//				
