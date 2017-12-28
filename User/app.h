@@ -14,5 +14,8 @@ void relay_status(void);
 void LED_status(void);
 void Calculate_H2_rate(void);
 void H2SldAv_24H2G(void);
+void E2C_Sensor_Fit_Para(void);
+
+void E2C_Piecewise_point(void);
 
 #endif

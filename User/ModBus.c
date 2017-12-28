@@ -19,8 +19,9 @@
 #include "DS1390.h"
 #include "M25P16_FLASH.h"
 #include "e25LC512.h"
+#include "app.h"
 
-REALTIMEINFO	RealTime_Modbus;     //??????
+REALTIMEINFO	RealTime_Modbus;
 
 //宏定义Stop   hugo add 
 unsigned char SpiFlash_Addr[5];
@@ -127,7 +128,7 @@ void Spi_Flash_Data_read(void)
 		temp_read_start_address = run_parameter.reserved_parameter13;
 		temp_read_end_address = run_parameter.reserved_parameter14;
 		
-		if((temp_read_start_address>8192)||(temp_read_end_address>8192)||(temp_read_start_address>=temp_read_end_address))
+		if((temp_read_start_address>(8192-512))||(temp_read_end_address>(8192-512))||(temp_read_start_address>=temp_read_end_address))
 		{
 			run_parameter.reserved_parameter13=0;
 			run_parameter.reserved_parameter14=0;
@@ -371,10 +372,11 @@ void Data_Ack_Processor(void)//hugo add
 							temp_point_count=((user_parameter.start_address.ubit.hi<<8)+user_parameter.start_address.ubit.lo)<<1;
 							temp_point_halfcount=temp_point_count>>1;
 							if(((temp_point_halfcount>0)&&(temp_point_halfcount<=3))||
-								 ((temp_point_halfcount>=6)&&(temp_point_halfcount<=88))||
+								 ((temp_point_halfcount>=6)&&(temp_point_halfcount<=18))||
+							   ((temp_point_halfcount>=31)&&(temp_point_halfcount<=88))||
 								 ((temp_point_halfcount>=102)&&(temp_point_halfcount<=120))||//								 ((temp_point_halfcount>=135)&&(temp_point_halfcount<=140))||
-								 ((temp_point_halfcount>=157)&&(temp_point_halfcount<=200))||
-								 ((temp_point_halfcount>=231)&&(temp_point_halfcount<=255)))
+								 ((temp_point_halfcount>=191)&&(temp_point_halfcount<=200))||
+								 ((temp_point_halfcount>=253)&&(temp_point_halfcount<=255)))
 								{
 									temp_point_count=600;//????,??????
 									}
@@ -509,9 +511,9 @@ int Init_ModBus (void)
 	run_parameter.status_flag.ubit.senser_state1=0;
 	run_parameter.status_flag.ubit.senser_state2=0;	//000- 未准备好 001-正常运行 010-测量油温 011-基准循环 100-过温		
 	run_parameter.status_flag.ubit.reserved7=0;				 
-	run_parameter.status_flag.ubit.relay1=0;//继电器1			  
-	run_parameter.status_flag.ubit.relay2=0;//继电器2				 
-	run_parameter.status_flag.ubit.relay3=0;//继电器3				  		
+	run_parameter.status_flag.ubit.relay1=1;//继电器1			  
+	run_parameter.status_flag.ubit.relay2=1;//继电器2				 
+	run_parameter.status_flag.ubit.relay3=1;//继电器3				  		
 	run_parameter.status_flag.ubit.reserved6=0;				 
 	run_parameter.status_flag.ubit.reserved5=0;				  
 	run_parameter.status_flag.ubit.reserved4=0;				  
@@ -577,12 +579,13 @@ int Init_ModBus (void)
 /******************************************************************************/
 int RW_ModBus_Data (void)  
 {
-	unsigned int db_H2ppm;	
+  int temp = 0;
+	unsigned int db_H2ppm = 0;	
 	/*--------------------------------ModBus协议常量write-------------------------------------------------------*/
 	//UARTprintf("point=%d\r\n",user_parameter.function_point);
 	//99-110保留
 	switch (user_parameter.function_point)
-	{	
+	{
 		case 101: //读Flash
 		{
 //			UARTprintf("read FLASH DATA\n");
@@ -591,7 +594,10 @@ int RW_ModBus_Data (void)
 		}
 		
 		case 121:
-		{		
+		{
+		 temp = (unsigned int)(output_data.H2AG / 20);
+//     UARTprintf("Current H2 value is %d ppm\r\n",temp);
+		 temp = 0;
 			//    UARTprintf("Current H2 value is %5u ppm H2\n",(unsigned int)((SenseData.h2*10000)/20));
 			//    cmd_ConfigData.h2cdata_ka=SenseData.h2;		
 			//    float_char(cmd_ConfigData.h2cdata_ka,systemInf.Cal_Ka);
@@ -601,8 +607,16 @@ int RW_ModBus_Data (void)
 		case 122:
 		{	
 			//首先写126 127   128 129 在写122 写0确认
+			temp = (int)(output_data.H2AG / 20);
+//			UARTprintf("Current H2 value is %d ppm H2\n",temp);
+		  Intermediate_Data.da_H2ppm = temp;
 			db_H2ppm = (run_parameter.h2_ppm_calibration_gas_h16.hilo<<16 |run_parameter.h2_ppm_calibration_gas_l16.hilo);
+			temp = db_H2ppm - Intermediate_Data.da_H2ppm;
+			run_parameter.h2_ppm_calibration_gas_h16.hilo = temp >> 16;
+			run_parameter.h2_ppm_calibration_gas_l16.hilo = temp & 0xFFFF;
+			e2prom512_write(&run_parameter.h2_ppm_calibration_gas_h16.ubit.lo,4,126*2);
 
+//      UARTprintf("1Set hydrogen to %d ppm\r\n",temp);
 			//		UARTprintf("Set hydrogen to %d ppm\r\n",db_H2ppm);//126 127	
 			//    cmd_ConfigData.h2cdata_kb = (((float)(db_H2ppm*20)/10000.F) - cmd_ConfigData.h2cdata_ka);
 			//    float_char(cmd_ConfigData.h2cdata_kb,systemInf.Cal_Kb);
@@ -616,7 +630,6 @@ int RW_ModBus_Data (void)
 		{	
 			//首先写126 127   128 129 在写122 写0确认
 			db_H2ppm = (run_parameter.h2_ppm_calibration_gas_h16.hilo<<16 |run_parameter.h2_ppm_calibration_gas_l16.hilo);
-
 			//		UARTprintf("Set hydrogen to %d ppm\r\n",db_H2ppm);//126 127	
 			//    cmd_ConfigData.h2cdata_kb = (((float)(db_H2ppm*20)/10000.F) - cmd_ConfigData.h2cdata_ka);
 			//    float_char(cmd_ConfigData.h2cdata_kb,systemInf.Cal_Kb);
@@ -707,9 +720,9 @@ int RW_ModBus_Data (void)
 		//152 153
 		case 153:
 		{	
-			cmd_ConfigData.MaxAlertH2 = (double)((run_parameter.h2_ppm_alert_low_h16.hilo<<16 |run_parameter.h2_ppm_alert_low_l16.hilo)/10000.F);
+			cmd_ConfigData.MaxAlertH2 = (double)((run_parameter.h2_ppm_alert_low_h16.hilo<<16 |run_parameter.h2_ppm_alert_low_l16.hilo));
 			e2prom512_write(&run_parameter.h2_ppm_alert_low_h16.ubit.lo,4,152*2);
-
+//      UARTprintf("alert_low = %d\n",((run_parameter.h2_ppm_alert_low_h16.hilo<<16 |run_parameter.h2_ppm_alert_low_l16.hilo)));
 			//float_char(cmd_ConfigData.MaxAlertH2,systemInf.AlertH2);		
 			break;
 		}
@@ -717,18 +730,19 @@ int RW_ModBus_Data (void)
 		//154 155
 		case 155:
 		{	
-			cmd_ConfigData.MaxAlarmH2 = (double)((run_parameter.h2_ppm_alarm_low_h16.hilo<<16 |run_parameter.h2_ppm_alarm_low_l16.hilo)/10000.F);
+			cmd_ConfigData.MaxAlarmH2 = (double)((run_parameter.h2_ppm_alarm_low_h16.hilo<<16 |run_parameter.h2_ppm_alarm_low_l16.hilo));
 			e2prom512_write(&run_parameter.h2_ppm_alarm_low_h16.ubit.lo,4,154*2);
 			//float_char(cmd_ConfigData.MaxAlarmH2,systemInf.AlarmH2);		
+//			UARTprintf("alarm_low = %d\n",((run_parameter.h2_ppm_alarm_low_h16.hilo<<16 |run_parameter.h2_ppm_alarm_low_l16.hilo)));
 			break;
 		}
 
 		//156
 		case 156:
 		{	
-			cmd_ConfigData.MaxAlarmOil = (double)(run_parameter.OilTemp_Alarm_celsius.hilo/100.F);
+			run_parameter.OilTemp_Alarm_celsius.hilo = (run_parameter.OilTemp_Alarm_celsius.hilo)/100;
 			e2prom512_write(&run_parameter.OilTemp_Alarm_celsius.ubit.lo,2,156*2);
-			UARTprintf("OilTemp_Alarm_celsius = %d\n",run_parameter.OilTemp_Alarm_celsius.hilo);
+//			UARTprintf("OilTemp_Alarm_celsius = %d\n",(run_parameter.OilTemp_Alarm_celsius.hilo));
 			//float_char(cmd_ConfigData.MaxAlarmOil,systemInf.AlarmOil);		
 			break;
 		}
@@ -759,7 +773,45 @@ int RW_ModBus_Data (void)
 			e2prom512_write(&run_parameter.transformer_id.transformer_id_sstr.character1,20,221*2);
 			break;
 		}
-		//231-255保留
+		
+/*----------------------------------------------add---------------------------------------------------------*/
+//		case 171: 
+//		{
+//      UARTprintf("R data\n");
+//			run_parameter.h2_ppm_resistor_h16.hilo = (unsigned int)(output_data.H2Resistor*1000.0) >> 16; //171
+//			run_parameter.h2_ppm_resistor_l16.hilo = (unsigned int)(output_data.H2Resistor*1000.0) & 0xFFFF; //172
+//			break;
+//		}
+		
+		case 19:
+		{
+      UARTprintf("Sensor Fit Para\n");
+			if (run_parameter.Sensor_Fit_Para_Done == 2510)
+			  E2C_Sensor_Fit_Para();
+
+			break;
+		}
+		
+		case 243:
+		{
+      UARTprintf("Piecewise data\n");
+      if (run_parameter.Block_mark_Done == 2520)
+				E2C_Piecewise_point();
+			break;
+		}
+		
+//		case 251:
+//		{
+//      UARTprintf("Sensor Fit Para Done\n");
+//			break;
+//		}
+//		
+//		case 252:
+//		{
+//      UARTprintf("Block mark\n");
+//			break;
+//		}
+		
 	}
 
 	user_parameter.flag.ubit.recept_write=0;			
