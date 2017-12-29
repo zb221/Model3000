@@ -19,6 +19,7 @@
 #include "DS1390.h"
 #include "M25P16_FLASH.h"
 #include "e25LC512.h"
+#include "app.h"
 
 REALTIMEINFO	RealTime_Modbus;     //??????
 
@@ -582,18 +583,11 @@ int RW_ModBus_Data (void)
 	//UARTprintf("point=%d\r\n",user_parameter.function_point);
 	//99-110±£Áô
 	switch (user_parameter.function_point)
-	{	
+	{
 		case 101: //¶ÁFlash
 		{
 //			UARTprintf("read FLASH DATA\n");
 			Spi_Flash_Data_read();
-			break;
-		}
-		
-		case 102: //Write Flash
-		{
-      UARTprintf("Write FLASH DATA\n");
-			M25P16_Write_Sensor_Data();
 			break;
 		}
 		
@@ -766,7 +760,45 @@ int RW_ModBus_Data (void)
 			e2prom512_write(&run_parameter.transformer_id.transformer_id_sstr.character1,20,221*2);
 			break;
 		}
-		//231-255±£Áô
+		
+/*----------------------------------------------add---------------------------------------------------------*/
+//		case 171: 
+//		{
+//      UARTprintf("R data\n");
+//			run_parameter.h2_ppm_resistor_h16.hilo = (unsigned int)(output_data.H2Resistor*1000.0) >> 16; //171
+//			run_parameter.h2_ppm_resistor_l16.hilo = (unsigned int)(output_data.H2Resistor*1000.0) & 0xFFFF; //172
+//			break;
+//		}
+		
+		case 19:
+		{
+      UARTprintf("Sensor Fit Para\n");
+			if (run_parameter.Sensor_Fit_Para_Done == 2510)
+			  E2C_Sensor_Fit_Para();
+
+			break;
+		}
+		
+		case 243:
+		{
+      UARTprintf("Piecewise data\n");
+      if (run_parameter.Block_mark_Done == 2520)
+				E2C_Piecewise_point();
+			break;
+		}
+		
+//		case 251:
+//		{
+//      UARTprintf("Sensor Fit Para Done\n");
+//			break;
+//		}
+//		
+//		case 252:
+//		{
+//      UARTprintf("Block mark\n");
+//			break;
+//		}
+		
 	}
 
 	user_parameter.flag.ubit.recept_write=0;			

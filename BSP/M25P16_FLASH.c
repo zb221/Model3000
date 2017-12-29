@@ -383,7 +383,7 @@ void M25P16_Data_Records(void)
 	
 //	e2prom512_read(&a,sizeof(unsigned char),232*2);
 //	e2prom512_read(&b,sizeof(unsigned char),232*2+1);
-	e2prom512_read((unsigned char *)&Intermediate_Data.M25P16_Data_Addr,sizeof(unsigned int),234*2);
+	e2prom512_read((unsigned char *)&Intermediate_Data.M25P16_Data_Addr,sizeof(unsigned int),116*2);
 //  UARTprintf("M25P16_Data_Addr=%d\n",Intermediate_Data.M25P16_Data_Addr);
 	
 	if (Intermediate_Data.M25P16_Data_Addr > 1966050)
@@ -414,7 +414,7 @@ void M25P16_Data_Records(void)
 	
 //	e2prom512_write(&Intermediate_Data.sector,sizeof(unsigned char),232*2);
 //	e2prom512_write(&Intermediate_Data.page,sizeof(unsigned char),232*2+1);
-	e2prom512_write((unsigned char *)&Intermediate_Data.M25P16_Data_Addr,sizeof(unsigned int),234*2);
+	e2prom512_write((unsigned char *)&Intermediate_Data.M25P16_Data_Addr,sizeof(unsigned int),116*2);
 	
   /*read test*/
 //	if (page == 0){
@@ -430,72 +430,72 @@ void M25P16_Data_Records(void)
 //	UARTprintf("a=%d,b=%d\n",a,b);
 }
 
-void M25P16_Write_Sensor_Data(void)
-{
-	M25P16_erase_map(30*0x10000,SE);
-	memset(spi_flash_buffer,0,sizeof(spi_flash_buffer));
+//void M25P16_Write_Sensor_Data(void)
+//{
+//	M25P16_erase_map(30*0x10000,SE);
+//	memset(spi_flash_buffer,0,sizeof(spi_flash_buffer));
 
-	spi_flash_buffer[0] = 0x6A;
-	memcmp(&spi_flash_buffer[1],Sensor_Data.original_data,sizeof(Sensor_Data.original_data));
-	spi_flash_buffer[81] = 0xA6;
-	
-	spi_flash_buffer[82] = 0x7A;
-	memcmp(&spi_flash_buffer[84],Sensor_Data.Sensor_Fit_Para,sizeof(Sensor_Data.Sensor_Fit_Para));
-	spi_flash_buffer[155] = 0xA7;
+//	spi_flash_buffer[0] = 0x6A;
+//	memcmp(&spi_flash_buffer[1],Sensor_Data.original_data,sizeof(Sensor_Data.original_data));
+//	spi_flash_buffer[81] = 0xA6;
+//	
+//	spi_flash_buffer[82] = 0x7A;
+//	memcmp(&spi_flash_buffer[84],Sensor_Data.Sensor_Fit_Para,sizeof(Sensor_Data.Sensor_Fit_Para));
+//	spi_flash_buffer[155] = 0xA7;
 
-	M25P16_Write_Data(spi_flash_buffer,256,30*0x10000);
-	memset(spi_flash_buffer,0,sizeof(spi_flash_buffer));
+//	M25P16_Write_Data(spi_flash_buffer,256,30*0x10000);
+//	memset(spi_flash_buffer,0,sizeof(spi_flash_buffer));
 
-}
+//}
 
-void M25P16_Read_Sensor_Data(void)
-{
-    unsigned char i = 0;
-    double *a = NULL;
+//void M25P16_Read_Sensor_Data(void)
+//{
+//    unsigned char i = 0;
+//    double *a = NULL;
 
-    spi_flash_buffer[83] = 0;
-    spi_flash_buffer[84] = 0;
-    spi_flash_buffer[85] = 0;
-    spi_flash_buffer[86] = 0;
-    spi_flash_buffer[87] = 0;
-    spi_flash_buffer[88] = 0;
-    spi_flash_buffer[89] = 0;
-    spi_flash_buffer[90] = 0;
+//    spi_flash_buffer[83] = 0;
+//    spi_flash_buffer[84] = 0;
+//    spi_flash_buffer[85] = 0;
+//    spi_flash_buffer[86] = 0;
+//    spi_flash_buffer[87] = 0;
+//    spi_flash_buffer[88] = 0;
+//    spi_flash_buffer[89] = 0;
+//    spi_flash_buffer[90] = 0;
 
-    a = (double*)(&spi_flash_buffer[83]);
-	  *a = 409.052293;
-    Sensor_Data.p1 = *a;
+//    a = (double*)(&spi_flash_buffer[83]);
+//	  *a = 409.052293;
+//    Sensor_Data.p1 = *a;
 
-    for (i=0;i<8;i++)
-        UARTprintf("spi_flash_buffer[%d]=%d\n",i+83,*(&spi_flash_buffer[83]+i));
+//    for (i=0;i<8;i++)
+//        UARTprintf("spi_flash_buffer[%d]=%d\n",i+83,*(&spi_flash_buffer[83]+i));
 
-    UARTprintf("%d\n",sizeof(double));
-    UARTprintf("Sensor_Data.p1 = %f\n",Sensor_Data.p1);
-		
-		
-	
-	memset(spi_flash_buffer,0,sizeof(spi_flash_buffer));
-	
-	M25P16_Read_Data(spi_flash_buffer,256,30*0x10000);
-	
-	if ((spi_flash_buffer[0] == 0x6A) && (spi_flash_buffer[81] == 0xA6)){
+//    UARTprintf("%d\n",sizeof(double));
+//    UARTprintf("Sensor_Data.p1 = %f\n",Sensor_Data.p1);
+//		
+//		
+//	
+//	memset(spi_flash_buffer,0,sizeof(spi_flash_buffer));
+//	
+//	M25P16_Read_Data(spi_flash_buffer,256,30*0x10000);
+//	
+//	if ((spi_flash_buffer[0] == 0x6A) && (spi_flash_buffer[81] == 0xA6)){
 
-	}
-	
-	if ((spi_flash_buffer[82] == 0x7A) && (spi_flash_buffer[155] == 0xA7)){
-    Sensor_Data.p1 = *(double*)(&spi_flash_buffer[83]);
-		Sensor_Data.p2 = *(double*)(&spi_flash_buffer[91]);
-    Sensor_Data.p3 = *(double*)(&spi_flash_buffer[99]);
-		Sensor_Data.p4 = *(double*)(&spi_flash_buffer[107]);
-    Sensor_Data.p5 = *(double*)(&spi_flash_buffer[115]);
-		Sensor_Data.p6 = *(double*)(&spi_flash_buffer[123]);
-		Sensor_Data.p7 = *(double*)(&spi_flash_buffer[131]);
-    Sensor_Data.p8 = *(double*)(&spi_flash_buffer[139]);
-		Sensor_Data.p9 = *(double*)(&spi_flash_buffer[147]);
-	}
+//	}
+//	
+//	if ((spi_flash_buffer[82] == 0x7A) && (spi_flash_buffer[155] == 0xA7)){
+//    Sensor_Data.p1 = *(double*)(&spi_flash_buffer[83]);
+//		Sensor_Data.p2 = *(double*)(&spi_flash_buffer[91]);
+//    Sensor_Data.p3 = *(double*)(&spi_flash_buffer[99]);
+//		Sensor_Data.p4 = *(double*)(&spi_flash_buffer[107]);
+//    Sensor_Data.p5 = *(double*)(&spi_flash_buffer[115]);
+//		Sensor_Data.p6 = *(double*)(&spi_flash_buffer[123]);
+//		Sensor_Data.p7 = *(double*)(&spi_flash_buffer[131]);
+//    Sensor_Data.p8 = *(double*)(&spi_flash_buffer[139]);
+//		Sensor_Data.p9 = *(double*)(&spi_flash_buffer[147]);
+//	}
 
-	memset(spi_flash_buffer,0,sizeof(spi_flash_buffer));
-}
+//	memset(spi_flash_buffer,0,sizeof(spi_flash_buffer));
+//}
 
 void M25P16_Alarm_Log_Records(void)
 {
@@ -524,7 +524,7 @@ void M25P16_Alarm_Log_Records(void)
 	spi_flash_buffer[15] = ((unsigned int)output_data.DayROC >> 8) & 0xFF;
 	spi_flash_buffer[16] = (unsigned int)output_data.DayROC & 0xFF;
 
-	e2prom512_read(&b,sizeof(unsigned char),233*2);
+	e2prom512_read(&b,sizeof(unsigned char),115*2);
 	
 	Intermediate_Data.Alarm_page = b;
 	
@@ -536,7 +536,7 @@ void M25P16_Alarm_Log_Records(void)
 		Intermediate_Data.Alarm_page = 0;
 	}
 
-	e2prom512_write(&Intermediate_Data.Alarm_page,sizeof(unsigned char),233*2);
+	e2prom512_write(&Intermediate_Data.Alarm_page,sizeof(unsigned char),115*2);
 	
 //  /*read test*/
 //	if (Intermediate_Data.page == 0){

@@ -7,3 +7,6 @@
 
 void Line_Fit(float *X, float *Y);
 float quadratic_polynomial(float data);
+
+
+

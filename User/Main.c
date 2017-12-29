@@ -346,7 +346,7 @@ void UpData_ModbBus(REALTIMEINFO *Time)
 
 	if(Runtimes >= 0xFFFFFFFFFFFFFFFF)
 		Runtimes=0;
-	
+
 	run_parameter.run_time_in_secends_hh32.hilo=((Runtimes>>48)&0xFFFF);
 	run_parameter.run_time_in_secends_h32.hilo=((Runtimes>>32)&0xFFFF);
 	run_parameter.run_time_in_secends_ll32.hilo=((Runtimes>>16)&0xFFFF);
