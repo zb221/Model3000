@@ -247,18 +247,29 @@ typedef struct
 			}ubit;	
 		unsigned short hilo;
 		}h2_ppm_MRC_l16;//18
-	unsigned short reserved_parameter1;//19
-	unsigned short reserved_parameter2;//20
-	unsigned short reserved_parameter3;//21
-	unsigned short reserved_parameter4;//22	
-	unsigned short reserved_parameter5;//23
-	unsigned short reserved_parameter6;//24	
-	unsigned short reserved_parameter7;//25	
-	unsigned short reserved_parameter8;//26
-	unsigned short reserved_parameter9;//27
-	unsigned short reserved_parameter10;//28
-	unsigned short reserved_parameter11;//29
-	unsigned short reserved_parameter12;//30
+
+	union
+	{
+	struct
+		{
+				 unsigned short A1;//19
+				 unsigned short A2;//20
+				unsigned short A3;//21
+				unsigned short A4;//22
+				unsigned short A5;//23
+				unsigned short A6;//24
+				unsigned short A7;//25
+				unsigned short A8;//26
+				unsigned short A9;//27
+				unsigned short A10;//28
+				unsigned short A11;//29
+				unsigned short A12;//30
+
+		}A;
+//		double Fit_Para_A[3];
+		unsigned short Fit_Para_A[12];
+	}Sensor_Fit_Para_A;
+		
   union
 	{
 		struct
@@ -519,12 +530,10 @@ union
 			unsigned char second;	//114		  																				
 			}realtime;//114
 
-//	unsigned short reserved_parameter25;//112
-//	unsigned short reserved_parameter26;//113
-//	unsigned short reserved_parameter27;//114
-	unsigned short reserved_parameter28;//115
-	unsigned short reserved_parameter29;//116
-	unsigned short reserved_parameter30;//117
+	unsigned short reserved_parameter28;//115 -> M25P16_Alarm_Log_Records: Intermediate_Data.Alarm_page
+	unsigned short reserved_parameter29;//116 -> M25P16_Data_Records: Intermediate_Data.M25P16_Data_Addr
+	unsigned short reserved_parameter30;//117 -> M25P16_Data_Records: Intermediate_Data.M25P16_Data_Addr
+			
 	unsigned short reserved_parameter31;//118
 	unsigned short reserved_parameter32;//119
 	unsigned short reserved_parameter33;//120
@@ -884,19 +893,29 @@ union
 			unsigned char hi;	
 			}ubit;	
 		unsigned short hilo;
-		}run_time_in_secends_l32;//178		
-	unsigned short reserved_parameter54;//179
-	unsigned short reserved_parameter55;//180
-	unsigned short reserved_parameter56;//181
-	unsigned short reserved_parameter57;//182
-	unsigned short reserved_parameter58;//183	
-	unsigned short reserved_parameter59;//184
-	unsigned short reserved_parameter60;//185
-	unsigned short reserved_parameter61;//186
-	unsigned short reserved_parameter62;//187
-	unsigned short reserved_parameter63;//188
-	unsigned short reserved_parameter64;//189	
-	unsigned short reserved_parameter65;//190
+		}run_time_in_secends_l32;//178
+
+		union
+		{
+		struct
+			{
+				unsigned short B1;//179
+				unsigned short B2;//180
+				unsigned short B3;//181
+				unsigned short B4;//182
+				unsigned short B5;//183
+				unsigned short B6;//184
+				unsigned short B7;//185
+				unsigned short B8;//186
+				unsigned short B9;//187
+				unsigned short B10;//188
+				unsigned short B11;//189
+				unsigned short B12;//190
+			}B;
+//			double Fit_Para_B[3];
+			 unsigned short Fit_Para_B[12];
+		}Sensor_Fit_Para_B;
+		
 	unsigned short reserved_parameter66;//191
 	unsigned short reserved_parameter67;//192
 	unsigned short reserved_parameter68;//193
@@ -989,29 +1008,73 @@ union
 }transformer_id;
     unsigned short modbus_id;//230
 
-		unsigned short reserved_parameter77;//232 -> M25P16_Data_Records: Sector and page
-		unsigned short reserved_parameter78;//233 -> M25P16_Alarm_Log_Records: address
-		unsigned short reserved_parameter79;//234 -> M25P16_Data_Records: Intermediate_Data.M25P16_Data_Addr
-		unsigned short reserved_parameter80;//235 -> M25P16_Data_Records: Intermediate_Data.M25P16_Data_Addr
-		unsigned short reserved_parameter81;//236
-		unsigned short reserved_parameter82;//237
-		unsigned short reserved_parameter83;//238
-		unsigned short reserved_parameter84;//239
-		unsigned short reserved_parameter85;//240
-		unsigned short reserved_parameter86;//241
-		unsigned short reserved_parameter87;//242
-		unsigned short reserved_parameter88;//243
-		unsigned short reserved_parameter89;//244
-		unsigned short reserved_parameter90;//245
-		unsigned short reserved_parameter91;//246
-		unsigned short reserved_parameter92;//247
-		unsigned short reserved_parameter93;//248
-		unsigned short reserved_parameter94;//249
-		unsigned short reserved_parameter95;//250
-		unsigned short reserved_parameter96;//251
-		unsigned short reserved_parameter97;//252
-		unsigned short reserved_parameter98;//253
-		unsigned short reserved_parameter99;//254
+		union
+		{
+		struct
+			{
+				unsigned short C1;//231
+				unsigned short C2;//232
+				unsigned short C3;//233
+				unsigned short C4;//234
+				unsigned short C5;//235
+				unsigned short C6;//236
+				unsigned short C7;//237
+				unsigned short C8;//238
+				unsigned short C9;//239
+				unsigned short C10;//240
+				unsigned short C11;//241
+				unsigned short C12;//242
+
+			}C;
+			unsigned short Fit_Para_C[12];
+		}Sensor_Fit_Para_C;
+	
+		union
+		{
+		struct
+			{
+				unsigned short hi;//243
+				unsigned short lo;//244
+			}ubit;
+			unsigned int point0;
+		}Piecewise_point0;
+
+		union
+		{
+		struct
+			{
+				unsigned short hi;//245
+				unsigned short lo;//246
+			}ubit;
+			unsigned int point1;
+		}Piecewise_point1;
+
+		union
+		{
+		struct
+			{
+				unsigned short hi;//247
+				unsigned short lo;//248
+			}ubit;
+			unsigned int point2;
+		}Piecewise_point2;
+
+		union
+		{
+		struct
+			{
+				unsigned short hi;//249
+				unsigned short lo;//250
+			}ubit;
+			unsigned int point3;
+		}Piecewise_point3;
+		
+		unsigned short Sensor_Fit_Para_Done;//251
+		
+		unsigned short Block_mark_Done;//252
+		
+		unsigned short reserved_parameter77;//253
+		unsigned short reserved_parameter78;//254
 		unsigned short reserved_parameter100;//255
 }RUN_PARAMETER;
 //RUN_PARAMETER  run_parameter;
@@ -1151,22 +1214,22 @@ typedef struct Intermediate_Data
 }Intermediate_Parameters;
 VARIABLE_EXT Intermediate_Parameters Intermediate_Data;
 
-typedef struct Sensor_Data
-{
-	unsigned char original_data[80];
-	unsigned char Sensor_Fit_Para[72];
-	
-	double p1;
-	double p2;
-	double p3;
-	double p4;
-	double p5;
-	double p6;
-	double p7;
-	double p8;
-	double p9;
-	
-}Sensor_Parameters;
-VARIABLE_EXT Sensor_Parameters Sensor_Data;
+//typedef struct Sensor_Data
+//{
+//	unsigned char original_data[80];
+//	unsigned char Sensor_Fit_Para[72];
+//	
+//	double p1;
+//	double p2;
+//	double p3;
+//	double p4;
+//	double p5;
+//	double p6;
+//	double p7;
+//	double p8;
+//	double p9;
+//	
+//}Sensor_Parameters;
+//VARIABLE_EXT Sensor_Parameters Sensor_Data;
 #endif
 

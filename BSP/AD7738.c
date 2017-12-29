@@ -359,9 +359,13 @@ void filterA(float *arry)
 
 		if (((output_data.MODEL_TYPE == 1)||(output_data.MODEL_TYPE == 2))&&(Intermediate_Data.Start_print_H2R == 1)){
 		  output_data.H2Resistor = sum / (2*effective);
+			run_parameter.h2_ppm_resistor_h16.hilo = (unsigned int)(output_data.H2Resistor*1000.0) >> 16; //171
+			run_parameter.h2_ppm_resistor_l16.hilo = (unsigned int)(output_data.H2Resistor*1000.0) & 0xFFFF; //172
 		}
 		if ((output_data.MODEL_TYPE == 3)&&(Intermediate_Data.Start_print_calibrate_H2R == 2)){
 		  output_data.H2Resistor = sum / (2*effective);
+			run_parameter.h2_ppm_resistor_h16.hilo = (unsigned int)(output_data.H2Resistor*1000.0) >> 16; //171
+			run_parameter.h2_ppm_resistor_l16.hilo = (unsigned int)(output_data.H2Resistor*1000.0) & 0xFFFF; //172
 		}
 	}
 }
@@ -377,7 +381,7 @@ Description: .
 void Temperature_of_resistance_Parameter(void)
 {	
 	static unsigned int number = 0;
-	static unsigned char flag = 0, run_type = 0;
+	static unsigned char flag = 0;
 	
 	if (flag == 0){
 	    Line_Fit(Intermediate_Data.Temp_R, Intermediate_Data.Temp);

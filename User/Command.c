@@ -2327,7 +2327,6 @@ void record_arg(void)//t
 
 void clear_arg(void)//x
 {
-	unsigned char i = 0;	
 	switch(flag_function){
 		case 0:
 		UARTprintf("Clear field calibration values (Y/N)?");
