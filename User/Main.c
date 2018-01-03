@@ -633,7 +633,7 @@ int main (void)
 				run_parameter.status_flag.ubit.senser_state2=0;
 			}
 			if (output_data.temperature == 50 && Intermediate_Data.wait_1min == 1)
-			  AD420_OUTPUT_SET((65535.0/20.0)*(4.0+(16.0/5000.0)*output_data.H2DG));
+			  AD420_OUTPUT_SET((65535.0/20.0)*((float)run_parameter.h2_ppm_out_current_low.hilo/100.0+(((float)(run_parameter.h2_ppm_out_current_high.hilo - run_parameter.h2_ppm_out_current_low.hilo)/100.0)/5000.0)*output_data.H2DG));
 			
 			if (output_data.OilTemp >= run_parameter.OilTemp_Alarm_celsius.hilo || output_data.DayROC >= run_parameter.h2_ppm_alarm_low_l16.hilo || output_data.H2DG >= run_parameter.h2_ppm_alert_low_l16.hilo)
 				M25P16_Alarm_Log_Records();
