@@ -24,9 +24,9 @@ unsigned char cmd_buf[60] = {0};
 unsigned char flag_command = 0;//flag_command的值对应相应命令行执行函数
 unsigned char flag_function = 0;//flag_function的值对应每个命令行函数执行到哪一步
 unsigned char flag_screen = 0;//flag_screen 0 开启回显 1 关闭回显
-unsigned char flag_relay1 = 0;//relay 1 status flag
-unsigned char flag_relay2 = 0;//relay 2 status flag
-unsigned char flag_relay3 = 0;//relay 3 status flag
+unsigned char flag_relay1 = 1;//relay 1 status flag
+unsigned char flag_relay2 = 2;//relay 2 status flag
+unsigned char flag_relay3 = 3;//relay 3 status flag
 unsigned char flag_chaoshi = 0;//防止一直卡在某命令的某个步骤中，超过一定大小就使步骤归0
 unsigned char flag_done = 0;//命令行输入设置数字，如果都是数字为0，不是为1，提示需要重新输入
 unsigned char flag_relay_done = 0;//判断设置的是哪个relay的功能，relay设置限制跳转标志位
@@ -136,6 +136,12 @@ unsigned char findcmdfunction(unsigned char *tmp)
 		{
 			flag_command = cmd_list[i].max_args; 
 			return 1;
+		}else{
+			flag_screen = 0;
+			flag_function = 0;
+			flag_command = 0;
+			flag_screen = 0;
+			flag_chaoshi = 0;
 		}
 	}
 //	UARTprintf("There is no corresponding command. Please check the input command.\n");
@@ -189,24 +195,22 @@ void alarm_arg(void)//还需增加将继电器状态值存入E2P中
 						UARTprintf("Relay #1 disable\n");
 						flag_relay1 = 0;
 						flag_function++;
+						run_parameter.status_flag.ubit.relay1=0;
 					break;
 					case 0x31:
 						UARTprintf("Enter Trigger (ppm H2):");
 						flag_relay1 = 1;
 						flag_function = 7;
-						run_parameter.status_flag.ubit.relay1=1;
 					break;
 					case 0x32:
 						UARTprintf("Enter Trigger (ppm H2/day):");
 						flag_relay1 = 2;
-						flag_function = 8;
-						run_parameter.status_flag.ubit.relay1=1;					
+						flag_function = 8;			
 					break;
 					case 0x33:
 						UARTprintf("Enter Trigger (Oil temperature):");
 						flag_relay1 = 3;
 						flag_function = 9;
-						run_parameter.status_flag.ubit.relay1=1;					
 					break;
 					default:
 						UARTprintf("not a illegal interger, set 0-3 at here\n");
@@ -241,24 +245,22 @@ void alarm_arg(void)//还需增加将继电器状态值存入E2P中
 						UARTprintf("Relay #2 disable\n");
 						flag_relay2 = 0;
 						flag_function++;
+						run_parameter.status_flag.ubit.relay2=0;	
 					break;
 					case 0x31:
 						UARTprintf("2 Enter Trigger (ppm H2):");
 						flag_relay2 = 1;
 						flag_function = 7;
-						run_parameter.status_flag.ubit.relay2=1;					
 					break;
 					case 0x32:
 						UARTprintf("2 Enter Trigger (ppm H2/day):");
 						flag_relay2 = 2;
-						flag_function = 8;
-						run_parameter.status_flag.ubit.relay2=1;					
+						flag_function = 8;				
 					break;
 					case 0x33:
 						UARTprintf("2 Enter Trigger (Oil temperature):");
 						flag_relay2 = 3;
-						flag_function = 9;
-						run_parameter.status_flag.ubit.relay2=1;					
+						flag_function = 9;		
 					break;
 					default:
 						UARTprintf("not a illegal interger, set 0-3 at here\n");
@@ -293,24 +295,22 @@ void alarm_arg(void)//还需增加将继电器状态值存入E2P中
 							UARTprintf("Relay #3 disable\n");
 							flag_relay3 = 0;
 							flag_function++;
+						  run_parameter.status_flag.ubit.relay3=0;
 						break;
 						case 0x31:
 							UARTprintf("3 Enter Trigger (ppm H2):");
 							flag_relay3 = 1;
 							flag_function = 7;
-						  run_parameter.status_flag.ubit.relay3=1;						
 						break;
 						case 0x32:
 							UARTprintf("3 Enter Trigger (ppm H2/day):");
 							flag_relay3 = 2;
-							flag_function = 8;	
-						  run_parameter.status_flag.ubit.relay3=1;						
+							flag_function = 8;					
 						break;
 						case 0x33:
 							UARTprintf("3 Enter Trigger (Oil temperature):");
 							flag_relay3 = 3;
-							flag_function = 9;	
-						  run_parameter.status_flag.ubit.relay3=1;						
+							flag_function = 9;						
 						break;
 						default:
 							UARTprintf("not a illegal interger, set 0-3 at here\n");
@@ -1368,10 +1368,14 @@ void aop_arg(void)//h
 				if(flag_done==0)
 				{
 					run_parameter.h2_ppm_report_high_l16.hilo = atof(cmd_tmp)*10000;
+					if (run_parameter.h2_ppm_report_high_l16.hilo > run_parameter.h2_ppm_report_low_l16.hilo){
 					e2prom512_write(&run_parameter.h2_ppm_report_high_h16.ubit.lo,4,143*2);
 					UARTprintf("New hydrogen reporting range(in oil LowH2Range-HighH2Range): %0.4f - %0.4f%% H2\n",
 					(float)run_parameter.h2_ppm_report_low_l16.hilo/10000,(float)(run_parameter.h2_ppm_report_high_l16.hilo)/10000);
 					UARTprintf("...Wait...SAVED - Done\n");
+					}else{
+					UARTprintf("Please input H command again and set HighH2Range > LowH2Range, exit H OK.\n");
+					}
 					flag_function++;
 				}
 		}
@@ -1501,8 +1505,16 @@ void aoerr_arg(void)//i
 				if(flag_done==0)
 				{
 					run_parameter.h2_ppm_out_current_high.hilo = atof(cmd_tmp)*100;
+					if (run_parameter.h2_ppm_out_current_high.hilo > run_parameter.h2_ppm_out_current_low.hilo){
 					e2prom512_write(&run_parameter.h2_ppm_out_current_low.ubit.lo,8,145*2);
 					flag_function++;
+					}else{
+					UARTprintf("Please input I command again and set HighH2Current > LowH2Current, exit I OK.\n");
+					flag_function = 0;
+					flag_command = 0;
+					flag_screen = 0;
+					flag_chaoshi = 0;
+					}
 				}
 			}
 			memset(cmd_tmp,0,sizeof(cmd_tmp));
@@ -1537,8 +1549,16 @@ void aoerr_arg(void)//i
 				if(flag_done==0)
 				{
 					run_parameter.h2_ppm_error_out_current.hilo = atof(cmd_tmp)*100;
+					if (run_parameter.h2_ppm_error_out_current.hilo < run_parameter.h2_ppm_out_current_low.hilo){
 					e2prom512_write(&run_parameter.h2_ppm_out_current_low.ubit.lo,8,145*2);
 					flag_function++;
+					}else{
+					UARTprintf("Please input I command again and set error_out_current < LowH2Current, exit I OK.\n");
+					flag_function = 0;
+					flag_command = 0;
+					flag_screen = 0;
+					flag_chaoshi = 0;
+					}
 				}
 			}
 			memset(cmd_tmp,0,sizeof(cmd_tmp));
@@ -1573,6 +1593,7 @@ void aoerr_arg(void)//i
 				if(flag_done==0)
 				{
 					run_parameter.h2_ppm_no_ready_out_current.hilo = atof(cmd_tmp)*100;
+					if ((run_parameter.h2_ppm_no_ready_out_current.hilo < run_parameter.h2_ppm_out_current_low.hilo)&&(run_parameter.h2_ppm_no_ready_out_current.hilo != run_parameter.h2_ppm_error_out_current.hilo)){
 					e2prom512_write(&run_parameter.h2_ppm_out_current_low.ubit.lo,8,145*2);
 					flag_function++;
 					UARTprintf("New DAC range is %0.2fmA to %0.2fmA(LowH2Current-HighH2Current), error output is %0.2fmA, not ready output is %0.2fmA\n",
@@ -1581,6 +1602,13 @@ void aoerr_arg(void)//i
 					(float)run_parameter.h2_ppm_error_out_current.hilo/100,
 					(float)run_parameter.h2_ppm_no_ready_out_current.hilo/100);
 					UARTprintf("\n...Wait...SAVED  Done......\r\n\r\n");
+				}else{
+					UARTprintf("Please input I command again, set no_ready_out_current < LowH2Current and no_ready_out_current != error_out_current, exit I OK.\n");
+					flag_function = 0;
+					flag_command = 0;
+					flag_screen = 0;
+					flag_chaoshi = 0;
+					}
 				}
 			}
 			memset(cmd_tmp,0,sizeof(cmd_tmp));
@@ -1596,6 +1624,92 @@ void aoerr_arg(void)//i
 	}
 }
 
+void is_time_set(unsigned char type)
+{
+	unsigned char Temp;
+	unsigned char Tens, units;
+	REALTIMEINFO TimeBCD;
+  REALTIMEINFO	RealTime_Modbus;
+	static unsigned char Y = 0, M = 0, D = 0, H = 0, F = 0, S = 0;
+	
+	switch (type){
+		case 0:
+		Temp = atoi(cmd_tmp);		//
+		Tens = Temp / 10;
+		units = Temp % 10;
+		TimeBCD.SpecificTime.sec = ((Tens << 4) & 0xF0) | (units & 0x0F);
+			S = TimeBCD.SpecificTime.sec;
+		
+		run_parameter.reserved_parameter35 = (0x20<<8 | Y);
+		run_parameter.reserved_parameter341 = (M<<8 | D);
+		run_parameter.reserved_parameter36 = H;
+		run_parameter.reserved_parameter37 = (F<<8 | S);
+
+		RealTime_Modbus.Real_Time[1]=run_parameter.reserved_parameter341>>8;//月
+		RealTime_Modbus.Real_Time[2]=run_parameter.reserved_parameter341&0xFF;//日	
+		RealTime_Modbus.Real_Time[0]=run_parameter.reserved_parameter35&0xFF;//年
+
+		RealTime_Modbus.Real_Time[4]=run_parameter.reserved_parameter36&0xFF;//时	
+		RealTime_Modbus.Real_Time[5]=run_parameter.reserved_parameter37>>8;//分
+		RealTime_Modbus.Real_Time[6]=run_parameter.reserved_parameter37&0xFF;//秒
+		UARTprintf("Change time to 20%x-%x-%x %x:%x:%x",\
+		(long int)RealTime_Modbus.Real_Time[0],\
+		(long int)RealTime_Modbus.Real_Time[1],\
+		(long int)RealTime_Modbus.Real_Time[2],(long int)RealTime_Modbus.Real_Time[4],\
+		(long int)RealTime_Modbus.Real_Time[5],(long int)RealTime_Modbus.Real_Time[6]);		
+		//*/
+		Write1390(REG_STATUS,0x80); //写入允许
+		Write1390(REG_YEAR,RealTime_Modbus.Real_Time[0]); 
+		Write1390(REG_MONTH,RealTime_Modbus.Real_Time[1]);
+		Write1390(REG_DAY,RealTime_Modbus.Real_Time[2]);
+		////	Write1390(REG_WEEK,TimeBCD.SpecificTime.week);	
+		Write1390(REG_HOUR,RealTime_Modbus.Real_Time[4]);
+		Write1390(REG_MIN,RealTime_Modbus.Real_Time[5]);
+		Write1390(REG_SEC,RealTime_Modbus.Real_Time[6]);
+		Write1390(REG_STATUS,0x00); //禁止写入		
+		
+		break;
+		case 1:
+		Temp = atoi(cmd_tmp);		//
+		Tens = Temp / 10;
+		units = Temp % 10;
+		TimeBCD.SpecificTime.min = ((Tens << 4) & 0xF0) | (units & 0x0F);
+			F = TimeBCD.SpecificTime.min;
+		break;
+		case 2:
+		Temp = atoi(cmd_tmp);		//
+		Tens = Temp / 10;
+		units = Temp % 10;
+		TimeBCD.SpecificTime.hour = ((Tens << 4) & 0xF0) | (units & 0x0F);
+			H = TimeBCD.SpecificTime.hour;
+		break;
+		case 3:
+		Temp = atoi(cmd_tmp);		//
+		Tens = Temp / 10;
+		units = Temp % 10;
+		TimeBCD.SpecificTime.day = ((Tens << 4) & 0xF0) | (units & 0x0F);
+			D = TimeBCD.SpecificTime.day;
+		break;
+		case 4:
+		Temp = atoi(cmd_tmp);		//
+		Tens = Temp / 10;
+		units = Temp % 10;
+		TimeBCD.SpecificTime.month = ((Tens << 4) & 0xF0) | (units & 0x0F);
+			M = TimeBCD.SpecificTime.month;
+		break;
+		case 5:
+		Temp = atoi(cmd_tmp) - 2000;		//
+		Tens = Temp / 10;
+		units = Temp % 10;
+		TimeBCD.SpecificTime.year = ((Tens << 4) & 0xF0) | (units & 0x0F);
+		Y = TimeBCD.SpecificTime.year;
+		break;
+		default:
+		break;
+	}
+
+}
+
 void install_arg(void)//is
 {
 	unsigned char i = 0;	
@@ -1607,7 +1721,7 @@ void install_arg(void)//is
       M25P16_erase_map(i*0x10000,SE);
 
 		  Intermediate_Data.M25P16_Data_Addr = 0;
-      e2prom512_write((unsigned char *)&Intermediate_Data.M25P16_Data_Addr,sizeof(unsigned int),234*2);
+      e2prom512_write((unsigned char *)&Intermediate_Data.M25P16_Data_Addr,sizeof(unsigned int),116*2);
 			UARTprintf("...wait...\r\n");
 			flag_function++;
 			flag_chaoshi = 0;
@@ -1616,10 +1730,10 @@ void install_arg(void)//is
 			break;
 		
 		case 1:
-			UARTprintf("System time is 20%d-%d-%d %d:%d:%d Change (Y/N)?",
-			run_parameter.realtime.year,run_parameter.realtime.month,
-			run_parameter.realtime.day,run_parameter.realtime.hour,
-			run_parameter.realtime.minute,run_parameter.realtime.second);
+			UARTprintf("System time is 20%x-%x-%x %x:%x:%x Change (Y/N)?",
+			run_parameter.reserved_parameter35&0xFF,run_parameter.reserved_parameter341>>8,
+			run_parameter.reserved_parameter341&0xFF,run_parameter.reserved_parameter36&0xFF,
+			run_parameter.reserved_parameter37>>8,run_parameter.reserved_parameter37&0xFF);
 			flag_function++;
 			memset(cmd_tmp,0,sizeof(cmd_tmp));
 			a = 0;
@@ -1690,7 +1804,7 @@ void install_arg(void)//is
 				}
 				if(flag_done==0)
 				{
-					run_parameter.realtime.year=atoi(cmd_tmp);
+					is_time_set(5);
 					flag_function++;
 				}
 		}
@@ -1725,7 +1839,7 @@ void install_arg(void)//is
 				}
 				if(flag_done==0)
 				{
-					run_parameter.realtime.month=atoi(cmd_tmp);
+					is_time_set(4);
 					flag_function++;
 				}
 		}
@@ -1760,7 +1874,7 @@ void install_arg(void)//is
 				}
 				if(flag_done==0)
 				{
-					run_parameter.realtime.day=atoi(cmd_tmp);
+					is_time_set(3);
 					flag_function++;
 				}
 		}
@@ -1795,7 +1909,7 @@ void install_arg(void)//is
 				}
 				if(flag_done==0)
 				{
-					run_parameter.realtime.hour=atoi(cmd_tmp);
+					is_time_set(2);
 					flag_function++;
 				}
 		}
@@ -1830,7 +1944,7 @@ void install_arg(void)//is
 				}
 				if(flag_done==0)
 				{
-					run_parameter.realtime.minute=atoi(cmd_tmp);
+					is_time_set(1);
 					flag_function++;
 				}
 		}
@@ -1865,12 +1979,12 @@ void install_arg(void)//is
 				}
 				if(flag_done==0)
 				{
-					run_parameter.realtime.second=atoi(cmd_tmp);
+					is_time_set(0);
 					flag_function=3;
-					UARTprintf("Change time to 20%d-%d-%d %d:%d:%d ",
-					run_parameter.realtime.year,run_parameter.realtime.month,
-					run_parameter.realtime.day,run_parameter.realtime.hour,
-					run_parameter.realtime.minute,run_parameter.realtime.second);
+//					UARTprintf("System time is 20%x-%x-%x %x:%x:%x",
+//					run_parameter.reserved_parameter35&0xFF,run_parameter.reserved_parameter341>>8,
+//					run_parameter.reserved_parameter341&0xFF,run_parameter.reserved_parameter36&0xFF,
+//					run_parameter.reserved_parameter37>>8,run_parameter.reserved_parameter37&0xFF);
 					UARTprintf("\n...Wait...SAVED  Done......\r\n\r\n");
 				}
 		}
@@ -1889,10 +2003,10 @@ void date_arg(void)//rs
   unsigned char i = 0;	
 	switch(flag_function){
 		case 0:
-    UARTprintf("System time is 20%d-%d-%d %d:%d:%d Change (Y/N)?",
-		run_parameter.realtime.year,run_parameter.realtime.month,
-    run_parameter.realtime.day,run_parameter.realtime.hour,
-    run_parameter.realtime.minute,run_parameter.realtime.second);
+		UARTprintf("System time is 20%x-%x-%x %x:%x:%x Change (Y/N)?",
+		run_parameter.reserved_parameter35&0xFF,run_parameter.reserved_parameter341>>8,
+		run_parameter.reserved_parameter341&0xFF,run_parameter.reserved_parameter36&0xFF,
+		run_parameter.reserved_parameter37>>8,run_parameter.reserved_parameter37&0xFF);
 		flag_function++;
 		flag_chaoshi = 0;
 		memset(cmd_tmp,0,sizeof(cmd_tmp));
@@ -1964,7 +2078,7 @@ void date_arg(void)//rs
 				}
 				if(flag_done==0)
 				{
-					run_parameter.realtime.year=atoi(cmd_tmp);
+					is_time_set(5);
 					flag_function++;
 				}
 		}
@@ -1999,7 +2113,7 @@ void date_arg(void)//rs
 				}
 				if(flag_done==0)
 				{
-					run_parameter.realtime.month=atoi(cmd_tmp);
+					is_time_set(4);
 					flag_function++;
 				}
 		}
@@ -2034,7 +2148,7 @@ void date_arg(void)//rs
 				}
 				if(flag_done==0)
 				{
-					run_parameter.realtime.day=atoi(cmd_tmp);
+					is_time_set(3);
 					flag_function++;
 				}
 		}
@@ -2069,7 +2183,7 @@ void date_arg(void)//rs
 				}
 				if(flag_done==0)
 				{
-					run_parameter.realtime.hour=atoi(cmd_tmp);
+					is_time_set(2);
 					flag_function++;
 				}
 		}
@@ -2104,7 +2218,7 @@ void date_arg(void)//rs
 				}
 				if(flag_done==0)
 				{
-					run_parameter.realtime.minute=atoi(cmd_tmp);
+					is_time_set(1);
 					flag_function++;
 				}
 		}
@@ -2139,12 +2253,8 @@ void date_arg(void)//rs
 				}
 				if(flag_done==0)
 				{
-					run_parameter.realtime.second=atoi(cmd_tmp);
+					is_time_set(0);
 					flag_function=2;
-					UARTprintf("Change time to 20%d-%d-%d %d:%d:%d ",
-					run_parameter.realtime.year,run_parameter.realtime.month,
-					run_parameter.realtime.day,run_parameter.realtime.hour,
-					run_parameter.realtime.minute,run_parameter.realtime.second);
 					UARTprintf("\n...Wait...SAVED  Done......\r\n\r\n");
 				}
 		}

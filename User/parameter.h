@@ -576,10 +576,11 @@ union
 		unsigned short year;
 		}calibration_date;//128 129
 		
-	unsigned short reserved_parameter341;//130
-	unsigned short reserved_parameter35;//131
-	unsigned short reserved_parameter36;//132
-	unsigned short reserved_parameter37;//133
+	unsigned short reserved_parameter341;//130 month,day
+	unsigned short reserved_parameter35;//131 year
+	unsigned short reserved_parameter36;//132 hour
+	unsigned short reserved_parameter37;//133 min/second
+		
 	unsigned short reserved_parameter38;//134
 	unsigned short reserved_parameter39;//135
 	unsigned short reserved_parameter40;//136
