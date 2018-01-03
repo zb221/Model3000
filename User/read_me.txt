@@ -33,3 +33,27 @@ M25P16_Data_Records
 
 7. Flash数据存储，保存5年数据
 解决：上位机调试
+
+8. 系统时间
+IS/RS命令中，设置时间变量为：
+struct
+{
+	unsigned char year;				
+	unsigned char month;  //112
+	unsigned char day;		  
+	unsigned char hour;		//113		 
+	unsigned char minute;			 	
+	unsigned char second;	//114		  																				
+}realtime;//114
+
+modbus:
+	unsigned short reserved_parameter341;//130 month,day
+	unsigned short reserved_parameter35;//131 year
+	unsigned short reserved_parameter36;//132 hour
+	unsigned short reserved_parameter37;//133 min/second
+	
+update_modbus:
+	run_parameter.reserved_parameter35 = (0x20<<8 | TimeBCD.SpecificTime.year);//?
+	run_parameter.reserved_parameter341 = (TimeBCD.SpecificTime.month<<8 | TimeBCD.SpecificTime.day);
+	run_parameter.reserved_parameter36 = TimeBCD.SpecificTime.hour;
+	run_parameter.reserved_parameter37 = (TimeBCD.SpecificTime.min<<8 | TimeBCD.SpecificTime.sec);

@@ -411,11 +411,11 @@ int main (void)
 		switch(flag_command){
 			case 0:
 				if(findcmdfunction(cmd_tmp) == 1){
-					memset(cmd_tmp,0,sizeof(cmd_tmp));
 					a = 0;
 					flag_screen = 1;
 					UARTprintf("Close the echo\n\n");
 				}
+				memset(cmd_tmp,0,sizeof(cmd_tmp));
 				break;
 			
 			case 1:
