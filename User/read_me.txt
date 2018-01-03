@@ -26,7 +26,9 @@ M25P16_Data_Records
 解决办法：。
 
 ***4. 校准4-20mA模拟输出（CI命令）
-***5. 最低标定氢气浓度以下显示问题
+
+5. 最低标定氢气浓度以下显示问题
+解决办法：0-最低标定值，电阻变化0.5欧姆，线性处理
 
 6. 变量表中111状态字更新
 解决：更新传感器状态和继电器状态
@@ -57,3 +59,5 @@ update_modbus:
 	run_parameter.reserved_parameter341 = (TimeBCD.SpecificTime.month<<8 | TimeBCD.SpecificTime.day);
 	run_parameter.reserved_parameter36 = TimeBCD.SpecificTime.hour;
 	run_parameter.reserved_parameter37 = (TimeBCD.SpecificTime.min<<8 | TimeBCD.SpecificTime.sec);
+	
+解决办法：使用update modbus变量
