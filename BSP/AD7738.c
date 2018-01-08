@@ -393,7 +393,8 @@ void Temperature_of_resistance_Parameter(void)
 	switch (output_data.temperature){
 		case 0:
 	    output_data.SensorTemp = Intermediate_Data.Temp_R_K*output_data.TempResistor + Intermediate_Data.Temp_R_B;
-			output_data.OilTemp = output_data.SensorTemp;
+		  if (Intermediate_Data.wait_1min_oil == 1)
+			  output_data.OilTemp = output_data.SensorTemp;
 			run_parameter.status_flag.ubit.senser_state0=0;
 			run_parameter.status_flag.ubit.senser_state1=1;
 			run_parameter.status_flag.ubit.senser_state2=0;
@@ -412,7 +413,8 @@ void Temperature_of_resistance_Parameter(void)
 				DAC8568_INIT_SET(0,0*65536/5);	/* The oil temperature exceeds the working temperature*/
 				Intermediate_Data.Operat_temp_alarm = 1;
 			}else{
-        output_data.MODEL_TYPE = 1;
+				if (output_data.MODEL_TYPE == 4)
+          output_data.MODEL_TYPE = 1;
 			}
 			if (output_data.OilTemp < output_data.temperature){
 			  Intermediate_Data.Operat_temp_alarm = 0;

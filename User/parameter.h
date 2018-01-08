@@ -1164,7 +1164,7 @@ typedef struct Intermediate_Data
 {
 	unsigned char flag1, flag2, flag3, flag4, flag5;
 	unsigned char Start_day, Start_week, Start_month;
-	unsigned char Start_print_H2R, wait_1min,Start_print_calibrate_H2R;
+	unsigned char Start_print_H2R, wait_1min,Start_print_calibrate_H2R,wait_1min_oil;
 	
 	float Heat_V;
 
@@ -1232,5 +1232,8 @@ VARIABLE_EXT Intermediate_Parameters Intermediate_Data;
 //	
 //}Sensor_Parameters;
 //VARIABLE_EXT Sensor_Parameters Sensor_Data;
+#ifndef DEBUG
+#define DEBUG
+#endif
 #endif
 
