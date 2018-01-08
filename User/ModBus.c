@@ -372,10 +372,11 @@ void Data_Ack_Processor(void)//hugo add
 							temp_point_count=((user_parameter.start_address.ubit.hi<<8)+user_parameter.start_address.ubit.lo)<<1;
 							temp_point_halfcount=temp_point_count>>1;
 							if(((temp_point_halfcount>0)&&(temp_point_halfcount<=3))||
-								 ((temp_point_halfcount>=6)&&(temp_point_halfcount<=88))||
+								 ((temp_point_halfcount>=6)&&(temp_point_halfcount<=18))||
+							   ((temp_point_halfcount>=31)&&(temp_point_halfcount<=88))||
 								 ((temp_point_halfcount>=102)&&(temp_point_halfcount<=120))||//								 ((temp_point_halfcount>=135)&&(temp_point_halfcount<=140))||
-								 ((temp_point_halfcount>=157)&&(temp_point_halfcount<=200))||
-								 ((temp_point_halfcount>=231)&&(temp_point_halfcount<=255)))
+								 ((temp_point_halfcount>=191)&&(temp_point_halfcount<=200))||
+								 ((temp_point_halfcount>=253)&&(temp_point_halfcount<=255)))
 								{
 									temp_point_count=600;//????,??????
 									}

@@ -46,13 +46,13 @@ unsigned char print_time = 2; /* console print cycle */
 
 const char print_menu[] = 
 	"\n"
-	"TimeStamp               PcbTemp    H2AG.ppm    OilTemp    H2DG.ppm    H2G.ppm    H2SldAv    DayROC    WeekROC    MonthROC    Message    \r\n";
+	"TimeStamp               PcbTemp         H2AG.ppm    OilTemp    H2DG.ppm    H2G.ppm    H2SldAv    DayROC    WeekROC    MonthROC    Message    \r\n";
 const char debug_menu[] =
 	"\n"
-	"TimeStamp               PcbTemp    H2AG.ppm    OilTemp    H2DG.ppm    H2G.ppm    H2SldAv    DayROC    WeekROC    MonthROC    SensorTemp    H2Resistor    TemResistor    Message    \r\n";\
+	"TimeStamp               PcbTemp         H2AG.ppm        OilTemp  H2DG.ppm   H2G.ppm   H2SldAv    DayROC   WeekROC  MonthROC    SensorTemp    H2Resistor    TemResistor    Message    \r\n";\
 const char calibrate_menu[] =
 	"\n"
-	"TimeStamp               PcbTemp    H2AG.ppm    OilTemp    SensorTemp    H2Resistor    TemResistor    Message    \r\n";\
+	"TimeStamp               PcbTemp        H2AG.ppm            SensorTemp    H2Resistor    TemResistor        Message    \r\n";\
 
 char message0[] = "rpt";
 char message1[] = "wait";
@@ -128,6 +128,7 @@ void init_Global_Variable(void)
 	Intermediate_Data.Start_print_H2R = 0;
 	Intermediate_Data.Start_print_calibrate_H2R = 0;
 	Intermediate_Data.wait_1min = 1;
+	Intermediate_Data.wait_1min_oil = 1;
 	
 	Intermediate_Data.H2Resistor_OilTemp_K = 0;
 	Intermediate_Data.H2Resistor_OilTemp_B = 0;
@@ -206,18 +207,19 @@ Description: setup the timer counter 0 interrupt.
 ***********************************************************/
 void command_print(void)
 {
+//	UARTprintf("output_data.MODEL_TYPE=%d\n",output_data.MODEL_TYPE);
 	DS1390_GetTime(&CurrentTime);
-	UARTprintf("%d/%d/%d %d:%d:%d",CurrentTime.SpecificTime.year+2000,CurrentTime.SpecificTime.month,
+	UARTprintf("%d/%02d/%02d %02d:%02d:%02d",CurrentTime.SpecificTime.year+2000,CurrentTime.SpecificTime.month,
 	CurrentTime.SpecificTime.day,CurrentTime.SpecificTime.hour,CurrentTime.SpecificTime.min,CurrentTime.SpecificTime.sec);
 
   if (output_data.MODEL_TYPE == 1)
-    UARTprintf("	%.3f	%.3f	%.3f	%.3f	%.3f	%.3f	%.3f	%.3f	%.3f	",output_data.PcbTemp,output_data.H2AG,output_data.OilTemp,output_data.H2DG,output_data.H2G,output_data.H2SldAv,
+    UARTprintf("	%7.3f       %10.3f    %7.3f    %8.3f   %8.3f   %8.3f  %8.3f   %8.3f    %8.3f    ",output_data.PcbTemp,output_data.H2AG,output_data.OilTemp,output_data.H2DG,output_data.H2G,output_data.H2SldAv,
 		output_data.DayROC,output_data.WeekROC,output_data.MonthROC);
 	else if (output_data.MODEL_TYPE == 2)
-    UARTprintf("	%.3f	%.3f	%.3f	%.3f	%.3f	%.3f	%.3f	%.3f	%.3f	%.3f	%.3f	%.3f	%.3f	",output_data.PcbTemp,output_data.H2AG,output_data.H2AG1,output_data.OilTemp,output_data.H2DG,output_data.H2G,output_data.H2SldAv,
+    UARTprintf("	%7.3f  %10.3f %10.3f  %7.3f  %8.3f  %8.3f  %8.3f  %8.3f  %8.3f  %8.3f      %8.3f      %8.3f       %8.3f    ",output_data.PcbTemp,output_data.H2AG,output_data.H2AG1,output_data.OilTemp,output_data.H2DG,output_data.H2G,output_data.H2SldAv,
 		output_data.DayROC,output_data.WeekROC,output_data.MonthROC,output_data.SensorTemp,output_data.H2Resistor,output_data.TempResistor);
 	else if (output_data.MODEL_TYPE == 3)
-		UARTprintf("	%.3f	%.3f	%.3f	%.3f	%.3f	%.3f	",output_data.PcbTemp,output_data.H2AG,output_data.H2AG1,
+		UARTprintf("	%7.3f    %10.3f %10.3f      %7.3f      %8.3f        %7.3f        ",output_data.PcbTemp,output_data.H2AG,output_data.H2AG1,
 	  output_data.SensorTemp,output_data.H2Resistor,output_data.TempResistor);
 	
 	if(output_data.temperature == 50)
@@ -413,7 +415,9 @@ int main (void)
 				if(findcmdfunction(cmd_tmp) == 1){
 					a = 0;
 					flag_screen = 1;
+#ifdef DEBUG
 					UARTprintf("Close the echo\n\n");
+#endif
 				}
 				memset(cmd_tmp,0,sizeof(cmd_tmp));
 				break;
@@ -502,10 +506,9 @@ int main (void)
 			DAC8568_INIT_SET(output_data.temperature,0);
 			Intermediate_Data.flag1 = 0;
 			print_count = 3*60 / print_time;
-			if(flag_screen==0)
-			{
-			    UARTprintf("1-4min capture 3min oil temp\n");	
-			}
+#ifdef DEBUG
+			UARTprintf("1-4min capture 3min oil temp\n");	
+#endif
 			break;
 
 			case 2:
@@ -513,10 +516,9 @@ int main (void)
 			DAC8568_INIT_SET(output_data.temperature,2*65536/5);
 			Intermediate_Data.flag1 = 0;
 			print_count = 60*60 / print_time;
-			if(flag_screen==0)
-			{
-			    UARTprintf("4-1H4min set 50 temp, keep 1H\n");
-			}
+#ifdef DEBUG
+			UARTprintf("4-1H4min set 50 temp, keep 1H\n");
+#endif
 			break;
 
 			case 3:
@@ -524,10 +526,9 @@ int main (void)
 			DAC8568_INIT_SET(output_data.temperature,0);
 			Intermediate_Data.flag1 = 0;
 			print_count = 3*60 / print_time;
-			if(flag_screen==0)
-			{
-			    UARTprintf("1H4min-1H7min stop heating, capture 3min oil temp\n");
-			}
+#ifdef DEBUG
+			UARTprintf("1H4min-1H7min stop heating, capture 3min oil temp\n");
+#endif
 			break;
 
 			case 4:
@@ -535,10 +536,9 @@ int main (void)
 			DAC8568_INIT_SET(output_data.temperature,2*65536/5);
 			Intermediate_Data.flag1 = 0;
 			print_count = 60*60 / print_time;
-			if(flag_screen==0)
-			{
-			    UARTprintf("1H7min-2H7min set 50 temp and keep 1H\n");
-			}
+#ifdef DEBUG
+			UARTprintf("1H7min-2H7min set 50 temp and keep 1H\n");
+#endif
 			break;
 
 			case 5:
@@ -546,10 +546,9 @@ int main (void)
 			DAC8568_INIT_SET(output_data.temperature,0);
 			Intermediate_Data.flag1 = 0;
 			print_count = 3*60 / print_time;
-			if(flag_screen==0)
-			{
-			    UARTprintf("2H7min-2H10min stop heating and capture oil temp 3min\n");
-			}
+#ifdef DEBUG
+			UARTprintf("2H7min-2H10min stop heating and capture oil temp 3min\n");
+#endif
 			break;
 
 			case 6:
@@ -557,10 +556,9 @@ int main (void)
 			DAC8568_INIT_SET(output_data.temperature,2*65536/5);
 			Intermediate_Data.flag1 = 0;
 			print_count = 90*60 / print_time;
-			if(flag_screen==0)
-			{
-			    UARTprintf("2H10min-3H40min set 70 temp and keep 1.5H\n");
-			}
+#ifdef DEBUG
+			UARTprintf("2H10min-3H40min set 70 temp and keep 1.5H\n");
+#endif
 			break;
 
 			case 7:
@@ -568,10 +566,9 @@ int main (void)
 			DAC8568_INIT_SET(output_data.temperature,2*65536/5);
 			Intermediate_Data.flag1 = 0;
 			print_count = 30*60 / print_time;
-			if(flag_screen==0)
-			{
-			    UARTprintf("3H40min-4H10min set 50 temp and keep 0.5H\n");
-			}
+#ifdef DEBUG
+			UARTprintf("3H40min-4H10min set 50 temp and keep 0.5H\n");
+#endif
 			break;
 
 			case 8:
@@ -579,10 +576,9 @@ int main (void)
 			DAC8568_INIT_SET(output_data.temperature,0);
 			Intermediate_Data.flag1 = 0;
 			print_count = 3*60 / print_time;
-			if(flag_screen==0)
-			{
-			    UARTprintf("4H10min-4H13min stop heating and capture oil temp 3min\n");
-			}
+#ifdef DEBUG
+			UARTprintf("4H10min-4H13min stop heating and capture oil temp 3min\n");
+#endif
 			break;
 
 			default:
@@ -613,10 +609,9 @@ int main (void)
 			Intermediate_Data.flag3 = 0;
 			H2SldAv_24H2G();
 			M25P16_Data_Records();
-			if(flag_screen==0)
-			{
-			    UARTprintf("save data into flash\n");			
-			}
+#ifdef DEBUG
+		  UARTprintf("save data into flash\n");			
+#endif
 		}
 
 		if (Intermediate_Data.flag4 == 1)
