@@ -428,6 +428,7 @@ __irq void TC0_IR (void)
 			switch (count1){
 				case 60000:	/* 1-4min capture 3min oil temp */
 				Intermediate_Data.flag1 = 1;
+				Intermediate_Data.Power_On = 1;
 				Intermediate_Data.Start_print_H2R = 1;
 				break;
 
@@ -551,7 +552,7 @@ __irq void TC0_IR (void)
 	}
 	
 	switch (count4){
-		case 2000:
+		case 30000:
 		Intermediate_Data.flag4 = 1;
 		count4 = 0;
 		break;
