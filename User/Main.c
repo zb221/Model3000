@@ -384,23 +384,6 @@ int main (void)
 	DAC8568_PCB_TEMP_SET(output_data.PCB_temp,0x1000);    /* Set PCB default temperature */
 	M25P16_erase_map(31*0x10000,SE);
 	
-	switch (output_data.MODEL_TYPE){
-		case 1:
-			UARTprintf(print_menu);
-		break;
-		
-		case 2:
-			UARTprintf(debug_menu);
-		break;
-				
-		case 3:
-			UARTprintf(calibrate_menu);
-		break;
-		
-		default:
-			break;
-	}
-
 	while (1)  
 	{
     if (rcv_char_flag == 1){
@@ -501,6 +484,10 @@ int main (void)
 			
 			case 18:
 				config_arg_d3();
+				break;
+			
+			case 19:
+				firmware_arg();
 				break;
 			
 			default:
@@ -609,6 +596,25 @@ int main (void)
 			Intermediate_Data.flag2 = 0;
       if (Intermediate_Data.Power_On == 0)		
 			    UARTprintf("System startup wait time %d\n",--startup_time);
+			if (startup_time == 2){
+				--startup_time;
+				switch (output_data.MODEL_TYPE){
+					case 1:
+						UARTprintf(print_menu);
+					break;
+					
+					case 2:
+						UARTprintf(debug_menu);
+					break;
+							
+					case 3:
+						UARTprintf(calibrate_menu);
+					break;
+					
+					default:
+						break;
+				}
+			}
 			break;
 
 			default:

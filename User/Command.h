@@ -18,6 +18,7 @@ void config_arg_d0(void);
 void config_arg_d1(void);
 void config_arg_d2(void);
 void config_arg_d3(void);
+void firmware_arg(void);
 void da_arg(void);
 void db_arg(void);
 void dx_arg(void);
