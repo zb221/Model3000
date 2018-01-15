@@ -18,6 +18,8 @@
 #include "DS1390.h"
 #include "M25P16_FLASH.h"
 #include "e25LC512.h"
+#include "isp.h"
+#include "Modbus.h"
 
 unsigned char cmd_tmp[60] = {0};
 unsigned char cmd_buf[60] = {0};
@@ -63,7 +65,8 @@ cmd_list_struct  cmd_list[]={
 {"d 0",     16,     config_arg_d0,    "config"}, 
 {"d 1",     2,      config_arg_d1,    "config"}, 
 {"d 2",     17,     config_arg_d2,    "config"}, 
-{"d 3",     18,     config_arg_d3,    "config"}, 
+{"d 3",     18,     config_arg_d3,    "config"},
+{"cl",      19,     firmware_arg,   "firmware"},
 };
 
 /***********************************************************
@@ -677,6 +680,69 @@ void config_arg_d3(void)
 			flag_screen=0;
 			break;
 	}
+}
+
+void firmware_command(void)
+{
+    UARTprintf("Ready.... got room at image 2 ...send Hex File... >\n");
+    IO1CLR	= EN_485_DE; //RS485 rev status
+    ISPbyCode();         //write new firmware
+}
+
+void firmware_arg(void)
+{
+	switch(flag_function){
+		case 0:
+			flag_chaoshi = 0;
+			UARTprintf("Download new firmware (Y/N)?");
+			flag_function++;
+			flag_chaoshi++;
+			break;
+
+		case 1:
+			if(strlen(cmd_tmp)>0)
+			{
+					switch(cmd_tmp[0]){
+						case 0x79://y             
+							flag_function = 2;
+						break;
+						case 0x6e://n            
+							flag_function=0;
+							flag_command=0;
+							flag_screen=0;	
+							flag_chaoshi=0;
+							UARTprintf("No change - Done\n");
+							break;
+						default:
+							UARTprintf("not a illegal interger, set Y or N\n");
+							flag_chaoshi++;
+							if (flag_chaoshi > 5){
+								UARTprintf("Please input CL command again and set Y or N at here, exit CL OK.\n");
+								flag_function = 0;
+								flag_command = 0;
+								flag_screen = 0;
+								flag_chaoshi = 0;
+							}
+						break;	
+					}
+			}
+			memset(cmd_tmp,0,sizeof(cmd_tmp));
+			a=0;
+			break;
+			
+		 case 2:
+			firmware_command();
+		  flag_function++;
+		  break;	 
+
+		default:
+			flag_function = 0;
+			flag_command = 0;
+			flag_screen = 0;
+			flag_chaoshi = 0;
+			break;
+	}
+
 }
 /***********************************************************
 Function:command da calibrate H2 ppm

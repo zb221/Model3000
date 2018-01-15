@@ -42,7 +42,8 @@ extern unsigned char flag_mode;
 extern unsigned char rcv_char_flag;
 
 static unsigned int print_count = 0; /* Countdown to each state */
-unsigned char print_time = 2; /* console print cycle */
+unsigned char print_time = 30; /* console print cycle */
+unsigned char startup_time = 60;
 
 const char print_menu[] = 
 	"\n"
@@ -125,6 +126,7 @@ void init_Global_Variable(void)
   Intermediate_Data.Start_week = 0;
 	Intermediate_Data.Start_month = 0;
 	
+	Intermediate_Data.Power_On = 0;
 	Intermediate_Data.Start_print_H2R = 0;
 	Intermediate_Data.Start_print_calibrate_H2R = 0;
 	Intermediate_Data.wait_1min = 1;
@@ -244,6 +246,13 @@ void command_print(void)
     UARTprintf(message6);
 		UARTprintf(message7);
 	}
+	
+  if (run_parameter.status_flag.ubit.relay1==1)
+		UARTprintf(message10);
+	if (run_parameter.status_flag.ubit.relay2==1)
+	  UARTprintf(message11);
+  if (run_parameter.status_flag.ubit.relay3==1)
+	  UARTprintf(message12);
 	
 	UARTprintf("\r\n");
 }
@@ -375,23 +384,6 @@ int main (void)
 	DAC8568_PCB_TEMP_SET(output_data.PCB_temp,0x1000);    /* Set PCB default temperature */
 	M25P16_erase_map(31*0x10000,SE);
 	
-	switch (output_data.MODEL_TYPE){
-		case 1:
-			UARTprintf(print_menu);
-		break;
-		
-		case 2:
-			UARTprintf(debug_menu);
-		break;
-				
-		case 3:
-			UARTprintf(calibrate_menu);
-		break;
-		
-		default:
-			break;
-	}
-
 	while (1)  
 	{
     if (rcv_char_flag == 1){
@@ -492,6 +484,10 @@ int main (void)
 			
 			case 18:
 				config_arg_d3();
+				break;
+			
+			case 19:
+				firmware_arg();
 				break;
 			
 			default:
@@ -598,6 +594,27 @@ int main (void)
 
 			case 2:
 			Intermediate_Data.flag2 = 0;
+      if (Intermediate_Data.Power_On == 0)		
+			    UARTprintf("System startup wait time %d\n",--startup_time);
+			if (startup_time == 2){
+				--startup_time;
+				switch (output_data.MODEL_TYPE){
+					case 1:
+						UARTprintf(print_menu);
+					break;
+					
+					case 2:
+						UARTprintf(debug_menu);
+					break;
+							
+					case 3:
+						UARTprintf(calibrate_menu);
+					break;
+					
+					default:
+						break;
+				}
+			}
 			break;
 
 			default:
@@ -616,7 +633,7 @@ int main (void)
 
 		if (Intermediate_Data.flag4 == 1)
  		{
- 			/*2S command_print*/
+ 			/*30S command_print*/
 			ADC7738_acquisition_output(1);
 			ADC7738_acquisition_output(3);
 			Calculate_H2_rate();
@@ -636,7 +653,8 @@ int main (void)
 			Intermediate_Data.flag4 = 0;
 			if(flag_screen==0)
 			{
-			  command_print();
+				if (Intermediate_Data.Power_On == 1)
+			      command_print();
 			}
 		}
 		ADC7738_acquisition(1);

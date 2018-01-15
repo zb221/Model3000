@@ -312,6 +312,33 @@ void E2C_Sensor_Fit_Para(void)
 	run_parameter.Sensor_Fit_Para_C.Fit_Para_C[9] = ((test9>>32)&0xFFFF);
 	run_parameter.Sensor_Fit_Para_C.Fit_Para_C[10] = ((test9>>16)&0xFFFF);
 	run_parameter.Sensor_Fit_Para_C.Fit_Para_C[11] = test9&0xFFFF;
+	
+	test1 = (( long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[0]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[1]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[2]<<16
+		| (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[3]);
+	
+	test2 = (( long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[4]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[5]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[6]<<16
+		| (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[7]);
+	
+	test3 = (( long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[8]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[9]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[10]<<16
+		| (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[11]);
+	
+	test4 = (( long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[0]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[1]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[2]<<16
+		| (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[3]);
+	
+  test5 = (( long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[4]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[5]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[6]<<16
+		| (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[7]);
+		
+  test6 = (( long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[8]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[9]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[10]<<16
+		| (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[11]);
+	
+	test7 = (( long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[0]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[1]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[2]<<16
+		| (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[3]);
+	
+  test8 = (( long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[4]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[5]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[6]<<16
+		| (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[7]);
+			
+  test9 = (( long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[8]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[9]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[10]<<16
+		| (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[11]);
 
 
 	e2prom512_write((unsigned char*)&run_parameter.Sensor_Fit_Para_A.A.A1,24,19*2);
@@ -348,17 +375,16 @@ void E2C_Sensor_Fit_Para(void)
 		
 		UARTprintf("run_parameter.Sensor_Fit_Para_Done=%d\n",run_parameter.Sensor_Fit_Para_Done);
 		
-//	UARTprintf("test1=%lld\n",( long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[0]<<48 
-//		| (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[1]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[2]<<16
-//		| (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[3]);
-
-//	UARTprintf("test2=%lld\n",( long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[4]<<48 
-//		| (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[5]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[6]<<16
-//		| (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[7]);
-
-//	UARTprintf("test3=%lld\n",( long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[8]<<48 
-//		| (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[9]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[10]<<16
-//		| (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[11]);
+	UARTprintf("test1=%lld\n",test1);
+	UARTprintf("test2=%lld\n",test2);
+	UARTprintf("test3=%lld\n",test3);
+	UARTprintf("test4=%lld\n",test4);
+	UARTprintf("test5=%lld\n",test5);
+	UARTprintf("test6=%lld\n",test6);
+	UARTprintf("test7=%lld\n",test7);
+	UARTprintf("test8=%lld\n",test8);
+	UARTprintf("test9=%lld\n",test9);
+		
 }
 
 void E2C_Piecewise_point(void)
@@ -394,4 +420,9 @@ void E2C_Piecewise_point(void)
 		  run_parameter.Block_mark_Done = 0;
 	
 	UARTprintf("run_parameter.Block_mark_Done=%d\n",run_parameter.Block_mark_Done);
+	
+	UARTprintf("point0=%d\n",point0);
+	UARTprintf("point1=%d\n",point1);
+	UARTprintf("point2=%d\n",point2);
+	UARTprintf("point3=%d\n",point3);
 }
