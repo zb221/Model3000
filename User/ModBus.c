@@ -371,6 +371,7 @@ void Data_Ack_Processor(void)//hugo add
 							user_parameter.send_buffer[6]=temp_crc>>8;
 							temp_point_count=((user_parameter.start_address.ubit.hi<<8)+user_parameter.start_address.ubit.lo)<<1;
 							temp_point_halfcount=temp_point_count>>1;
+              UARTprintf("temp_point_halfcount = %d\n",temp_point_halfcount);
 							if(((temp_point_halfcount>0)&&(temp_point_halfcount<=3))||
 								 ((temp_point_halfcount>=6)&&(temp_point_halfcount<=18))||
 							   ((temp_point_halfcount>=31)&&(temp_point_halfcount<=88))||
@@ -774,16 +775,8 @@ int RW_ModBus_Data (void)
 			break;
 		}
 		
-/*----------------------------------------------add---------------------------------------------------------*/
-//		case 171: 
-//		{
-//      UARTprintf("R data\n");
-//			run_parameter.h2_ppm_resistor_h16.hilo = (unsigned int)(output_data.H2Resistor*1000.0) >> 16; //171
-//			run_parameter.h2_ppm_resistor_l16.hilo = (unsigned int)(output_data.H2Resistor*1000.0) & 0xFFFF; //172
-//			break;
-//		}
-		
-		case 19:
+/*----------------------------------------------add---------------------------------------------------------*/	
+		case 251:
 		{
       UARTprintf("Sensor Fit Para\n");
 			if (run_parameter.Sensor_Fit_Para_Done == 2510)
@@ -792,25 +785,16 @@ int RW_ModBus_Data (void)
 			break;
 		}
 		
-		case 243:
+		case 252:
 		{
       UARTprintf("Piecewise data\n");
       if (run_parameter.Block_mark_Done == 2520)
 				E2C_Piecewise_point();
 			break;
 		}
-		
-//		case 251:
-//		{
-//      UARTprintf("Sensor Fit Para Done\n");
-//			break;
-//		}
-//		
-//		case 252:
-//		{
-//      UARTprintf("Block mark\n");
-//			break;
-//		}
+//		default:
+//		UARTprintf("user_parameter.function_point=%d\n",user_parameter.function_point);
+//		break;
 		
 	}
 

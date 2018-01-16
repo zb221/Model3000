@@ -913,7 +913,6 @@ union
 				unsigned short B11;//189
 				unsigned short B12;//190
 			}B;
-//			double Fit_Para_B[3];
 			 unsigned short Fit_Para_B[12];
 		}Sensor_Fit_Para_B;
 		
@@ -1004,10 +1003,10 @@ union
 		unsigned char character17;
 		unsigned char character18;//229
 		unsigned char character19;
+		unsigned char character20;//230
 		}transformer_id_sstr;
 		char transformer_id_str[20];
 }transformer_id;
-    unsigned short modbus_id;//230
 
 		union
 		{
@@ -1029,7 +1028,7 @@ union
 			}C;
 			unsigned short Fit_Para_C[12];
 		}Sensor_Fit_Para_C;
-	
+		
 		union
 		{
 		struct
@@ -1037,7 +1036,7 @@ union
 				unsigned short hi;//243
 				unsigned short lo;//244
 			}ubit;
-			unsigned int point0;
+			unsigned short point0[2];
 		}Piecewise_point0;
 
 		union
@@ -1047,7 +1046,7 @@ union
 				unsigned short hi;//245
 				unsigned short lo;//246
 			}ubit;
-			unsigned int point1;
+			unsigned short point1[2];
 		}Piecewise_point1;
 
 		union
@@ -1057,7 +1056,7 @@ union
 				unsigned short hi;//247
 				unsigned short lo;//248
 			}ubit;
-			unsigned int point2;
+			unsigned short point2[2];
 		}Piecewise_point2;
 
 		union
@@ -1067,7 +1066,7 @@ union
 				unsigned short hi;//249
 				unsigned short lo;//250
 			}ubit;
-			unsigned int point3;
+			unsigned short point3[2];
 		}Piecewise_point3;
 		
 		unsigned short Sensor_Fit_Para_Done;//251
