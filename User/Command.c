@@ -684,7 +684,7 @@ void config_arg_d3(void)
 
 void firmware_command(void)
 {
-    UARTprintf("Ready.... got room at image 2 ...send Hex File... >\n");
+    UARTprintf("Ready.... got room at image 2 ...send Hex File...\n");
     IO1CLR	= EN_485_DE; //RS485 rev status
     ISPbyCode();         //write new firmware
 }

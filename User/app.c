@@ -374,17 +374,17 @@ void E2C_Sensor_Fit_Para(void)
 		else
 			run_parameter.Sensor_Fit_Para_Done = 0;
 		
-		UARTprintf("run_parameter.Sensor_Fit_Para_Done=%d\n",run_parameter.Sensor_Fit_Para_Done);
-		
-	UARTprintf("test1=%lld\n",test1);
-	UARTprintf("test2=%lld\n",test2);
-	UARTprintf("test3=%lld\n",test3);
-	UARTprintf("test4=%lld\n",test4);
-	UARTprintf("test5=%lld\n",test5);
-	UARTprintf("test6=%lld\n",test6);
-	UARTprintf("test7=%lld\n",test7);
-	UARTprintf("test8=%lld\n",test8);
-	UARTprintf("test9=%lld\n",test9);
+//		UARTprintf("run_parameter.Sensor_Fit_Para_Done=%d\n",run_parameter.Sensor_Fit_Para_Done);
+//		
+//	UARTprintf("test1=%lld\n",test1);
+//	UARTprintf("test2=%lld\n",test2);
+//	UARTprintf("test3=%lld\n",test3);
+//	UARTprintf("test4=%lld\n",test4);
+//	UARTprintf("test5=%lld\n",test5);
+//	UARTprintf("test6=%lld\n",test6);
+//	UARTprintf("test7=%lld\n",test7);
+//	UARTprintf("test8=%lld\n",test8);
+//	UARTprintf("test9=%lld\n",test9);
 	
 //  for(i=0;i<12;i++)
 //	UARTprintf("%d\n",run_parameter.Sensor_Fit_Para_C.Fit_Para_C[i]);
@@ -426,10 +426,10 @@ void E2C_Piecewise_point(void)
 	else 
 		  run_parameter.Block_mark_Done = 0;
 	
-	UARTprintf("run_parameter.Block_mark_Done=%d\n",run_parameter.Block_mark_Done);
-	
-	UARTprintf("point0=%d\n",run_parameter.Piecewise_point0.ubit.hi<<16 | run_parameter.Piecewise_point0.ubit.lo);
-	UARTprintf("point1=%d\n",run_parameter.Piecewise_point1.ubit.hi<<16 | run_parameter.Piecewise_point1.ubit.lo);
-	UARTprintf("point2=%d\n",run_parameter.Piecewise_point2.ubit.hi<<16 | run_parameter.Piecewise_point2.ubit.lo);
-	UARTprintf("point3=%d\n",run_parameter.Piecewise_point3.ubit.hi<<16 | run_parameter.Piecewise_point3.ubit.lo);
+//	UARTprintf("run_parameter.Block_mark_Done=%d\n",run_parameter.Block_mark_Done);
+//	
+//	UARTprintf("point0=%d\n",run_parameter.Piecewise_point0.ubit.hi<<16 | run_parameter.Piecewise_point0.ubit.lo);
+//	UARTprintf("point1=%d\n",run_parameter.Piecewise_point1.ubit.hi<<16 | run_parameter.Piecewise_point1.ubit.lo);
+//	UARTprintf("point2=%d\n",run_parameter.Piecewise_point2.ubit.hi<<16 | run_parameter.Piecewise_point2.ubit.lo);
+//	UARTprintf("point3=%d\n",run_parameter.Piecewise_point3.ubit.hi<<16 | run_parameter.Piecewise_point3.ubit.lo);
 }
