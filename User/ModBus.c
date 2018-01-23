@@ -371,7 +371,7 @@ void Data_Ack_Processor(void)//hugo add
 							user_parameter.send_buffer[6]=temp_crc>>8;
 							temp_point_count=((user_parameter.start_address.ubit.hi<<8)+user_parameter.start_address.ubit.lo)<<1;
 							temp_point_halfcount=temp_point_count>>1;
-              UARTprintf("temp_point_halfcount = %d\n",temp_point_halfcount);
+//              UARTprintf("temp_point_halfcount = %d\n",temp_point_halfcount);
 							if(((temp_point_halfcount>0)&&(temp_point_halfcount<=3))||
 								 ((temp_point_halfcount>=6)&&(temp_point_halfcount<=18))||
 							   ((temp_point_halfcount>=31)&&(temp_point_halfcount<=88))||
@@ -462,7 +462,7 @@ return (uchCRCHi << 8 | uchCRCLo) ;
 ///******************************************************************************/
 int Init_ModBus (void)  
 {
-
+  unsigned char tmp[2] = {0};
 	Init_io();	
 	Init_interrupt();
 
@@ -473,13 +473,13 @@ int Init_ModBus (void)
 	//31-40
 	strcpy(run_parameter.model_number.model_number_str,"3000");
 	//41-50
-	strcpy(run_parameter.product_serial_number.product_serial_number_str,"180000001");
+	strcpy(run_parameter.product_serial_number.product_serial_number_str,"D00001000");
 	//51-60
-	strcpy(run_parameter.sensor_serial_number.sensor_serial_number_str,"S2.3.01893");
+	strcpy(run_parameter.sensor_serial_number.sensor_serial_number_str,"S2.3.01801");
 	//61-70
-	strcpy(run_parameter.sensor_board_serial_number.sensor_board_serial_number_str,"12345678");//productInf.SensorBoardNum
+	strcpy(run_parameter.sensor_board_serial_number.sensor_board_serial_number_str,"S2.3.01801");//productInf.SensorBoardNum
 	//71-80
-	strcpy(run_parameter.interface_board_serial_number.interface_board_serial_number_str,"12345678");//productInf.InterfaceBoardNum
+	strcpy(run_parameter.interface_board_serial_number.interface_board_serial_number_str,"17A20SV301057");//productInf.InterfaceBoardNum
 	//81-82
 	run_parameter.manufacturing_date.month = 01;
 	run_parameter.manufacturing_date.day = 01;
@@ -502,8 +502,8 @@ int Init_ModBus (void)
 	run_parameter.dissolved_gas_calibration_date.year = 2018;
 	//89-98
 	strcpy(run_parameter.firmware_revesion.firmware_revesion_str,"V2.0");
-	strcpy(run_parameter.hardware_version.hardware_version_str,"V3.0");
-	strcpy(run_parameter.factory.factory_str,"V1.0");
+	strcpy(run_parameter.hardware_version.hardware_version_str,"V3");
+	strcpy(run_parameter.factory.factory_str,"3000");
 	//99-110±£Áô
 
 	//111
@@ -534,8 +534,11 @@ int Init_ModBus (void)
 	e2prom512_write(&run_parameter.h2_ppm_report_low_h16.ubit.lo,4,141*2);
 
 	//150
-	run_parameter.unit_id.ubit.lo = 1;
-	e2prom512_write(&run_parameter.unit_id.ubit.lo,2,150*2);
+//	run_parameter.unit_id.ubit.lo = 1;
+//	run_parameter.unit_id.ubit.hi = 0;
+//	e2prom512_read(tmp,2,150*2);
+//	if (tmp[0] == run_parameter.unit_id.ubit.lo)
+//	e2prom512_write(&run_parameter.unit_id.ubit.lo,2,150*2);
 	//201-210
 	strcpy(run_parameter.own_id.own_id_str,"user 01");
 	e2prom512_write(&run_parameter.own_id.own_id_str,sizeof(run_parameter.own_id.own_id_str),201*2);
@@ -647,7 +650,7 @@ int RW_ModBus_Data (void)
 			//		systemInf.ModbusID=(unsigned char)run_parameter.uint_id.ubit.lo;//systemInf.CallID=(systemInf.CallID-50);		
 			//    UARTprintf("Set ModbusID to:%d\r\n", (unsigned int)systemInf.ModbusID);		
 			//run_parameter.uint_id.ubit.lo=0x01;//Ä¬ÈÏID
-			e2prom512_write(&run_parameter.unit_id.ubit.lo,2,150*2);
+			e2prom512_write(&run_parameter.unit_id.ubit.lo,1,150*2);
 			break;
 		}
 

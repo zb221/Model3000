@@ -494,7 +494,7 @@ __irq void TC0_IR (void)
 
 				case 15060000: /*wait 1min for 4H10min-4H13min stop heating and capture oil temp 3min */
 				Intermediate_Data.wait_1min_oil = 1;
-				count1 = 0;
+				count1 = 240000 - 1;
 				break;				
 				
 //				case 15180000: /* 4H13min reset count1 */

@@ -1232,7 +1232,7 @@ VARIABLE_EXT Intermediate_Parameters Intermediate_Data;
 //}Sensor_Parameters;
 //VARIABLE_EXT Sensor_Parameters Sensor_Data;
 #ifndef DEBUG
-#define DEBUG
+//#define DEBUG
 #endif
 #endif
 

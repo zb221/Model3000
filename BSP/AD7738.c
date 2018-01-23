@@ -395,6 +395,10 @@ void Temperature_of_resistance_Parameter(void)
 	    output_data.SensorTemp = Intermediate_Data.Temp_R_K*output_data.TempResistor + Intermediate_Data.Temp_R_B;
 		  if (Intermediate_Data.wait_1min_oil == 1)
 			  output_data.OilTemp = output_data.SensorTemp;
+			if (output_data.OilTemp<(-20))
+			    output_data.OilTemp = -20;
+			if (output_data.OilTemp>105)
+			    output_data.OilTemp = 105;
 			run_parameter.status_flag.ubit.senser_state0=0;
 			run_parameter.status_flag.ubit.senser_state1=1;
 			run_parameter.status_flag.ubit.senser_state2=0;
