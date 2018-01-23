@@ -2542,7 +2542,7 @@ void clear_arg(void)//x
 					run_parameter.h2_ppm_error_out_current.hilo = 300;
 					run_parameter.h2_ppm_no_ready_out_current.hilo = 200;
 					
-					e2prom512_write(&run_parameter.unit_id.ubit.lo,2,150*2);
+					e2prom512_write(&run_parameter.unit_id.ubit.lo,1,150*2);
 					e2prom512_write(&run_parameter.h2_ppm_report_low_h16.ubit.lo,4,141*2);
 					e2prom512_write(&run_parameter.h2_ppm_report_high_h16.ubit.lo,4,143*2);
 					
@@ -2869,7 +2869,7 @@ void setmid_arg(void)//mi
 				if(flag_done==0)
 				{
 					run_parameter.unit_id.ubit.lo = atoi(cmd_tmp);
-					e2prom512_write(&run_parameter.unit_id.ubit.lo,2,150*2);
+					e2prom512_write(&run_parameter.unit_id.ubit.lo,1,150*2);
 					UARTprintf("New Modbus ID is %d\r\n",run_parameter.unit_id.ubit.lo);
 					UARTprintf("\n...SAVED  Done......\r\n\r\n");
 					flag_function = 2;

@@ -264,7 +264,7 @@ void command_print(void)
 void update_e2c(void)//run_parameter all save
 {
 
-	e2prom512_read(&run_parameter.unit_id.ubit.lo,2,150*2);
+	e2prom512_read(&run_parameter.unit_id.ubit.lo,1,150*2);
 	e2prom512_read(&run_parameter.h2_ppm_report_low_h16.ubit.lo,4,141*2);
 	e2prom512_read(&run_parameter.h2_ppm_report_high_h16.ubit.lo,4,143*2);
 	e2prom512_read(&run_parameter.h2_ppm_out_current_low.ubit.lo,8,145*2);
