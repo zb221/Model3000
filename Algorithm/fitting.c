@@ -181,43 +181,43 @@ float quadratic_polynomial(float data)
 	
 	if (number == 0)
 	    number = sizeof(Intermediate_Data.OHM)/sizeof(Intermediate_Data.OHM[0]);
-	
-	if (data >= Intermediate_Data.OHM[0] && data < Intermediate_Data.OHM[4]){
-	  p1 = 121.8358416;
-    p2 = -233115.092865;
-		p3 = 111507922.798009;
-	}else if (data >= Intermediate_Data.OHM[4] && data < Intermediate_Data.OHM[8]){
-	  p1 = 256.222696;
-    p2 = -490933.428946;
-		p3 = 235162655.440190;
-	}else if (data >= Intermediate_Data.OHM[8] && data < Intermediate_Data.OHM[12]){
-	  p1 = 409.052293;
-    p2 = -785623.724501;
-		p3 = 377220150.322393;
-	}
-	
-//	if (data >= (run_parameter.Piecewise_point0.ubit.hi<<16 | run_parameter.Piecewise_point0.ubit.lo) && data < (run_parameter.Piecewise_point1.ubit.hi<<16 | run_parameter.Piecewise_point1.ubit.lo)){
-//	  p1 = (( long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[0]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[1]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[2]<<16
-//		| (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[3]);
-//    p2 = (( long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[4]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[5]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[6]<<16
-//		| (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[7]);
-//		p3 = (( long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[8]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[9]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[10]<<16
-//		| (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[11]);
-//	}else if (data >= (run_parameter.Piecewise_point1.ubit.hi<<16 | run_parameter.Piecewise_point1.ubit.lo) && data < (run_parameter.Piecewise_point2.ubit.hi<<16 | run_parameter.Piecewise_point2.ubit.lo)){
-//	  p1 = (( long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[0]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[1]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[2]<<16
-//		| (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[3]);
-//    p2 = (( long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[4]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[5]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[6]<<16
-//		| (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[7]);
-//		p3 = (( long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[8]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[9]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[10]<<16
-//		| (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[11]);
-//	}else if (data >= (run_parameter.Piecewise_point2.ubit.hi<<16 | run_parameter.Piecewise_point2.ubit.lo) && data < (run_parameter.Piecewise_point3.ubit.hi<<16 | run_parameter.Piecewise_point3.ubit.lo)){
-//	  p1 = (( long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[0]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[1]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[2]<<16
-//		| (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[3]);
-//    p2 = (( long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[4]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[5]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[6]<<16
-//		| (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[7]);
-//		p3 = (( long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[8]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[9]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[10]<<16
-//		| (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[11]);
+
+//	if (data >= Intermediate_Data.OHM[0] && data < Intermediate_Data.OHM[4]){
+//	  p1 = 121.8358416;
+//    p2 = -233115.092865;
+//		p3 = 111507922.798009;
+//	}else if (data >= Intermediate_Data.OHM[4] && data < Intermediate_Data.OHM[8]){
+//	  p1 = 256.222696;
+//    p2 = -490933.428946;
+//		p3 = 235162655.440190;
+//	}else if (data >= Intermediate_Data.OHM[8] && data < Intermediate_Data.OHM[12]){
+//	  p1 = 409.052293;
+//    p2 = -785623.724501;
+//		p3 = 377220150.322393;
 //	}
+	
+	if (data >= (run_parameter.Piecewise_point0.ubit.hi<<16 | run_parameter.Piecewise_point0.ubit.lo) && data < (run_parameter.Piecewise_point1.ubit.hi<<16 | run_parameter.Piecewise_point1.ubit.lo)){
+	  p1 = (( long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[0]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[1]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[2]<<16
+		| (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[3]);
+    p2 = (( long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[4]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[5]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[6]<<16
+		| (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[7]);
+		p3 = (( long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[8]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[9]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[10]<<16
+		| (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[11]);
+	}else if (data >= (run_parameter.Piecewise_point1.ubit.hi<<16 | run_parameter.Piecewise_point1.ubit.lo) && data < (run_parameter.Piecewise_point2.ubit.hi<<16 | run_parameter.Piecewise_point2.ubit.lo)){
+	  p1 = (( long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[0]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[1]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[2]<<16
+		| (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[3]);
+    p2 = (( long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[4]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[5]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[6]<<16
+		| (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[7]);
+		p3 = (( long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[8]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[9]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[10]<<16
+		| (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[11]);
+	}else if (data >= (run_parameter.Piecewise_point2.ubit.hi<<16 | run_parameter.Piecewise_point2.ubit.lo) && data < (run_parameter.Piecewise_point3.ubit.hi<<16 | run_parameter.Piecewise_point3.ubit.lo)){
+	  p1 = (( long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[0]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[1]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[2]<<16
+		| (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[3]);
+    p2 = (( long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[4]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[5]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[6]<<16
+		| (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[7]);
+		p3 = (( long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[8]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[9]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[10]<<16
+		| (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[11]);
+	}
 	
 	tmp = p1 * data * data + p2 * data + p3;
 	return tmp;

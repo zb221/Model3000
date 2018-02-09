@@ -20,6 +20,7 @@
 #include "e25LC512.h"
 #include "isp.h"
 #include "Modbus.h"
+#include "AD420.h"
 
 unsigned char cmd_tmp[60] = {0};
 unsigned char cmd_buf[60] = {0};
@@ -47,7 +48,7 @@ extern REALTIMEINFO CurrentTime;
 //*****************************************************************************/  
 cmd_list_struct  cmd_list[]={  
 /*命令  参数目录    处理函数        报警信息*/	
-{"a",       1,      alarm_arg,     "alarm<arg1> <arg2>"},
+{"a",       1,      alarm_arg,     "config"},
 {"d",       2,      config_arg_d1,    "config"}, 
 {"da",      3,      da_arg,        "config"},
 {"db",      4,      db_arg,        "config"},
@@ -66,7 +67,7 @@ cmd_list_struct  cmd_list[]={
 {"d 1",     2,      config_arg_d1,    "config"}, 
 {"d 2",     17,     config_arg_d2,    "config"}, 
 {"d 3",     18,     config_arg_d3,    "config"},
-{"cl",      19,     firmware_arg,   "firmware"},
+{"cl",      19,     firmware_arg,   "config"},
 };
 
 /***********************************************************
@@ -140,14 +141,26 @@ unsigned char findcmdfunction(unsigned char *tmp)
 			flag_command = cmd_list[i].max_args; 
 			return 1;
 		}else{
-			flag_screen = 0;
+//			flag_screen = 0;
 			flag_function = 0;
 			flag_command = 0;
-			flag_screen = 0;
 			flag_chaoshi = 0;
 		}
 	}
-//	UARTprintf("There is no corresponding command. Please check the input command.\n");
+	return 0; 
+}
+
+unsigned char findcmd(unsigned char *tmp)
+{
+	unsigned char i = 0;
+	
+	for(i=0;i<sizeof(cmd_list)/sizeof(cmd_list[0]);i++)
+	{
+		if(strcmp(cmd_list[i].cmd_file,cmd_tmp) == 0)
+		{
+			return 1;
+		}
+	}
 	return 0; 
 }
 /***********************************************************
@@ -949,6 +962,7 @@ void db_arg(void)
 				if(flag_done==0)
 				{
 					run_parameter.calibration_date.year = atoi(cmd_tmp);
+					e2prom512_write(&run_parameter.calibration_date.day,4,128*2);
 					flag_function++;
 				}
 			}
@@ -984,7 +998,12 @@ void db_arg(void)
 				if(flag_done==0)
 				{
 					run_parameter.calibration_date.month = atoi(cmd_tmp);
+					if ((run_parameter.calibration_date.month>=1)&&(run_parameter.calibration_date.month<=12)){
+					e2prom512_write(&run_parameter.calibration_date.day,4,128*2);
 					flag_function++;
+					}else{
+					UARTprintf("Please set month 1-12, try again.\n");
+					}
 				}
 			}
 			memset(cmd_tmp,0,sizeof(cmd_tmp));
@@ -1019,9 +1038,16 @@ void db_arg(void)
 				if(flag_done==0)
 				{
 					run_parameter.calibration_date.day = atoi(cmd_tmp);
+					if ((run_parameter.calibration_date.day>=1)&&(run_parameter.calibration_date.day<=31)){
 					e2prom512_write(&run_parameter.calibration_date.day,4,128*2);
 					flag_function = 7;
+					UARTprintf("Cal. date : %d-%d-%d\r\n",run_parameter.calibration_date.year,
+					run_parameter.calibration_date.month,
+					run_parameter.calibration_date.day);
 					UARTprintf("\n...Wait...SAVED  Done......\r\n\r\n");
+					}else{
+					UARTprintf("Please set day 1-31, try again.\n");
+					}
 				}
 			}
 			memset(cmd_tmp,0,sizeof(cmd_tmp));
@@ -1239,7 +1265,12 @@ void dx_arg(void)
 				if(flag_done==0)
 				{
 					run_parameter.calibration_date.month = atoi(cmd_tmp);
-					flag_function++;
+					if ((run_parameter.calibration_date.month>=1)&&(run_parameter.calibration_date.month<=12))
+					  flag_function++;
+					else{
+						flag_function = 10;
+						UARTprintf("Please set Month 1-12\n");
+					}
 				}
 			}
 			memset(cmd_tmp,0,sizeof(cmd_tmp));
@@ -1274,9 +1305,17 @@ void dx_arg(void)
 				if(flag_done==0)
 				{
 					run_parameter.calibration_date.day = atoi(cmd_tmp);
-					e2prom512_write(&run_parameter.calibration_date.day,4,128*2);
-					flag_function = 7;
-					UARTprintf("\n...Wait...SAVED  Done......\r\n\r\n");
+					if ((run_parameter.calibration_date.day>=1)&&(run_parameter.calibration_date.day<=31)){
+						e2prom512_write(&run_parameter.calibration_date.day,4,128*2);
+						flag_function = 7;
+						UARTprintf("Cal. date : %d-%d-%d\r\n",run_parameter.calibration_date.year,
+						run_parameter.calibration_date.month,
+						run_parameter.calibration_date.day);
+						UARTprintf("\n...Wait...SAVED  Done......\r\n\r\n");
+					}else{
+					  flag_function = 12;
+						UARTprintf("Please set day 1-31\n");
+					}
 				}
 			}
 			memset(cmd_tmp,0,sizeof(cmd_tmp));
@@ -1398,7 +1437,12 @@ void aop_arg(void)//h
 				if(flag_done==0)
 				{
 					run_parameter.h2_ppm_report_low_l16.hilo = atof(cmd_tmp)*10000;
-					e2prom512_write(&run_parameter.h2_ppm_report_low_h16.ubit.lo,4,141*2);
+					if (run_parameter.h2_ppm_report_low_l16.hilo < (5000))
+					  e2prom512_write(&run_parameter.h2_ppm_report_low_h16.ubit.lo,4,141*2);
+					else{
+						UARTprintf("Please set LowH2Range < 0.5\n");
+					  flag_function = 3;
+					}
 					flag_function++;
 				}
 			}
@@ -1434,13 +1478,18 @@ void aop_arg(void)//h
 				if(flag_done==0)
 				{
 					run_parameter.h2_ppm_report_high_l16.hilo = atof(cmd_tmp)*10000;
-					if (run_parameter.h2_ppm_report_high_l16.hilo > run_parameter.h2_ppm_report_low_l16.hilo){
-					e2prom512_write(&run_parameter.h2_ppm_report_high_h16.ubit.lo,4,143*2);
-					UARTprintf("New hydrogen reporting range(in oil LowH2Range-HighH2Range): %0.4f - %0.4f%% H2\n",
-					(float)run_parameter.h2_ppm_report_low_l16.hilo/10000,(float)(run_parameter.h2_ppm_report_high_l16.hilo)/10000);
-					UARTprintf("...Wait...SAVED - Done\n");
+					if (run_parameter.h2_ppm_report_high_l16.hilo < (5000)){
+						if (run_parameter.h2_ppm_report_high_l16.hilo > run_parameter.h2_ppm_report_low_l16.hilo){
+						e2prom512_write(&run_parameter.h2_ppm_report_high_h16.ubit.lo,4,143*2);
+						UARTprintf("New hydrogen reporting range(in oil LowH2Range-HighH2Range): %0.4f - %0.4f%% H2\n",
+						(float)run_parameter.h2_ppm_report_low_l16.hilo/10000,(float)(run_parameter.h2_ppm_report_high_l16.hilo)/10000);
+						UARTprintf("...Wait...SAVED - Done\n");
+						}else{
+						UARTprintf("Please input H command again and set HighH2Range > LowH2Range, exit H OK.\n");
+						}
 					}else{
-					UARTprintf("Please input H command again and set HighH2Range > LowH2Range, exit H OK.\n");
+					  UARTprintf("Please set HighH2Range < 0.5\n");
+					  flag_function = 5;
 					}
 					flag_function++;
 				}
@@ -1535,8 +1584,13 @@ void aoerr_arg(void)//i
 				if(flag_done==0)
 				{
 					run_parameter.h2_ppm_out_current_low.hilo = atof(cmd_tmp)*100;
-					e2prom512_write(&run_parameter.h2_ppm_out_current_low.ubit.lo,8,145*2);
-					flag_function++;
+					if ((run_parameter.h2_ppm_out_current_low.hilo >= 400)&&(run_parameter.h2_ppm_out_current_low.hilo <= 2000)){
+					  e2prom512_write(&run_parameter.h2_ppm_out_current_low.ubit.lo,8,145*2);
+					  flag_function++;
+					}else{
+					  UARTprintf("Please set new low H2 output current 4-20mA\n");
+						flag_function = 3;
+					}
 				}
 			}
 			memset(cmd_tmp,0,sizeof(cmd_tmp));
@@ -1571,15 +1625,20 @@ void aoerr_arg(void)//i
 				if(flag_done==0)
 				{
 					run_parameter.h2_ppm_out_current_high.hilo = atof(cmd_tmp)*100;
-					if (run_parameter.h2_ppm_out_current_high.hilo > run_parameter.h2_ppm_out_current_low.hilo){
-					e2prom512_write(&run_parameter.h2_ppm_out_current_low.ubit.lo,8,145*2);
-					flag_function++;
+					if ((run_parameter.h2_ppm_out_current_high.hilo >= 400)&&(run_parameter.h2_ppm_out_current_high.hilo <= 2000)){
+						if (run_parameter.h2_ppm_out_current_high.hilo > run_parameter.h2_ppm_out_current_low.hilo){
+							e2prom512_write(&run_parameter.h2_ppm_out_current_low.ubit.lo,8,145*2);
+							flag_function++;
+						}else{
+							UARTprintf("Please input I command again and set HighH2Current > LowH2Current, exit I OK.\n");
+							flag_function = 0;
+							flag_command = 0;
+							flag_screen = 0;
+							flag_chaoshi = 0;
+						}
 					}else{
-					UARTprintf("Please input I command again and set HighH2Current > LowH2Current, exit I OK.\n");
-					flag_function = 0;
-					flag_command = 0;
-					flag_screen = 0;
-					flag_chaoshi = 0;
+					  UARTprintf("Please set new high H2 output current 4-20mA\n");
+						flag_function = 5;
 					}
 				}
 			}
@@ -1619,11 +1678,8 @@ void aoerr_arg(void)//i
 					e2prom512_write(&run_parameter.h2_ppm_out_current_low.ubit.lo,8,145*2);
 					flag_function++;
 					}else{
-					UARTprintf("Please input I command again and set error_out_current < LowH2Current, exit I OK.\n");
-					flag_function = 0;
-					flag_command = 0;
-					flag_screen = 0;
-					flag_chaoshi = 0;
+					UARTprintf("Please set error H2 output current < low H2 output current.\n");
+					flag_function = 7;
 					}
 				}
 			}
@@ -1669,11 +1725,8 @@ void aoerr_arg(void)//i
 					(float)run_parameter.h2_ppm_no_ready_out_current.hilo/100);
 					UARTprintf("\n...Wait...SAVED  Done......\r\n\r\n");
 				}else{
-					UARTprintf("Please input I command again, set no_ready_out_current < LowH2Current and no_ready_out_current != error_out_current, exit I OK.\n");
-					flag_function = 0;
-					flag_command = 0;
-					flag_screen = 0;
-					flag_chaoshi = 0;
+					UARTprintf("Please set no_ready_out_current < LowH2Current and no_ready_out_current != error_out_current.\n");
+					flag_function = 9;
 					}
 				}
 			}
@@ -1705,7 +1758,7 @@ void is_time_set(unsigned char type)
 		units = Temp % 10;
 		TimeBCD.SpecificTime.sec = ((Tens << 4) & 0xF0) | (units & 0x0F);
 			S = TimeBCD.SpecificTime.sec;
-		
+		if ((S>=0)&&(S<=96)){
 		run_parameter.reserved_parameter35 = (0x20<<8 | Y);
 		run_parameter.reserved_parameter341 = (M<<8 | D);
 		run_parameter.reserved_parameter36 = H;
@@ -1733,7 +1786,12 @@ void is_time_set(unsigned char type)
 		Write1390(REG_MIN,RealTime_Modbus.Real_Time[5]);
 		Write1390(REG_SEC,RealTime_Modbus.Real_Time[6]);
 		Write1390(REG_STATUS,0x00); //禁止写入		
-		
+		UARTprintf("\n...Wait...SAVED  Done......\r\n\r\n");
+		flag_function++;
+		}else{
+			flag_function = 14;
+			UARTprintf("Please set sec 0-60\n");
+		}
 		break;
 		case 1:
 		Temp = atoi(cmd_tmp);		//
@@ -1741,6 +1799,13 @@ void is_time_set(unsigned char type)
 		units = Temp % 10;
 		TimeBCD.SpecificTime.min = ((Tens << 4) & 0xF0) | (units & 0x0F);
 			F = TimeBCD.SpecificTime.min;
+		if ((F>=0)&&(F<=96)){
+			flag_function++;
+		}else{
+			flag_function = 12;
+		  UARTprintf("Please set min 0-60\n");
+		}
+
 		break;
 		case 2:
 		Temp = atoi(cmd_tmp);		//
@@ -1748,6 +1813,13 @@ void is_time_set(unsigned char type)
 		units = Temp % 10;
 		TimeBCD.SpecificTime.hour = ((Tens << 4) & 0xF0) | (units & 0x0F);
 			H = TimeBCD.SpecificTime.hour;
+		if ((H>=0)&&(H<=36)){
+			flag_function++;
+		}else{
+			flag_function = 10;
+			UARTprintf("Please set hour 0-24\n");
+		}
+
 		break;
 		case 3:
 		Temp = atoi(cmd_tmp);		//
@@ -1755,6 +1827,14 @@ void is_time_set(unsigned char type)
 		units = Temp % 10;
 		TimeBCD.SpecificTime.day = ((Tens << 4) & 0xF0) | (units & 0x0F);
 			D = TimeBCD.SpecificTime.day;
+		if ((D>=1)&&(D<=49)){
+			flag_function++;
+		}else
+		{
+			UARTprintf("Please set day 1-31\n");
+			flag_function = 8;
+		}
+
 		break;
 		case 4:
 		Temp = atoi(cmd_tmp);		//
@@ -1762,6 +1842,13 @@ void is_time_set(unsigned char type)
 		units = Temp % 10;
 		TimeBCD.SpecificTime.month = ((Tens << 4) & 0xF0) | (units & 0x0F);
 			M = TimeBCD.SpecificTime.month;
+		if ((M>=1)&&(M<=18)){
+			flag_function++;
+		}else{
+			flag_function = 6;
+		  UARTprintf("Please set month 1-12\n");
+		}
+
 		break;
 		case 5:
 		Temp = atoi(cmd_tmp) - 2000;		//
@@ -1783,11 +1870,17 @@ void install_arg(void)//is
 	switch(flag_function){
 		case 0:
 			UARTprintf("Erase All Data Log\r\n");
-		  for (i=0;i<30;i++)
+		  for (i=0;i<32;i++)
       M25P16_erase_map(i*0x10000,SE);
 
 		  Intermediate_Data.M25P16_Data_Addr = 0;
       e2prom512_write((unsigned char *)&Intermediate_Data.M25P16_Data_Addr,sizeof(unsigned int),116*2);
+		
+			//清除油中氢校准数据和产品配置，读取出厂设置
+			run_parameter.h2_ppm_calibration_gas_h16.hilo = 0;
+			run_parameter.h2_ppm_calibration_gas_l16.hilo = 0;
+			e2prom512_write(&run_parameter.h2_ppm_calibration_gas_h16.ubit.lo,4,126*2);
+		
 			UARTprintf("...wait...\r\n");
 			flag_function++;
 			flag_chaoshi = 0;
@@ -1906,7 +1999,6 @@ void install_arg(void)//is
 				if(flag_done==0)
 				{
 					is_time_set(4);
-					flag_function++;
 				}
 		}
 		memset(cmd_tmp,0,sizeof(cmd_tmp));
@@ -1941,7 +2033,6 @@ void install_arg(void)//is
 				if(flag_done==0)
 				{
 					is_time_set(3);
-					flag_function++;
 				}
 		}
 		memset(cmd_tmp,0,sizeof(cmd_tmp));
@@ -1976,7 +2067,6 @@ void install_arg(void)//is
 				if(flag_done==0)
 				{
 					is_time_set(2);
-					flag_function++;
 				}
 		}
 		memset(cmd_tmp,0,sizeof(cmd_tmp));
@@ -2011,7 +2101,6 @@ void install_arg(void)//is
 				if(flag_done==0)
 				{
 					is_time_set(1);
-					flag_function++;
 				}
 		}
 		memset(cmd_tmp,0,sizeof(cmd_tmp));
@@ -2046,12 +2135,10 @@ void install_arg(void)//is
 				if(flag_done==0)
 				{
 					is_time_set(0);
-					flag_function=3;
 //					UARTprintf("System time is 20%x-%x-%x %x:%x:%x",
 //					run_parameter.reserved_parameter35&0xFF,run_parameter.reserved_parameter341>>8,
 //					run_parameter.reserved_parameter341&0xFF,run_parameter.reserved_parameter36&0xFF,
 //					run_parameter.reserved_parameter37>>8,run_parameter.reserved_parameter37&0xFF);
-					UARTprintf("\n...Wait...SAVED  Done......\r\n\r\n");
 				}
 		}
 		memset(cmd_tmp,0,sizeof(cmd_tmp));
@@ -2059,7 +2146,10 @@ void install_arg(void)//is
 		break;
 		
 		default:
-		flag_command=0;
+			flag_function=0;
+			flag_command=0;
+			flag_screen=0;	
+			flag_chaoshi=0;
 		break;						
 	}		
 }
@@ -2180,7 +2270,6 @@ void date_arg(void)//rs
 				if(flag_done==0)
 				{
 					is_time_set(4);
-					flag_function++;
 				}
 		}
 		memset(cmd_tmp,0,sizeof(cmd_tmp));
@@ -2215,7 +2304,6 @@ void date_arg(void)//rs
 				if(flag_done==0)
 				{
 					is_time_set(3);
-					flag_function++;
 				}
 		}
 		memset(cmd_tmp,0,sizeof(cmd_tmp));
@@ -2250,7 +2338,6 @@ void date_arg(void)//rs
 				if(flag_done==0)
 				{
 					is_time_set(2);
-					flag_function++;
 				}
 		}
 		memset(cmd_tmp,0,sizeof(cmd_tmp));
@@ -2285,7 +2372,6 @@ void date_arg(void)//rs
 				if(flag_done==0)
 				{
 					is_time_set(1);
-					flag_function++;
 				}
 		}
 		memset(cmd_tmp,0,sizeof(cmd_tmp));
@@ -2320,8 +2406,6 @@ void date_arg(void)//rs
 				if(flag_done==0)
 				{
 					is_time_set(0);
-					flag_function=2;
-					UARTprintf("\n...Wait...SAVED  Done......\r\n\r\n");
 				}
 		}
 		memset(cmd_tmp,0,sizeof(cmd_tmp));
@@ -2329,7 +2413,10 @@ void date_arg(void)//rs
 		break;
 		
 		default:
+		flag_function=0;
 		flag_command=0;
+		flag_screen=0;	
+		flag_chaoshi=0;
 		break;						
 	}		
 }
@@ -2465,25 +2552,30 @@ void record_arg(void)//t
 		
 		case 7:
 		UARTprintf("Begin Log Data - RS232\r\n\r\n");
-		UARTprintf("TimeStamp    ");
+		UARTprintf("TimeStamp            ");
 		UARTprintf("H2DG    ");
-		UARTprintf("OilTemp    ");
-		UARTprintf("DayROCppm    ");
-		UARTprintf("Msg    \r\n");	
+		UARTprintf("OilTemp        ");
+		UARTprintf("DayROCppm        ");
+		UARTprintf("Msg\r\n");	
 		//从存储中打印数据
-		e2prom512_read(&b,sizeof(unsigned char),233*2);
+		e2prom512_read(&b,sizeof(unsigned char),115*2);
 		Intermediate_Data.Alarm_page = b;
-//		UARTprintf("Alarm_page=%d\n",Intermediate_Data.Alarm_page);
+
 		if (readlog_number <= 256 && readlog_number > 0){
 			for (i=0;i<readlog_number;i++){
 				Intermediate_Data.Alarm_page--;
 				if (Intermediate_Data.Alarm_page > 255)
 					Intermediate_Data.Alarm_page = 255;
-				
+//						UARTprintf("Alarm_page=%d\n",Intermediate_Data.Alarm_page);
 				  M25P16_Read_Data(buffer,256,31*0x10000+Intermediate_Data.Alarm_page*256);
 				
-				UARTprintf("%x-%x-%x %x:%x:%x %x %.2f %x \n",(buffer[0]<<8)|buffer[1],buffer[2],buffer[3],buffer[4],
-				buffer[5],buffer[6],(buffer[7]<<24)|(buffer[8]<<16)|(buffer[9]<<8)|buffer[10],(float)((buffer[11]<<8)|buffer[12])/100.0,(buffer[13]<<24)|(buffer[14]<<16)|(buffer[15]<<8)|buffer[16]);
+				if (((buffer[0]<<8)|buffer[1]) != 0xffff)
+				UARTprintf("%x/%02x/%02x %02x:%02x:%02x     %d      %.2f                %d         %c%d\n",
+				(buffer[0]<<8)|buffer[1],buffer[2],buffer[3],buffer[4],
+				buffer[5],buffer[6],(buffer[7]<<24)|(buffer[8]<<16)|(buffer[9]<<8)|buffer[10],(float)((buffer[11]<<8)|buffer[12])/100.0,
+				(buffer[13]<<24)|(buffer[14]<<16)|(buffer[15]<<8)|buffer[16],buffer[17],buffer[18]);
+				else
+			  UARTprintf("Erase init area.\n");
 			}
 		}else{
 		  UARTprintf("max.256 alarm log. Please set 1-256 at here.\n");
@@ -2503,6 +2595,7 @@ void record_arg(void)//t
 
 void clear_arg(void)//x
 {
+	unsigned char data = 0;
 	switch(flag_function){
 		case 0:
 		UARTprintf("Clear field calibration values (Y/N)?");
@@ -2523,6 +2616,9 @@ void clear_arg(void)//x
 					e2prom512_write(&run_parameter.h2_ppm_calibration_gas_h16.ubit.lo,4,126*2);
 
 					run_parameter.unit_id.ubit.lo = 1;
+					
+					e2prom512_write(&data,2,118*2);
+					e2prom512_write(&data,2,119*2);
 					
 					run_parameter.h2_ppm_report_low_h16.hilo = 0;
 					run_parameter.h2_ppm_report_low_l16.hilo = 0;
@@ -2601,10 +2697,12 @@ void clear_arg(void)//x
 
 void ci_arg(void)//ci
 {
-	unsigned char i = 0;
+	unsigned char i = 0, pn = 0;
+	short val1 = 0, val2 = 0;
 	switch(flag_function){
 		case 0:
 		UARTprintf("Calibrate 4-20mA output (Y/N)?");	
+		Intermediate_Data.current_cal = 1;
 		flag_function++;
 		flag_chaoshi = 0;
 		memset(cmd_tmp,0,sizeof(cmd_tmp));
@@ -2631,6 +2729,7 @@ void ci_arg(void)//ci
 							flag_command = 0;
 							flag_screen = 0;
 							flag_chaoshi = 0;
+							Intermediate_Data.current_cal = 0;
 						}
 					break;				
 				}
@@ -2643,11 +2742,13 @@ void ci_arg(void)//ci
 		flag_function=0;
 		flag_command=0;
 		flag_screen=0;	
-		flag_chaoshi=0;			
+		flag_chaoshi=0;	
+    Intermediate_Data.current_cal = 0;		
 		break;
 		
 		case 3:
-		UARTprintf("Set to 4.000mA, Enter actual value: ");	
+		UARTprintf("Set to 3.000mA, Enter actual value: ");
+		AD420_OUTPUT_SET((65535.0/20.0)*3.0);
 		flag_function++;
 		flag_chaoshi=0;	
 		memset(cmd_tmp,0,sizeof(cmd_tmp));
@@ -2658,26 +2759,54 @@ void ci_arg(void)//ci
 		if(strlen(cmd_tmp)>0)
 		{
 				flag_done = 0;
+			  for (i=0;i<strlen(cmd_tmp);i++){
 				if((cmd_tmp[i] < 0x30) || (cmd_tmp[i] > 0x39))
 				{
-					flag_done = 1;
+					if (cmd_tmp[i] != 0x2e)
+					flag_done = 1;	
+				 }
+			  }
+				if (flag_done==1){
 					UARTprintf("Please set 0-9 at here, try again.\n");
-					flag_chaoshi++;
+					flag_chaoshi++;		
 					if (flag_chaoshi > 5){
 						UARTprintf("Please input CI command again and set 0-9 at here, exit CI OK.\n");
 						flag_function = 0;
 						flag_command = 0;
 						flag_screen = 0;
 						flag_chaoshi = 0;
-					}			
+						Intermediate_Data.current_cal = 0;
+					}
 				}
 				if(flag_done==0)
 				{
-//					run_parameter.h2_ppm_out_current_low.hilo=(short)(atof(cmd_tmp)*100);//此parameter有待修改
-					run_parameter.h2_ppm_out_current_low.hilo = atof(cmd_tmp)*100;
-					UARTprintf("run_parameter.h2_ppm_out_current_low.hilo=%d\n",run_parameter.h2_ppm_out_current_low.hilo);
-					e2prom512_write(&run_parameter.h2_ppm_out_current_low.ubit.lo,2,145*2);
-					flag_function++;
+					run_parameter.reserved_parameter31 = atof(cmd_tmp)*100;
+					if (run_parameter.reserved_parameter31>=250 && run_parameter.reserved_parameter31<=350){
+						if (run_parameter.reserved_parameter31 > 300){
+               run_parameter.reserved_parameter31 = run_parameter.reserved_parameter31 - 300;
+							AD420_OUTPUT_SET((65535.0/20.0)*(3.0+(float)run_parameter.reserved_parameter31/100.0));
+							pn = 1;
+						}
+            else{ 
+               run_parameter.reserved_parameter31 = 300 - run_parameter.reserved_parameter31;
+							AD420_OUTPUT_SET((65535.0/20.0)*(3.0-(float)run_parameter.reserved_parameter31/100.0));
+							pn = 2;
+						}
+						if (pn == 1){
+							val1 = run_parameter.reserved_parameter31;
+						  e2prom512_write((char*)&val1,2,118*2);
+						}
+						if (pn == 2){
+							val1 = -run_parameter.reserved_parameter31;
+						  e2prom512_write((char*)&val1,2,118*2);
+						}
+						
+						flag_function++;
+					}else{
+					  flag_function = 3;
+						UARTprintf("Calibrate 3.000mA, Enter actual value 2.5-3.5mA \n");
+					}
+					
 				}
 		}
 		memset(cmd_tmp,0,sizeof(cmd_tmp));
@@ -2685,7 +2814,8 @@ void ci_arg(void)//ci
 		break;
 		
 		case 5:
-		UARTprintf("Set to 20.000mA, Enter actual value: ");
+		UARTprintf("Set to 19.000mA, Enter actual value: ");
+		AD420_OUTPUT_SET((65535.0/20.0)*19.0);	
 		flag_function++;
 		flag_chaoshi = 0;
 		memset(cmd_tmp,0,sizeof(cmd_tmp));
@@ -2696,9 +2826,14 @@ void ci_arg(void)//ci
 		if(strlen(cmd_tmp)>0)
 		{
 				flag_done = 0;
+			for (i=0;i<strlen(cmd_tmp);i++){
 				if((cmd_tmp[i] < 0x30) || (cmd_tmp[i] > 0x39))
 				{
-					flag_done = 1;
+					if (cmd_tmp[i] != 0x2e)
+					flag_done = 1;			
+				}
+			 }
+			if(flag_done==1){
 					UARTprintf("Please set 0-9 at here, try again.\n");
 					flag_chaoshi++;
 					if (flag_chaoshi > 5){
@@ -2707,16 +2842,37 @@ void ci_arg(void)//ci
 						flag_command = 0;
 						flag_screen = 0;
 						flag_chaoshi = 0;
-					}			
-				}
+						Intermediate_Data.current_cal = 0;
+					}
+			}
 				if(flag_done==0)
 				{
-//					run_parameter.h2_ppm_out_current_high.hilo=(short)(atof(cmd_tmp)*100);//此parameter有待修改
-					run_parameter.h2_ppm_out_current_high.hilo = atof(cmd_tmp)*100;
-					UARTprintf("run_parameter.h2_ppm_out_current_high.hilo=%d\n",run_parameter.h2_ppm_out_current_high.hilo);
-					e2prom512_write(&run_parameter.h2_ppm_out_current_high.ubit.lo,2,146*2);
-					UARTprintf("Test the output\n");
-					flag_function++;
+					run_parameter.reserved_parameter32 = atof(cmd_tmp)*100;
+					if (run_parameter.reserved_parameter32>=1850 && run_parameter.reserved_parameter32<=1950){
+						if (run_parameter.reserved_parameter32 > 1900){
+							run_parameter.reserved_parameter32 = run_parameter.reserved_parameter32 - 1900;
+							AD420_OUTPUT_SET((65535.0/20.0)*(19.0+(float)run_parameter.reserved_parameter32/100.0));
+							pn = 3;
+						}else{
+						  run_parameter.reserved_parameter32 = 1900 - run_parameter.reserved_parameter32;
+							AD420_OUTPUT_SET((65535.0/20.0)*(19.0-(float)run_parameter.reserved_parameter32/100.0));
+							pn = 4;
+						}
+						if (pn == 3){
+							val2 = run_parameter.reserved_parameter32;
+						  e2prom512_write((char *)&val2,2,119*2);
+						}
+						if (pn == 4){
+							val2 = -run_parameter.reserved_parameter32;
+						  e2prom512_write((char *)&val2,2,119*2);
+						}
+							
+						UARTprintf("Test the output\n");
+						flag_function++;
+					}else{
+					  flag_function = 5;
+						UARTprintf("Calibrate 19.000mA, Enter actual value 18.5-19.5mA \n");
+					}
 				}
 		}
 		memset(cmd_tmp,0,sizeof(cmd_tmp));
@@ -2724,7 +2880,9 @@ void ci_arg(void)//ci
 		break;
 		
 		case 7:
-		UARTprintf("Set to 4.000mA, Is this good (Y/N)?");
+		UARTprintf("Set to 3.000mA, Is this good (Y/N)?");
+		e2prom512_read((unsigned char*)&val1,2,118*2);
+		AD420_OUTPUT_SET((65535.0/20.0)*(3.0-(float)val1/100.0));
 		flag_function++;
 		flag_chaoshi=0;
 		memset(cmd_tmp,0,sizeof(cmd_tmp));
@@ -2750,6 +2908,7 @@ void ci_arg(void)//ci
 							flag_command = 0;
 							flag_screen = 0;
 							flag_chaoshi = 0;
+							Intermediate_Data.current_cal = 0;
 						}
 					break;				
 				}
@@ -2759,7 +2918,9 @@ void ci_arg(void)//ci
 		break;
 		
 		case 9:
-		UARTprintf("Set to 20.000mA, Is this good (Y/N)?");
+		UARTprintf("Set to 19.000mA, Is this good (Y/N)?");
+		e2prom512_read((unsigned char*)&val2,2,119*2);
+		AD420_OUTPUT_SET((65535.0/20.0)*(19.0-(float)val2/100.0));
 		flag_function++;
 		flag_chaoshi = 0;
 		memset(cmd_tmp,0,sizeof(cmd_tmp));
@@ -2771,8 +2932,9 @@ void ci_arg(void)//ci
 		{
 				switch(cmd_tmp[0]){
 					case 0x79://y
-					UARTprintf("Calibrate %.2f-%.2fmA output\n",(float)run_parameter.h2_ppm_out_current_low.hilo/100,(float)run_parameter.h2_ppm_out_current_high.hilo/100);
+//					UARTprintf("Calibrate %.2f-%.2fmA output\n",(float)run_parameter.h2_ppm_out_current_low.hilo/100,(float)run_parameter.h2_ppm_out_current_high.hilo/100);
 					UARTprintf("\n...Wait...SAVED  Done......\r\n\r\n");
+					Intermediate_Data.current_cal = 0;
 					flag_function=2;
 					break;
 					case 0x6e://n 
@@ -2787,6 +2949,7 @@ void ci_arg(void)//ci
 							flag_command = 0;
 							flag_screen = 0;
 							flag_chaoshi = 0;
+							Intermediate_Data.current_cal = 0;
 						}
 					break;				
 				}
@@ -2797,6 +2960,7 @@ void ci_arg(void)//ci
 		
 		default:
 		flag_command=0;
+		Intermediate_Data.current_cal = 0;
 		break;
 	}
 }
@@ -2853,26 +3017,36 @@ void setmid_arg(void)//mi
 		if(strlen(cmd_tmp)>0)
 		{
 				flag_done = 0;
+				for (i=0;i<strlen(cmd_tmp);i++){
 				if((cmd_tmp[i] < 0x30) || (cmd_tmp[i] > 0x39))
 				{
 					flag_done = 1;
+				}
+			 }
+				if(flag_done==1){
 					UARTprintf("Please set 0-9 at here, try again.\n");
 					flag_chaoshi++;
 					if (flag_chaoshi > 5){
-						UARTprintf("Please input CI command again and set 0-9 at here, exit CI OK.\n");
+						UARTprintf("Please input MI command again and set 0-9 at here, exit MI OK.\n");
 						flag_function = 0;
 						flag_command = 0;
 						flag_screen = 0;
 						flag_chaoshi = 0;
 					}
 				}
+
 				if(flag_done==0)
 				{
+					if (atoi(cmd_tmp)>=1 && atoi(cmd_tmp)<=255){
 					run_parameter.unit_id.ubit.lo = atoi(cmd_tmp);
 					e2prom512_write(&run_parameter.unit_id.ubit.lo,1,150*2);
 					UARTprintf("New Modbus ID is %d\r\n",run_parameter.unit_id.ubit.lo);
 					UARTprintf("\n...SAVED  Done......\r\n\r\n");
 					flag_function = 2;
+					}else{
+					UARTprintf("Please set New Modbus ID 1-255, try again.\n");
+						flag_function = 0;
+					}
 				}
 		}
 		memset(cmd_tmp,0,sizeof(cmd_tmp));
