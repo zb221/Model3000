@@ -644,6 +644,8 @@ int main (void)
 			Intermediate_Data.flag3 = 0;
 			H2SldAv_24H2G();
 			M25P16_Data_Records();
+			if (output_data.OilTemp >= run_parameter.OilTemp_Alarm_celsius.hilo || output_data.DayROC >= run_parameter.h2_ppm_alarm_low_l16.hilo || output_data.H2DG >= run_parameter.h2_ppm_alert_low_l16.hilo)
+				M25P16_Alarm_Log_Records();
 #ifdef DEBUG
 		  UARTprintf("save data into flash\n");			
 #endif
@@ -669,8 +671,6 @@ int main (void)
 			   AD420_OUTPUT_SET((65535.0/20.0)*((-(float)val1/100.0)+(float)run_parameter.h2_ppm_out_current_low.hilo/100.0+(((float)(run_parameter.h2_ppm_out_current_high.hilo - run_parameter.h2_ppm_out_current_low.hilo)/100.0)/5000.0)*output_data.H2DG));
 				}
 		  }
-			if (output_data.OilTemp >= run_parameter.OilTemp_Alarm_celsius.hilo || output_data.DayROC >= run_parameter.h2_ppm_alarm_low_l16.hilo || output_data.H2DG >= run_parameter.h2_ppm_alert_low_l16.hilo)
-				M25P16_Alarm_Log_Records();
 
 			Intermediate_Data.flag4 = 0;
 			if(flag_screen==0)
@@ -687,6 +687,7 @@ int main (void)
 		if(user_parameter.flag.ubit.recept_ok==1)
 		{			
 			Data_Ack_Processor();
+			UARTprintf("Data Ack\n");
 		}
 		if(user_parameter.flag.ubit.recept_write==1)
 		{
