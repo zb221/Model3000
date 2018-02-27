@@ -500,6 +500,10 @@ int Init_ModBus (void)
 	run_parameter.dissolved_gas_calibration_date.month = 01;
 	run_parameter.dissolved_gas_calibration_date.day = 01;
 	run_parameter.dissolved_gas_calibration_date.year = 2018;
+	
+	run_parameter.calibration_date.year = 2018;
+	run_parameter.calibration_date.month = 01;
+	run_parameter.calibration_date.day = 01;
 	//89-98
 	strcpy(run_parameter.firmware_revesion.firmware_revesion_str,"V2.0");
 	strcpy(run_parameter.hardware_version.hardware_version_str,"V3");
@@ -618,7 +622,10 @@ int RW_ModBus_Data (void)
 			temp = db_H2ppm - Intermediate_Data.da_H2ppm;
 			run_parameter.h2_ppm_calibration_gas_h16.hilo = temp >> 16;
 			run_parameter.h2_ppm_calibration_gas_l16.hilo = temp & 0xFFFF;
-			e2prom512_write(&run_parameter.h2_ppm_calibration_gas_h16.ubit.lo,4,126*2);
+			if (db_H2ppm<=5000)
+			  e2prom512_write(&run_parameter.h2_ppm_calibration_gas_h16.ubit.lo,4,126*2);
+			else
+				UARTprintf("calibration data over H2 low and high value.\n");
 
 //      UARTprintf("1Set hydrogen to %d ppm\r\n",temp);
 			//		UARTprintf("Set hydrogen to %d ppm\r\n",db_H2ppm);//126 127	
@@ -650,7 +657,10 @@ int RW_ModBus_Data (void)
 			//		systemInf.ModbusID=(unsigned char)run_parameter.uint_id.ubit.lo;//systemInf.CallID=(systemInf.CallID-50);		
 			//    UARTprintf("Set ModbusID to:%d\r\n", (unsigned int)systemInf.ModbusID);		
 			//run_parameter.uint_id.ubit.lo=0x01;//Ä¬ÈÏID
+			if (run_parameter.unit_id.ubit.lo >0 && run_parameter.unit_id.ubit.lo<=255)
 			e2prom512_write(&run_parameter.unit_id.ubit.lo,1,150*2);
+			else
+				UARTprintf("Please set ID 1~255\n");
 			break;
 		}
 
@@ -689,7 +699,11 @@ int RW_ModBus_Data (void)
 		{
 			//141-142	
 			cmd_ConfigData.H2low = (double)(((run_parameter.h2_ppm_report_low_h16.hilo<<16 |run_parameter.h2_ppm_report_low_l16.hilo)/10000.F)*20.F);
-			e2prom512_write(&run_parameter.h2_ppm_report_low_h16.ubit.lo,4,141*2);	
+			if ((run_parameter.h2_ppm_report_low_h16.hilo<<16 |run_parameter.h2_ppm_report_low_l16.hilo)>=0
+				&& (run_parameter.h2_ppm_report_low_h16.hilo<<16 |run_parameter.h2_ppm_report_low_l16.hilo)<=5000)
+			e2prom512_write(&run_parameter.h2_ppm_report_low_h16.ubit.lo,4,141*2);
+      else			
+			UARTprintf("Please set h2_ppm_report_low 0~5000\n");
 			//float_char(cmd_ConfigData.H2low,systemInf.LowH2);		
 			break;
 		}	
@@ -698,7 +712,11 @@ int RW_ModBus_Data (void)
 		{
 			//143-144	
 			cmd_ConfigData.H2high = (double)(((run_parameter.h2_ppm_report_high_h16.hilo<<16 |run_parameter.h2_ppm_report_high_l16.hilo)/10000.F)*20.F);
+			if ((run_parameter.h2_ppm_report_high_h16.hilo<<16 |run_parameter.h2_ppm_report_high_l16.hilo)>=0
+				&& (run_parameter.h2_ppm_report_high_h16.hilo<<16 |run_parameter.h2_ppm_report_high_l16.hilo)<=5000)
 			e2prom512_write(&run_parameter.h2_ppm_report_high_h16.ubit.lo,4,143*2);	
+			else
+			UARTprintf("Please set h2_ppm_report_high 0~5000\n");
 			//float_char(cmd_ConfigData.H2high,systemInf.HighH2);		
 			break;
 		}
@@ -710,8 +728,18 @@ int RW_ModBus_Data (void)
 			cmd_ConfigData.HighmA = (double)((run_parameter.h2_ppm_out_current_high.hilo)/100.F);
 			cmd_ConfigData.ErrmA = (double)((run_parameter.h2_ppm_error_out_current.hilo)/100.F);
 			cmd_ConfigData.NotRmA = (double)((run_parameter.h2_ppm_no_ready_out_current.hilo)/100.F);
-
+      
+			if ((run_parameter.h2_ppm_out_current_low.hilo>=0 && run_parameter.h2_ppm_out_current_low.hilo<=2000)
+				&&(run_parameter.h2_ppm_out_current_high.hilo>=0 && run_parameter.h2_ppm_out_current_high.hilo<=2000)
+				&&(run_parameter.h2_ppm_error_out_current.hilo>=0 && run_parameter.h2_ppm_error_out_current.hilo<=2000)
+			  &&(run_parameter.h2_ppm_no_ready_out_current.hilo>=0 && run_parameter.h2_ppm_no_ready_out_current.hilo<=2000)){
+			if (run_parameter.h2_ppm_out_current_low.hilo<run_parameter.h2_ppm_out_current_high.hilo)
 			e2prom512_write(&run_parameter.h2_ppm_out_current_low.ubit.lo,8,145*2);
+			else
+				UARTprintf("Please set h2_ppm_out_current_low < h2_ppm_out_current_high.\n");
+		}else{
+		    UARTprintf("Please set Value 0-20mA.\n");
+		}
 
 			//    float_char(cmd_ConfigData.LowmA,systemInf.Out_mA_Low);//float?char  ??????
 			//    float_char(cmd_ConfigData.HighmA,systemInf.Out_mA_High);
@@ -725,8 +753,11 @@ int RW_ModBus_Data (void)
 		case 153:
 		{	
 			cmd_ConfigData.MaxAlertH2 = (double)((run_parameter.h2_ppm_alert_low_h16.hilo<<16 |run_parameter.h2_ppm_alert_low_l16.hilo));
-			e2prom512_write(&run_parameter.h2_ppm_alert_low_h16.ubit.lo,4,152*2);
-//      UARTprintf("alert_low = %d\n",((run_parameter.h2_ppm_alert_low_h16.hilo<<16 |run_parameter.h2_ppm_alert_low_l16.hilo)));
+			if ((run_parameter.h2_ppm_alert_low_h16.hilo<<16 |run_parameter.h2_ppm_alert_low_l16.hilo)>=0
+				&& (run_parameter.h2_ppm_alert_low_h16.hilo<<16 |run_parameter.h2_ppm_alert_low_l16.hilo)<=5000)
+			  e2prom512_write(&run_parameter.h2_ppm_alert_low_h16.ubit.lo,4,152*2);
+			else
+        UARTprintf("Please set alert_low 0~5000\n");
 			//float_char(cmd_ConfigData.MaxAlertH2,systemInf.AlertH2);		
 			break;
 		}
@@ -735,9 +766,12 @@ int RW_ModBus_Data (void)
 		case 155:
 		{	
 			cmd_ConfigData.MaxAlarmH2 = (double)((run_parameter.h2_ppm_alarm_low_h16.hilo<<16 |run_parameter.h2_ppm_alarm_low_l16.hilo));
-			e2prom512_write(&run_parameter.h2_ppm_alarm_low_h16.ubit.lo,4,154*2);
+			if ((run_parameter.h2_ppm_alarm_low_h16.hilo<<16 |run_parameter.h2_ppm_alarm_low_l16.hilo)>=0
+				&& (run_parameter.h2_ppm_alarm_low_h16.hilo<<16 |run_parameter.h2_ppm_alarm_low_l16.hilo)<=5000)
+			  e2prom512_write(&run_parameter.h2_ppm_alarm_low_h16.ubit.lo,4,154*2);
+			else
+        UARTprintf("Please set alarm_low 0~5000\n");
 			//float_char(cmd_ConfigData.MaxAlarmH2,systemInf.AlarmH2);		
-//			UARTprintf("alarm_low = %d\n",((run_parameter.h2_ppm_alarm_low_h16.hilo<<16 |run_parameter.h2_ppm_alarm_low_l16.hilo)));
 			break;
 		}
 
@@ -745,8 +779,10 @@ int RW_ModBus_Data (void)
 		case 156:
 		{	
 			run_parameter.OilTemp_Alarm_celsius.hilo = (run_parameter.OilTemp_Alarm_celsius.hilo)/100;
-			e2prom512_write(&run_parameter.OilTemp_Alarm_celsius.ubit.lo,2,156*2);
-//			UARTprintf("OilTemp_Alarm_celsius = %d\n",(run_parameter.OilTemp_Alarm_celsius.hilo));
+			if(run_parameter.OilTemp_Alarm_celsius.hilo>=0 && run_parameter.OilTemp_Alarm_celsius.hilo<=105)
+			  e2prom512_write(&run_parameter.OilTemp_Alarm_celsius.ubit.lo,2,156*2);
+			else
+  			UARTprintf("Please set OilTemp_Alarm_celsius -20~105 temp\n");
 			//float_char(cmd_ConfigData.MaxAlarmOil,systemInf.AlarmOil);		
 			break;
 		}

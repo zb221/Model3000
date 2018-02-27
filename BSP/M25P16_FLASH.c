@@ -523,8 +523,20 @@ void M25P16_Alarm_Log_Records(void)
 	spi_flash_buffer[14] = ((unsigned int)output_data.DayROC >> 16) & 0xFF;
 	spi_flash_buffer[15] = ((unsigned int)output_data.DayROC >> 8) & 0xFF;
 	spi_flash_buffer[16] = (unsigned int)output_data.DayROC & 0xFF;
+	spi_flash_buffer[17] = 'R';
+	
+	if (output_data.OilTemp >= run_parameter.OilTemp_Alarm_celsius.hilo){
+	    spi_flash_buffer[18] = 3;
+	}
+
+	if (output_data.DayROC >= run_parameter.h2_ppm_alarm_low_l16.hilo)
+			spi_flash_buffer[18] = 2;
+	
+	if (output_data.H2DG >= run_parameter.h2_ppm_alert_low_l16.hilo)
+			spi_flash_buffer[18] = 1;
 
 	e2prom512_read(&b,sizeof(unsigned char),115*2);
+//	UARTprintf("b=%d\n",b);
 	
 	Intermediate_Data.Alarm_page = b;
 	
@@ -537,7 +549,7 @@ void M25P16_Alarm_Log_Records(void)
 	}
 
 	e2prom512_write(&Intermediate_Data.Alarm_page,sizeof(unsigned char),115*2);
-	
+//	UARTprintf("Alarm_page=%d\n",Intermediate_Data.Alarm_page);
 //  /*read test*/
 //	if (Intermediate_Data.page == 0){
 //    M25P16_Read_Data(buffer,256,Intermediate_Data.sector*0x10000+255*256);

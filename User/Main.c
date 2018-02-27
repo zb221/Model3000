@@ -57,17 +57,17 @@ const char calibrate_menu[] =
 
 char message0[] = "rpt";
 char message1[] = "wait";
-char message2[] = "woff,";
-char message3[] = "avg,";
-char message4[] = "OVT,";
-char message5[] = "htr_off,";
-char message6[] = "warm_up,";
-char message7[] = "ramp_up,";
-char message8[] = "ramp_down,";
-char message9[] = "PF,";
-char message10[] = "R1,";
-char message11[] = "R2,";
-char message12[] = "R3,";
+char message2[] = "woff";
+char message3[] = "avg";
+char message4[] = "OVT";
+char message5[] = "htr_off";
+char message6[] = "warm_up";
+char message7[] = "ramp_up";
+char message8[] = "ramp_down";
+char message9[] = "PF";
+char message10[] = "R1";
+char message11[] = "R2";
+char message12[] = "R3";
 
 /***********************************************************
 Function:	INIT Global variable region.
@@ -93,11 +93,11 @@ void init_Global_Variable(void)
 	float Din_temp[5] = {45.7,49.4,55,63.9,68.3};           /* new sense */
 	
 	/*The relationship between H2 and H2_resistance*/
-//	float H2[13] = {50,100,200,400,800,1600,3000,5000,10000,30000,40000,60000,100000};  /* new sense */
-//	float OHM[13] = {957.362,957.512,957.932,958.498,959.230,960.226,961.227,962.232,964.148,968.251,969.743,971.975,975.627};  /* new sense */
+	float H2[13] = {50,100,200,400,800,1600,3000,5000,10000,30000,40000,60000,100000};  /* new sense */
+	float OHM[13] = {957.362,957.512,957.932,958.498,959.230,960.226,961.227,962.232,964.148,968.251,969.743,971.975,975.627};  /* new sense */
 
-	float H2[13] = {50,100,200,400,800,1600,3000,5000,8000,30000,40000,80000,100000};  /* new sense */
-	float OHM[13] = {948.391,948.653,948.952,949.426,950.044,950.848,951.771,952.573,953.628,957.897,959.167,963.071,964.484};  /* new sense */
+//	float H2[13] = {50,100,200,400,800,1600,3000,5000,8000,30000,40000,80000,100000};
+//	float OHM[13] = {948.391,948.653,948.952,949.426,950.044,950.848,951.771,952.573,953.628,957.897,959.167,963.071,964.484};
 	
 	print_count = 60 / print_time;
 	
@@ -136,6 +136,7 @@ void init_Global_Variable(void)
 	Intermediate_Data.Start_print_calibrate_H2R = 0;
 	Intermediate_Data.wait_1min = 1;
 	Intermediate_Data.wait_1min_oil = 1;
+	Intermediate_Data.current_cal = 0;
 	
 	Intermediate_Data.H2Resistor_OilTemp_K = 0;
 	Intermediate_Data.H2Resistor_OilTemp_B = 0;
@@ -192,6 +193,7 @@ Description: all peripherals init should add here.
 void init_peripherals(void)
 {
 	LED_init();
+	ZIGBB_PWR();
 	init_serial();
 	init_timer();
 	init_PWM();
@@ -231,33 +233,37 @@ void command_print(void)
 	
 	if(output_data.temperature == 50)
 	{
-    UARTprintf(message0);
-		UARTprintf("%d,",print_count--);
-    UARTprintf(message6);
-    UARTprintf(message7);
+		if (Intermediate_Data.wait_1min == 1)
+      UARTprintf(message1);
+    else
+			UARTprintf(message6);
+		UARTprintf("%d",print_count--);
+
 	}else{
-	  UARTprintf(message1);
-    UARTprintf("%d,",print_count--);
-		UARTprintf(message8);
+		if (Intermediate_Data.wait_1min_oil == 1)
+	    UARTprintf(message3);
+		else
+		  UARTprintf(message5);
+    UARTprintf("%d",print_count--);
 	}
 	
-	if (Intermediate_Data.Heat_V > 100){
-		UARTprintf(message2);
-	}else{
-	  UARTprintf(message5);
-	}
-	
-	if(output_data.temperature == 70){
-    UARTprintf(message6);
-		UARTprintf(message7);
-	}
-	
-  if (run_parameter.status_flag.ubit.relay1==1)
-		UARTprintf(message10);
-	if (run_parameter.status_flag.ubit.relay2==1)
-	  UARTprintf(message11);
-  if (run_parameter.status_flag.ubit.relay3==1)
-	  UARTprintf(message12);
+//	if (Intermediate_Data.Heat_V > 100){
+//		UARTprintf(message2);
+//	}else{
+//	  UARTprintf(message5);
+//	}
+//	
+//	if(output_data.temperature == 70){
+//    UARTprintf(message6);
+//		UARTprintf(message7);
+//	}
+//	
+//  if (run_parameter.status_flag.ubit.relay1==1)
+//		UARTprintf(message10);
+//	if (run_parameter.status_flag.ubit.relay2==1)
+//	  UARTprintf(message11);
+//  if (run_parameter.status_flag.ubit.relay3==1)
+//	  UARTprintf(message12);
 	
 	UARTprintf("\r\n");
 }
@@ -379,8 +385,9 @@ Description: main function for Model3000 project.
 ***********************************************************/
 int main (void)  
 {
+	short val1 = 0, val2 = 0;
 	FrecInit();
-  
+
 	init_Global_Variable();
 	init_peripherals();
 	Init_ModBus();
@@ -388,14 +395,14 @@ int main (void)
   DAC8568_INIT_SET(output_data.temperature,2*65536/5);	/* Set Senseor temperature :DOUT-C = xV*65536/5 */
 	DAC8568_PCB_TEMP_SET(output_data.PCB_temp,0x1000);    /* Set PCB default temperature */
 	M25P16_erase_map(31*0x10000,SE);
-	
+
 	while (1)  
 	{
     if (rcv_char_flag == 1){
 			UART0_SendData(rcv_char,rcv_char_cnt);
 			memset(rcv_char,0,sizeof(rcv_char));
 			rcv_char_cnt = 0;
-			flag_screen = 1;
+//			flag_screen = 1;
 			rcv_char_flag = 0;
 		}
 		
@@ -405,6 +412,12 @@ int main (void)
       memset(rcv_buf,0,sizeof(rcv_buf));
 			rcv_cnt = 0;
       rcv_new = 0;
+
+			if (flag_screen == 0){
+			if ((findcmd(cmd_tmp) == 0)&&(a != 0)){
+					UARTprintf("There is no corresponding command. Please check the input command.\n");
+				}
+			}
 		}
 
 		switch(flag_command){
@@ -514,7 +527,7 @@ int main (void)
 
 			case 2:
 			output_data.temperature = 50;
-			DAC8568_INIT_SET(output_data.temperature,2*65536/5);
+			DAC8568_INIT_SET(output_data.temperature,2.35*65536/5);
 			Intermediate_Data.flag1 = 0;
 			print_count = 60*60 / print_time;
 #ifdef DEBUG
@@ -534,7 +547,7 @@ int main (void)
 
 			case 4:
 			output_data.temperature = 50;
-			DAC8568_INIT_SET(output_data.temperature,2*65536/5);
+			DAC8568_INIT_SET(output_data.temperature,2.35*65536/5);
 			Intermediate_Data.flag1 = 0;
 			print_count = 60*60 / print_time;
 #ifdef DEBUG
@@ -554,7 +567,7 @@ int main (void)
 
 			case 6:
 			output_data.temperature = 70;
-			DAC8568_INIT_SET(output_data.temperature,2*65536/5);
+			DAC8568_INIT_SET(output_data.temperature,2.35*65536/5);
 			Intermediate_Data.flag1 = 0;
 			print_count = 90*60 / print_time;
 #ifdef DEBUG
@@ -564,7 +577,7 @@ int main (void)
 
 			case 7:
 			output_data.temperature = 50;
-			DAC8568_INIT_SET(output_data.temperature,2*65536/5);
+			DAC8568_INIT_SET(output_data.temperature,2.35*65536/5);
 			Intermediate_Data.flag1 = 0;
 			print_count = 30*60 / print_time;
 #ifdef DEBUG
@@ -631,6 +644,8 @@ int main (void)
 			Intermediate_Data.flag3 = 0;
 			H2SldAv_24H2G();
 			M25P16_Data_Records();
+			if (output_data.OilTemp >= run_parameter.OilTemp_Alarm_celsius.hilo || output_data.DayROC >= run_parameter.h2_ppm_alarm_low_l16.hilo || output_data.H2DG >= run_parameter.h2_ppm_alert_low_l16.hilo)
+				M25P16_Alarm_Log_Records();
 #ifdef DEBUG
 		  UARTprintf("save data into flash\n");			
 #endif
@@ -649,11 +664,13 @@ int main (void)
 				run_parameter.status_flag.ubit.senser_state1=0;
 				run_parameter.status_flag.ubit.senser_state2=0;
 			}
-			if (output_data.temperature == 50 && Intermediate_Data.wait_1min == 1)
-			  AD420_OUTPUT_SET((65535.0/20.0)*((float)run_parameter.h2_ppm_out_current_low.hilo/100.0+(((float)(run_parameter.h2_ppm_out_current_high.hilo - run_parameter.h2_ppm_out_current_low.hilo)/100.0)/5000.0)*output_data.H2DG));
-			
-			if (output_data.OilTemp >= run_parameter.OilTemp_Alarm_celsius.hilo || output_data.DayROC >= run_parameter.h2_ppm_alarm_low_l16.hilo || output_data.H2DG >= run_parameter.h2_ppm_alert_low_l16.hilo)
-				M25P16_Alarm_Log_Records();
+			if (output_data.temperature == 50 && Intermediate_Data.wait_1min == 1){
+				if (Intermediate_Data.current_cal == 0){
+					e2prom512_read((unsigned char*)&val1,2,118*2);
+					e2prom512_read((unsigned char*)&val2,2,119*2);
+			   AD420_OUTPUT_SET((65535.0/20.0)*((-(float)val1/100.0)+(float)run_parameter.h2_ppm_out_current_low.hilo/100.0+(((float)(run_parameter.h2_ppm_out_current_high.hilo - run_parameter.h2_ppm_out_current_low.hilo)/100.0)/5000.0)*output_data.H2DG));
+				}
+		  }
 
 			Intermediate_Data.flag4 = 0;
 			if(flag_screen==0)
@@ -670,6 +687,7 @@ int main (void)
 		if(user_parameter.flag.ubit.recept_ok==1)
 		{			
 			Data_Ack_Processor();
+			UARTprintf("Data Ack\n");
 		}
 		if(user_parameter.flag.ubit.recept_write==1)
 		{

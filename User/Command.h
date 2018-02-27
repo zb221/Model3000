@@ -12,7 +12,8 @@ typedef struct {
 
 
 unsigned long int get_true_char_stream(unsigned char *dest,const unsigned char *src);
-unsigned char  findcmdfunction(unsigned char *dest);
+unsigned char findcmdfunction(unsigned char *tmp);
+unsigned char findcmd(unsigned char *tmp);
 void alarm_arg(void);
 void config_arg_d0(void);
 void config_arg_d1(void);

@@ -148,6 +148,7 @@ Description: device checkself for connectivity of the sensor .....
 void device_checkself(void)
 {
     Intermediate_Data.Heat_V = Heat_R_checkself();
+//		UARTprintf("%.3f\n",Intermediate_Data.Heat_V);
 	  Heating_R_failure = 0;
 	  if (Intermediate_Data.Heat_V<200 && output_data.temperature>30){
 //					UARTprintf("%.3f Heating resistance self-check error.\n",Intermediate_Data.Heat_V);

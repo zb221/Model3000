@@ -72,6 +72,13 @@ void LED_init(void)
 	IO1SET|=(1<<18);
 }
 
+void ZIGBB_PWR(void)
+{
+	PINSEL1 = PINSEL1 & (~(0x03 << 12));        /*P0.22*/	
+	IODIR0 = IODIR0 | 0x1<<22;								
+	IOSET0 = IOSET0 | 0x1<<22;
+}
+
 /***********************************************************
 Function:	setup system clock.
 Input:	none
@@ -430,6 +437,11 @@ __irq void TC0_IR (void)
 				Intermediate_Data.flag1 = 1;
 				Intermediate_Data.Power_On = 1;
 				Intermediate_Data.Start_print_H2R = 1;
+				Intermediate_Data.wait_1min_oil = 0;
+				break;
+				
+				case 180000: /* wait 2min for 1-4min capture 3min oil temp */
+					Intermediate_Data.wait_1min_oil = 1;
 				break;
 
 				case 240000:	/* 4-1H4min set 50 temp, keep 1H  */
@@ -437,7 +449,7 @@ __irq void TC0_IR (void)
         Intermediate_Data.wait_1min = 0;
 				break;
 				
-				case 300000: /* wait 1min for 4-1H4min set 50 temp, keep 1H */
+				case 840000: /* wait 10min for 4-1H4min set 50 temp, keep 1H */
 				Intermediate_Data.wait_1min = 1;
 				Intermediate_Data.unready_current = 1;
 				break;
@@ -447,7 +459,7 @@ __irq void TC0_IR (void)
 				Intermediate_Data.wait_1min_oil = 0;
 				break;
 				
-				case 3900000: /* wait 1min for 1H4min-1H7min stop heating, capture 3min oil temp */
+				case 3960000: /* wait 2min for 1H4min-1H7min stop heating, capture 3min oil temp */
 				Intermediate_Data.wait_1min_oil = 1;
 				break;
 
@@ -456,7 +468,7 @@ __irq void TC0_IR (void)
         Intermediate_Data.wait_1min = 0;
 				break;
 				
-				case 4080000: /* wait 1min for 1H7min-2H7min set 50 temp and keep 1H */
+				case 4620000: /* wait 10min for 1H7min-2H7min set 50 temp and keep 1H */
 				Intermediate_Data.wait_1min = 1;
 				break;
 
@@ -465,11 +477,15 @@ __irq void TC0_IR (void)
 				Intermediate_Data.wait_1min_oil = 0;
 				break;
 				
-				case 7680000: /*wait 1min for 2H7min-2H10min stop heating and capture oil temp 3min */
+				case 7740000: /*wait 2min for 2H7min-2H10min stop heating and capture oil temp 3min */
 				Intermediate_Data.wait_1min_oil = 1;
 				break;
+				
+				case 7800000: /* set 50 temp, and while */
+				count1 = 240000 - 1;
+				break;
 
-				case 7800000: /* 2H10min-3H40min set 70 temp and keep 1.5H */
+				case 7800001: /* 2H10min-3H40min set 70 temp and keep 1.5H */
 				Intermediate_Data.flag1 = 6;
 				Intermediate_Data.wait_1min = 0;
 				break;

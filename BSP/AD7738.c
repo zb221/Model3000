@@ -560,20 +560,33 @@ void ADC7738_acquisition_output(unsigned char channel)
 
 		if (Intermediate_Data.Operat_temp_alarm == 0){
 			if (output_data.temperature == 50 && Intermediate_Data.wait_1min == 1){
-				if(output_data.H2Resistor < Intermediate_Data.OHM[0]){
-					if (output_data.H2Resistor < (Intermediate_Data.OHM[0] - 0.5)){
+//				if(output_data.H2Resistor < Intermediate_Data.OHM[0]){
+//					if (output_data.H2Resistor < (Intermediate_Data.OHM[0] - 0.5)){
+//						output_data.H2AG = 0;
+//						output_data.H2AG1 = output_data.H2AG;
+//					}else{
+//						output_data.H2AG = 100.0*output_data.H2Resistor + (-(100.0*(Intermediate_Data.OHM[0]-0.5)));
+//						output_data.H2AG1 = output_data.H2AG;
+//					}
+//				}else if (output_data.H2Resistor > Intermediate_Data.OHM[number-1]){
+//					output_data.H2AG = Intermediate_Data.H2[number-1];
+//					output_data.H2AG1 = Intermediate_Data.H2[number-1];
+//				}else{
+				if(output_data.H2Resistor < (run_parameter.Piecewise_point0.ubit.hi<<16 | run_parameter.Piecewise_point0.ubit.lo)){
+					if (output_data.H2Resistor < ((run_parameter.Piecewise_point0.ubit.hi<<16 | run_parameter.Piecewise_point0.ubit.lo) - 0.5)){
 						output_data.H2AG = 0;
 						output_data.H2AG1 = output_data.H2AG;
 					}else{
-						output_data.H2AG = 100.0*output_data.H2Resistor + (-(100.0*(Intermediate_Data.OHM[0]-0.5)));
+						output_data.H2AG = 100.0*output_data.H2Resistor + (-(100.0*((run_parameter.Piecewise_point0.ubit.hi<<16 | run_parameter.Piecewise_point0.ubit.lo)-0.5)));
 						output_data.H2AG1 = output_data.H2AG;
 					}
-				}else if (output_data.H2Resistor > Intermediate_Data.OHM[number-1]){
+				}else if (output_data.H2Resistor > (run_parameter.Piecewise_point3.ubit.hi<<16 | run_parameter.Piecewise_point3.ubit.lo)){
 					output_data.H2AG = Intermediate_Data.H2[number-1];
 					output_data.H2AG1 = Intermediate_Data.H2[number-1];
 				}else{
-					output_data.H2AG = Cubic_main(output_data.H2Resistor,Hydrogen_Res);  /*H2AG*/
+//					output_data.H2AG = Cubic_main(output_data.H2Resistor,Hydrogen_Res);  /*H2AG*/
 					output_data.H2AG1 = quadratic_polynomial(output_data.H2Resistor);
+					output_data.H2AG = output_data.H2AG1;
 				}
 				run_parameter.status_flag.ubit.senser_state0=1;
 				run_parameter.status_flag.ubit.senser_state1=0;

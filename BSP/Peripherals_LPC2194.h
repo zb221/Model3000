@@ -20,7 +20,7 @@ void FrecInit(void);
 #define		LED_BLUE_CLR		IO1CLR|=(1<<18);
 
 void LED_init(void);
-
+void ZIGBB_PWR(void);
 /*-------------------------------------------------RELAY-----------------------------------------------------------*/
 #define  Relay1_Pin_SET  {   IO0DIR|=(1<<2);IO0SET|=(1<<2);}
 #define  Relay1_Pin_CLR  {   IO0DIR|=(1<<2);IO0CLR|=(1<<2);}

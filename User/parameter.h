@@ -534,8 +534,8 @@ union
 	unsigned short reserved_parameter29;//116 -> M25P16_Data_Records: Intermediate_Data.M25P16_Data_Addr
 	unsigned short reserved_parameter30;//117 -> M25P16_Data_Records: Intermediate_Data.M25P16_Data_Addr
 			
-	unsigned short reserved_parameter31;//118
-	unsigned short reserved_parameter32;//119
+	unsigned short reserved_parameter31;//118 -> CI cmd current cal
+	unsigned short reserved_parameter32;//119 -> CI cmd current cal
 	unsigned short reserved_parameter33;//120
 	unsigned short da_command;//121	
 	unsigned short db_command;//122
@@ -1163,7 +1163,7 @@ typedef struct Intermediate_Data
 {
 	unsigned char flag1, flag2, flag3, flag4, flag5;
 	unsigned char Start_day, Start_week, Start_month;
-	unsigned char Power_On,Start_print_H2R, wait_1min,Start_print_calibrate_H2R,wait_1min_oil;
+	unsigned char Power_On,Start_print_H2R, wait_1min,Start_print_calibrate_H2R,wait_1min_oil,current_cal;
 	
 	float Heat_V;
 
