@@ -382,6 +382,7 @@ void Temperature_of_resistance_Parameter(void)
 {	
 	static unsigned int number = 0;
 	static unsigned char flag = 0;
+	static float OilTemp_b = 0;
 	
 	if (flag == 0){
 	    Line_Fit(Intermediate_Data.Temp_R, Intermediate_Data.Temp);
@@ -393,8 +394,13 @@ void Temperature_of_resistance_Parameter(void)
 	switch (output_data.temperature){
 		case 0:
 	    output_data.SensorTemp = Intermediate_Data.Temp_R_K*output_data.TempResistor + Intermediate_Data.Temp_R_B;
-		  if (Intermediate_Data.wait_1min_oil == 1)
-			  output_data.OilTemp = output_data.SensorTemp;
+		  if (Intermediate_Data.wait_1min_oil == 1){
+				output_data.OilTemp = output_data.SensorTemp;
+//				if ((float)run_parameter.reserved_parameter33/1000.0 >= output_data.OilTemp)
+//			    output_data.OilTemp = output_data.SensorTemp + ((float)run_parameter.reserved_parameter33/1000.0 - output_data.OilTemp);
+//				else
+//					output_data.OilTemp = output_data.SensorTemp - (output_data.OilTemp - (float)run_parameter.reserved_parameter33/1000.0);
+			}
 			if (output_data.OilTemp<(-20))
 			    output_data.OilTemp = -20;
 			if (output_data.OilTemp>105)
@@ -559,7 +565,7 @@ void ADC7738_acquisition_output(unsigned char channel)
 		number = sizeof(Intermediate_Data.OHM)/sizeof(Intermediate_Data.OHM[0]);
 
 		if (Intermediate_Data.Operat_temp_alarm == 0){
-			if (output_data.temperature == 50 && Intermediate_Data.wait_1min == 1){
+			if (output_data.temperature == 50 && Intermediate_Data.wait_1min == 0){
 //				if(output_data.H2Resistor < Intermediate_Data.OHM[0]){
 //					if (output_data.H2Resistor < (Intermediate_Data.OHM[0] - 0.5)){
 //						output_data.H2AG = 0;

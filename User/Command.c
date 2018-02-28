@@ -2851,7 +2851,9 @@ void ci_arg(void)//ci
 							pn = 1;
 						}
             else{ 
+//							UARTprintf("%d\n",run_parameter.reserved_parameter31);
                run_parameter.reserved_parameter31 = 300 - run_parameter.reserved_parameter31;
+//							UARTprintf("%d, %f\n",run_parameter.reserved_parameter31,(float)run_parameter.reserved_parameter31/100.0);
 							AD420_OUTPUT_SET((65535.0/20.0)*(3.0-(float)run_parameter.reserved_parameter31/100.0));
 							pn = 2;
 						}
