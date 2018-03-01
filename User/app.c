@@ -44,7 +44,8 @@ void LED_status(void)
 		LED_RED_CLR
     LED_BLUE_SET
 	}
-	if (Heating_R_failure == 1){
+	if ((Heating_R_failure == 1) && (Intermediate_Data.Power_On == 1)){
+//		UARTprintf("test1\n");
 		AD420_OUTPUT_SET((65535.0/20.0)*3.0); /*output error current 3mA*/
 		LED_RED_SET
 	  LED_BLUE_SET
@@ -52,12 +53,18 @@ void LED_status(void)
 	
 	if (output_data.OilTemp >= run_parameter.OilTemp_Alarm_celsius.hilo || output_data.DayROC >= run_parameter.h2_ppm_alarm_low_l16.hilo || output_data.H2DG >= run_parameter.h2_ppm_alert_low_l16.hilo) /* OilTemp  too high, DGA over, DGA dayROC over */
 	{
-		AD420_OUTPUT_SET((65535.0/20.0)*3.0); /*output error current 3mA*/
 		if (LED_RED_FLAG%2 == 0)
 			LED_RED_SET
 		else
 			LED_RED_CLR
 		LED_BLUE_SET
+	}
+	
+	if (Intermediate_Data.Power_On == 1){
+		if ((output_data.OilTemp<(-20)) || (output_data.OilTemp>105) || (output_data.PcbTemp<30) || (output_data.PcbTemp>50)){
+//			UARTprintf("test2\n");
+				AD420_OUTPUT_SET((65535.0/20.0)*3.0); /*output error current 3mA*/
+		}
 	}
 }
 
@@ -153,6 +160,9 @@ void device_checkself(void)
 	  if (Intermediate_Data.Heat_V<200 && output_data.temperature>30){
 //					UARTprintf("%.3f Heating resistance self-check error.\n",Intermediate_Data.Heat_V);
 					Heating_R_failure = 1;
+		}else
+		{
+		  Heating_R_failure = 0;
 		}
 		
 }

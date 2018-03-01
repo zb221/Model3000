@@ -247,6 +247,16 @@ void command_print(void)
     UARTprintf("%d",print_count--);
 	}
 	
+	if (output_data.OilTemp >= run_parameter.OilTemp_Alarm_celsius.hilo){
+	    UARTprintf(",R3");
+	}
+
+	if (output_data.DayROC >= run_parameter.h2_ppm_alarm_low_l16.hilo)
+			UARTprintf(",R2");
+	
+	if (output_data.H2DG >= run_parameter.h2_ppm_alert_low_l16.hilo)
+			UARTprintf(",R1");
+	
 //	if (Intermediate_Data.Heat_V > 100){
 //		UARTprintf(message2);
 //	}else{
@@ -659,16 +669,22 @@ int main (void)
 			Calculate_H2_rate();
 			
 			if (Intermediate_Data.unready_current == 0){
-				AD420_OUTPUT_SET((65535.0/20.0)*2);
+				if (Intermediate_Data.current_cal == 0)
+				  AD420_OUTPUT_SET((65535.0/20.0)*2);
 				run_parameter.status_flag.ubit.senser_state0=0;
 				run_parameter.status_flag.ubit.senser_state1=0;
 				run_parameter.status_flag.ubit.senser_state2=0;
 			}
-			if (output_data.temperature == 50 && Intermediate_Data.wait_1min == 1){
+			if (output_data.temperature == 50 && Intermediate_Data.wait_1min == 0){
 				if (Intermediate_Data.current_cal == 0){
 					e2prom512_read((unsigned char*)&val1,2,118*2);
 					e2prom512_read((unsigned char*)&val2,2,119*2);
-			   AD420_OUTPUT_SET((65535.0/20.0)*((-(float)val1/100.0)+(float)run_parameter.h2_ppm_out_current_low.hilo/100.0+(((float)(run_parameter.h2_ppm_out_current_high.hilo - run_parameter.h2_ppm_out_current_low.hilo)/100.0)/5000.0)*output_data.H2DG));
+//					UARTprintf("val1 = %d, h2_ppm_out_current_high = %d,h2_ppm_out_current_low = %d\n",val1,run_parameter.h2_ppm_out_current_high.hilo,run_parameter.h2_ppm_out_current_low.hilo);
+//			   UARTprintf("%f\n",((-(float)val1/100.0)+(float)run_parameter.h2_ppm_out_current_low.hilo/100.0+(((float)(run_parameter.h2_ppm_out_current_high.hilo - run_parameter.h2_ppm_out_current_low.hilo)/100.0)/5000.0)*output_data.H2DG));
+          if (((-(float)val1/100.0)+(float)run_parameter.h2_ppm_out_current_low.hilo/100.0+(((float)(run_parameter.h2_ppm_out_current_high.hilo - run_parameter.h2_ppm_out_current_low.hilo)/100.0)/5000.0)*output_data.H2DG) <= 20)
+					AD420_OUTPUT_SET((65535.0/20.0)*((-(float)val1/100.0)+(float)run_parameter.h2_ppm_out_current_low.hilo/100.0+(((float)(run_parameter.h2_ppm_out_current_high.hilo - run_parameter.h2_ppm_out_current_low.hilo)/100.0)/5000.0)*output_data.H2DG));
+          else
+					AD420_OUTPUT_SET((65535.0/20.0)*20);
 				}
 		  }
 
@@ -687,7 +703,7 @@ int main (void)
 		if(user_parameter.flag.ubit.recept_ok==1)
 		{			
 			Data_Ack_Processor();
-			UARTprintf("Data Ack\n");
+//			UARTprintf("Data Ack\n");
 		}
 		if(user_parameter.flag.ubit.recept_write==1)
 		{

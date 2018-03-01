@@ -536,7 +536,7 @@ union
 			
 	unsigned short reserved_parameter31;//118 -> CI cmd current cal
 	unsigned short reserved_parameter32;//119 -> CI cmd current cal
-	unsigned short reserved_parameter33;//120
+	unsigned short reserved_parameter33;//120 -> OilTemp_b from upper
 	unsigned short da_command;//121	
 	unsigned short db_command;//122
 	unsigned short dx_command;//123
