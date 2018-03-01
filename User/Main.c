@@ -164,6 +164,7 @@ void init_Global_Variable(void)
   Intermediate_Data.count7 = 0;
 	
 	Intermediate_Data.Operat_temp_alarm = 0;
+	Intermediate_Data.Oiltemp_Cal_flag = 0;
 
   /*copy Temp-Temp_R Temp-DAC_Din*/
 	memcpy(Intermediate_Data.Temp,Temp,sizeof(float)*sizeof(Temp)/sizeof(Temp[0]));
@@ -675,7 +676,7 @@ int main (void)
 				run_parameter.status_flag.ubit.senser_state1=0;
 				run_parameter.status_flag.ubit.senser_state2=0;
 			}
-			if (output_data.temperature == 50 && Intermediate_Data.wait_1min == 0){
+			if (output_data.temperature == 50 && Intermediate_Data.wait_1min == 1){
 				if (Intermediate_Data.current_cal == 0){
 					e2prom512_read((unsigned char*)&val1,2,118*2);
 					e2prom512_read((unsigned char*)&val2,2,119*2);

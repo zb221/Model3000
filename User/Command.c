@@ -3138,7 +3138,7 @@ void cf_arg(void)
 	switch(flag_function)
 	{
 		case 0:
-			UARTprintf("0 - Exit cf\n1 - Normal\n2 - Debug\n3 - Calibration\n4 - set temperature\n5 - turn off the screen\n6 - turn on the screen\nSelect function:\n");
+			UARTprintf("0 - Exit cf\n1 - Normal\n2 - Debug\n3 - Calibration\n4 - set temperature\n5 - turn off the screen\n6 - turn on the screen\n7 - Oiltemp_Cal\nSelect function:\n");
 			flag_function++;
 			break;
 		
@@ -3189,8 +3189,12 @@ void cf_arg(void)
 						flag_screen = 0;
 						flag_function++;
 						break;
+					case 0x37:
+						UARTprintf("\nPlease input the Oiltemp_Cal value you want:\n");
+						flag_function = 4;
+						break;
 					default:
-						UARTprintf("Please input cf command again and set 0-6 at here, exit cf OK.\n");
+						UARTprintf("Please input cf command again and set 0-7 at here, exit cf OK.\n");
 						flag_screen = 0;
 						flag_function = 0;
 						flag_command = 0;
@@ -3212,7 +3216,7 @@ void cf_arg(void)
 				flag_done = 0;
 				for(i=0;i<a;i++)
 				{
-					if((cmd_tmp[i] < 0x30) || (cmd_tmp[i] > 0x39))
+					if(((cmd_tmp[i] < 0x2D) || (cmd_tmp[i] > 0x39)) && cmd_tmp[i] != 0x2F)
 					{
 						flag_done = 1;
 						UARTprintf("Please input cf command again and set 0-9 at here, exit cf OK.\n");
@@ -3226,6 +3230,35 @@ void cf_arg(void)
 					UARTprintf("now heat temperature is %d\r\n",output_data.temperature);
 					UARTprintf("\nSAVED  heat temperature Success, exit cf OK.\r\n\r\n");
 					DAC8568_INIT_SET(output_data.temperature,2*65536/5);
+					flag_screen = 0;
+					flag_function = 2;
+				}
+			}
+			memset(cmd_tmp,0,sizeof(cmd_tmp));
+			a = 0;		
+			break;
+			
+		case 4:
+			if(strlen(cmd_tmp)>0)
+			{
+				flag_done = 0;
+				for(i=0;i<a;i++)
+				{
+					if(((cmd_tmp[i] < 0x2D) || (cmd_tmp[i] > 0x39)) && cmd_tmp[i] != 0x2F)
+					{
+						flag_done = 1;
+						UARTprintf("Please input cf command again and set 0-9 at here, exit cf OK.\n");
+						flag_screen = 0;
+						flag_function = 2;
+					}
+				}
+				if(flag_done == 0)
+				{
+					Intermediate_Data.Oiltemp_Cal_flag = 1;
+					run_parameter.reserved_parameter33 = atof(cmd_tmp)*100;
+					UARTprintf("Oiltemp_Cal value is %f\r\n",(float)run_parameter.reserved_parameter33/100.0);
+					e2prom512_write((unsigned char*)&run_parameter.reserved_parameter33,2,120*2);
+					UARTprintf("\nSAVED  Oiltemp_Cal value Success, exit cf OK.\r\n\r\n");
 					flag_screen = 0;
 					flag_function = 2;
 				}

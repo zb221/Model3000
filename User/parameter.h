@@ -1210,6 +1210,8 @@ typedef struct Intermediate_Data
 	
 	unsigned char Operat_temp_alarm;
 	
+	unsigned char Oiltemp_Cal_flag;
+	
 
 }Intermediate_Parameters;
 VARIABLE_EXT Intermediate_Parameters Intermediate_Data;

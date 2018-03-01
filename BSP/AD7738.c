@@ -14,7 +14,7 @@
 #include "fitting.h"
 #include "parameter.h"
 #include "DAC8568.h"
-
+#include "e25LC512.h"
 /***********************************************************
 Description: Global variable region.
 Author: zhuobin
@@ -393,13 +393,26 @@ void Temperature_of_resistance_Parameter(void)
 
 	switch (output_data.temperature){
 		case 0:
+//			UARTprintf("Intermediate_Data.Temp_R_B = %f\n",Intermediate_Data.Temp_R_B);
 	    output_data.SensorTemp = Intermediate_Data.Temp_R_K*output_data.TempResistor + Intermediate_Data.Temp_R_B;
 		  if (Intermediate_Data.wait_1min_oil == 1){
 				output_data.OilTemp = output_data.SensorTemp;
-//				if ((float)run_parameter.reserved_parameter33/1000.0 >= output_data.OilTemp)
-//			    output_data.OilTemp = output_data.SensorTemp + ((float)run_parameter.reserved_parameter33/1000.0 - output_data.OilTemp);
-//				else
-//					output_data.OilTemp = output_data.SensorTemp - (output_data.OilTemp - (float)run_parameter.reserved_parameter33/1000.0);
+				if (Intermediate_Data.Oiltemp_Cal_flag == 1){
+					e2prom512_read((unsigned char*)&run_parameter.reserved_parameter33,2,120*2);
+//					UARTprintf("%d, %f, %f\n",run_parameter.reserved_parameter33,
+//					((float)run_parameter.reserved_parameter33/100.0 - output_data.OilTemp),Intermediate_Data.Temp_R_B);
+				if ((float)run_parameter.reserved_parameter33/100.0 >= output_data.OilTemp){
+			    Intermediate_Data.Temp_R_B = Intermediate_Data.Temp_R_B + ((float)run_parameter.reserved_parameter33/100.0 - output_data.OilTemp);
+				  output_data.SensorTemp = Intermediate_Data.Temp_R_K*output_data.TempResistor + Intermediate_Data.Temp_R_B;
+				  output_data.OilTemp = output_data.SensorTemp;
+				}else{
+					Intermediate_Data.Temp_R_B = Intermediate_Data.Temp_R_B - ((float)run_parameter.reserved_parameter33/100.0 - output_data.OilTemp);
+					output_data.SensorTemp = Intermediate_Data.Temp_R_K*output_data.TempResistor + Intermediate_Data.Temp_R_B;
+				  output_data.OilTemp = output_data.SensorTemp;
+				}
+//				UARTprintf("%f\n",Intermediate_Data.Temp_R_B);
+				Intermediate_Data.Oiltemp_Cal_flag = 0;
+			}
 			}
 			if (output_data.OilTemp<(-20))
 			    output_data.OilTemp = -20;
@@ -565,7 +578,7 @@ void ADC7738_acquisition_output(unsigned char channel)
 		number = sizeof(Intermediate_Data.OHM)/sizeof(Intermediate_Data.OHM[0]);
 
 		if (Intermediate_Data.Operat_temp_alarm == 0){
-			if (output_data.temperature == 50 && Intermediate_Data.wait_1min == 0){
+			if (output_data.temperature == 50 && Intermediate_Data.wait_1min == 1){
 //				if(output_data.H2Resistor < Intermediate_Data.OHM[0]){
 //					if (output_data.H2Resistor < (Intermediate_Data.OHM[0] - 0.5)){
 //						output_data.H2AG = 0;
