@@ -1235,6 +1235,8 @@ void dx_arg(void)
 				if(flag_done==0)
 				{
 					run_parameter.calibration_date.year = atoi(cmd_tmp);
+					e2prom512_write((unsigned char*)&run_parameter.calibration_date.year,2,129*2);
+//					UARTprintf("run_parameter.calibration_date.year = %d\n",run_parameter.calibration_date.year);
 					flag_function++;
 				}
 			}
@@ -1270,6 +1272,8 @@ void dx_arg(void)
 				if(flag_done==0)
 				{
 					run_parameter.calibration_date.month = atoi(cmd_tmp);
+					e2prom512_write(&run_parameter.calibration_date.day,2,128*2);
+//					UARTprintf("run_parameter.calibration_date.month = %d\n",run_parameter.calibration_date.month);
 					if ((run_parameter.calibration_date.month>=1)&&(run_parameter.calibration_date.month<=12))
 					  flag_function++;
 					else{
@@ -1310,17 +1314,20 @@ void dx_arg(void)
 				if(flag_done==0)
 				{
 					run_parameter.calibration_date.day = atoi(cmd_tmp);
+//					UARTprintf("run_parameter.calibration_date.day = %d\n",run_parameter.calibration_date.day);
 					if ((run_parameter.calibration_date.day>=1)&&(run_parameter.calibration_date.day<=31)){
-						e2prom512_write(&run_parameter.calibration_date.day,4,128*2);
+						e2prom512_write(&run_parameter.calibration_date.day,2,128*2);
 						flag_function = 7;
 						UARTprintf("Cal. date : %d-%d-%d\r\n",run_parameter.calibration_date.year,
 						run_parameter.calibration_date.month,
 						run_parameter.calibration_date.day);
+						
+						e2prom512_read(&run_parameter.calibration_date.day,4,128*2);
 					run_parameter.field_calibration_date.year = run_parameter.calibration_date.year;
 					run_parameter.field_calibration_date.month = run_parameter.calibration_date.month;
 					run_parameter.field_calibration_date.day = run_parameter.calibration_date.day;
 
-					e2prom512_write(&run_parameter.field_calibration_date.day,4,85*2);
+					  e2prom512_write(&run_parameter.field_calibration_date.day,4,85*2);
 						e2prom512_read(&run_parameter.field_calibration_date.day,4,85*2);
 //						UARTprintf("Cal. date : %d-%d-%d\r\n",run_parameter.field_calibration_date.year,
 //						run_parameter.field_calibration_date.month,
@@ -1881,6 +1888,12 @@ void is_time_set(unsigned char type)
 		units = Temp % 10;
 		TimeBCD.SpecificTime.year = ((Tens << 4) & 0xF0) | (units & 0x0F);
 		Y = TimeBCD.SpecificTime.year;
+		if ((Y>=0) && (Y <= 99)){}
+			else
+			{
+			flag_function = 6;
+		  UARTprintf("Please set year 2000-2099\n");
+			}
 		break;
 		default:
 		break;
