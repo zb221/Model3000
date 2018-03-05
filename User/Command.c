@@ -1796,7 +1796,7 @@ void is_time_set(unsigned char type)
 		RealTime_Modbus.Real_Time[4]=run_parameter.reserved_parameter36&0xFF;//Ê±	
 		RealTime_Modbus.Real_Time[5]=run_parameter.reserved_parameter37>>8;//·Ö
 		RealTime_Modbus.Real_Time[6]=run_parameter.reserved_parameter37&0xFF;//Ãë
-		UARTprintf("Change time to 20%x-%x-%x %x:%x:%x",\
+		UARTprintf("Change time to 20%02x-%x-%x %x:%x:%x",\
 		(long int)RealTime_Modbus.Real_Time[0],\
 		(long int)RealTime_Modbus.Real_Time[1],\
 		(long int)RealTime_Modbus.Real_Time[2],(long int)RealTime_Modbus.Real_Time[4],\
@@ -1814,7 +1814,7 @@ void is_time_set(unsigned char type)
 		UARTprintf("\n...Wait...SAVED  Done......\r\n\r\n");
 		flag_function++;
 		}else{
-			flag_function = 14;
+			flag_function = 16;
 			UARTprintf("Please set sec 0-59\n");
 		}
 		break;
@@ -1827,7 +1827,7 @@ void is_time_set(unsigned char type)
 		if ((F>=0)&&(F<=89)){
 			flag_function++;
 		}else{
-			flag_function = 12;
+			flag_function = 14;
 		  UARTprintf("Please set min 0-59\n");
 		}
 
@@ -1841,7 +1841,7 @@ void is_time_set(unsigned char type)
 		if ((H>=0)&&(H<=36)){
 			flag_function++;
 		}else{
-			flag_function = 10;
+			flag_function = 12;
 			UARTprintf("Please set hour 0-24\n");
 		}
 
@@ -1857,7 +1857,7 @@ void is_time_set(unsigned char type)
 		}else
 		{
 			UARTprintf("Please set day 1-31\n");
-			flag_function = 8;
+			flag_function = 10;
 		}
 
 		break;
@@ -1870,7 +1870,7 @@ void is_time_set(unsigned char type)
 		if ((M>=1)&&(M<=18)){
 			flag_function++;
 		}else{
-			flag_function = 6;
+			flag_function = 8;
 		  UARTprintf("Please set month 1-12\n");
 		}
 
@@ -1953,7 +1953,7 @@ void install_arg(void)//is
 			break;
 		
 		case 3:
-			UARTprintf("System time is 20%x-%x-%x %x:%x:%x Change (Y/N)?",
+			UARTprintf("System time is 20%02x-%x-%x %x:%x:%x Change (Y/N)?",
 			run_parameter.reserved_parameter35&0xFF,run_parameter.reserved_parameter341>>8,
 			run_parameter.reserved_parameter341&0xFF,run_parameter.reserved_parameter36&0xFF,
 			run_parameter.reserved_parameter37>>8,run_parameter.reserved_parameter37&0xFF);
@@ -2131,6 +2131,7 @@ void install_arg(void)//is
 				if(flag_done==0)
 				{
 					is_time_set(2);
+//					flag_function++;
 				}
 		}
 		memset(cmd_tmp,0,sizeof(cmd_tmp));
@@ -2165,6 +2166,7 @@ void install_arg(void)//is
 				if(flag_done==0)
 				{
 					is_time_set(1);
+//					flag_function++;
 				}
 		}
 		memset(cmd_tmp,0,sizeof(cmd_tmp));
@@ -2223,7 +2225,7 @@ void date_arg(void)//rs
   unsigned char i = 0;	
 	switch(flag_function){
 		case 0:
-		UARTprintf("System time is 20%x-%x-%x %x:%x:%x Change (Y/N)?",
+		UARTprintf("System time is 20%02x-%x-%x %x:%x:%x Change (Y/N)?",
 		run_parameter.reserved_parameter35&0xFF,run_parameter.reserved_parameter341>>8,
 		run_parameter.reserved_parameter341&0xFF,run_parameter.reserved_parameter36&0xFF,
 		run_parameter.reserved_parameter37>>8,run_parameter.reserved_parameter37&0xFF);
@@ -2238,7 +2240,7 @@ void date_arg(void)//rs
 		{
 				switch(cmd_tmp[0]){
 					case 0x79://y             
-						flag_function = 3;
+						flag_function = 6;
 					break;
 					case 0x6e://n            
 						flag_function=0;
@@ -2271,7 +2273,7 @@ void date_arg(void)//rs
 		flag_chaoshi=0;
 		break;
 		
-		case 3:
+		case 6:
 		UARTprintf("Enter Year: ");
 		flag_function++;
 		flag_chaoshi = 0;
@@ -2279,7 +2281,7 @@ void date_arg(void)//rs
 		a=0;
 		break;
 		
-		case 4:
+		case 7:
 		if(strlen(cmd_tmp)>0)
 		{
 				flag_done = 0;
@@ -2306,7 +2308,7 @@ void date_arg(void)//rs
 		a=0;
 		break;
 		
-		case 5:
+		case 8:
 		UARTprintf("Enter Month: ");
 		flag_function++;
 		flag_chaoshi = 0;
@@ -2314,7 +2316,7 @@ void date_arg(void)//rs
 		a=0;	
 		break;
 		
-		case 6:
+		case 9:
 		if(strlen(cmd_tmp)>0)
 		{
 				flag_done = 0;
@@ -2340,7 +2342,7 @@ void date_arg(void)//rs
 		a=0;	
 		break;
 		
-		case 7:
+		case 10:
 		UARTprintf("Enter Day: ");
 		flag_function++;
 		flag_chaoshi = 0;
@@ -2348,7 +2350,7 @@ void date_arg(void)//rs
 		a=0;
 		break;
 		
-		case 8:
+		case 11:
 		if(strlen(cmd_tmp)>0)
 		{
 				flag_done = 0;
@@ -2374,7 +2376,7 @@ void date_arg(void)//rs
 		a=0;
 		break;
 		
-		case 9:
+		case 12:
 		UARTprintf("Enter Hour: ");
 		flag_function++;
 		flag_chaoshi = 0;
@@ -2382,7 +2384,7 @@ void date_arg(void)//rs
 		a=0;					
 		break;
 		
-		case 10:
+		case 13:
 		if(strlen(cmd_tmp)>0)
 		{
 				flag_done = 0;
@@ -2408,7 +2410,7 @@ void date_arg(void)//rs
 		a=0;		
 		break;
 		
-		case 11:
+		case 14:
 		UARTprintf("Enter Minute: ");
 		flag_function++;
 		flag_chaoshi = 0;
@@ -2416,7 +2418,7 @@ void date_arg(void)//rs
 		a=0;			
 		break;
 		
-		case 12:
+		case 15:
 		if(strlen(cmd_tmp)>0)
 		{
 				flag_done = 0;
@@ -2442,7 +2444,7 @@ void date_arg(void)//rs
 		a=0;
 		break;
 		
-		case 13:
+		case 16:
 		UARTprintf("Enter Second: ");
 		flag_function++;
 		flag_chaoshi = 0;
@@ -2450,7 +2452,7 @@ void date_arg(void)//rs
 		a=0;		
 		break;
 		
-		case 14:
+		case 17:
 		if(strlen(cmd_tmp)>0)
 		{
 				flag_done = 0;
