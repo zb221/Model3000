@@ -135,7 +135,7 @@ void init_Global_Variable(void)
 	Intermediate_Data.Start_print_H2R = 0;
 	Intermediate_Data.Start_print_calibrate_H2R = 0;
 	Intermediate_Data.wait_1min = 1;
-	Intermediate_Data.wait_1min_oil = 1;
+	Intermediate_Data.wait_1min_oil = 0;
 	Intermediate_Data.current_cal = 0;
 	
 	Intermediate_Data.H2Resistor_OilTemp_K = 0;
