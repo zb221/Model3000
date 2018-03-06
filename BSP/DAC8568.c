@@ -12,7 +12,7 @@
 #include "Peripherals_LPC2194.h"
 #include "fitting.h"
 #include "parameter.h"
-
+#include <math.h>
 /***********************************************************
 Function:	init DAC8568 CS PIN.
 Input:	none
@@ -91,16 +91,34 @@ Author: zhuobin
 Date: 2017/10/10
 Description: .
 ***********************************************************/
+//void DAC8568_INIT_SET(float temperature,float current)
+//{
+//	int DAC_G_Din = 0;
+//	DAC_SET_Chanel_Din(temperature,&DAC_G_Din,DAC_temp);     /* set sense want temp value */
+
+//	DAC8568_SET(0x0,0x9,0x0,0xA000,0);		        /* Power up internal reference all the time regardless DAC states */
+//	
+//	DAC8568_SET(0x0,0x3,0x2,current,0);		       /* DAC-C */
+//	DAC8568_SET(0x0,0x3,0x6,DAC_G_Din,0);		       /* DAC-G */
+////	UARTprintf("DAC_G_Din=%d\n",DAC_G_Din);
+//}
+
 void DAC8568_INIT_SET(float temperature,float current)
 {
 	int DAC_G_Din = 0;
-	DAC_SET_Chanel_Din(temperature,&DAC_G_Din,DAC_temp);     /* set sense want temp value */
+	float TempResistor_tmp = 0;
+	
+	TempResistor_tmp = (temperature - Intermediate_Data.Temp_R_B)/Intermediate_Data.Temp_R_K;
+	UARTprintf("TempResistor_tmp=%f\n",TempResistor_tmp);
+	DAC_G_Din = (int)(((TempResistor_tmp*5.0 + 2500.0)/1000.0)*(65536.0/5.0));
+	UARTprintf("DAC_G_Din1=%d\n",DAC_G_Din);
+//	DAC_SET_Chanel_Din(temperature,&DAC_G_Din,DAC_temp);     /* set sense want temp value */
 
 	DAC8568_SET(0x0,0x9,0x0,0xA000,0);		        /* Power up internal reference all the time regardless DAC states */
 	
 	DAC8568_SET(0x0,0x3,0x2,current,0);		       /* DAC-C */
 	DAC8568_SET(0x0,0x3,0x6,DAC_G_Din,0);		       /* DAC-G */
-//	UARTprintf("DAC_G_Din=%d\n",DAC_G_Din);
+	UARTprintf("DAC_G_Din=%d\n",DAC_G_Din);
 }
 
 /***********************************************************
