@@ -166,6 +166,7 @@ void init_Global_Variable(void)
 	Intermediate_Data.Operat_temp_alarm = 0;
 	Intermediate_Data.Oiltemp_Cal_flag = 0;
 	Intermediate_Data.Oiltemp_Cal_OK = 0;
+	Intermediate_Data.intercept = 0;
 
   /*copy Temp-Temp_R Temp-DAC_Din*/
 	memcpy(Intermediate_Data.Temp,Temp,sizeof(float)*sizeof(Temp)/sizeof(Temp[0]));
