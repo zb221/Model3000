@@ -30,7 +30,7 @@ Description: Global variable region.
 Author: zhuobin
 Date: 2017/10/10
 ***********************************************************/
-unsigned int count1 = 0, count2 = 0, count3 = 0, count4 = 0, count5 = 0;
+unsigned int count1 = 0, count2 = 0, count3 = 0, count4 = 0, count5 = 0, count6 = 0;
 
 unsigned char rcv_buf[60] = {0};
 unsigned char rcv_char[60] = {0};
@@ -426,8 +426,9 @@ __irq void TC0_IR (void)
 	count3++;
 	count4++;
 	count5++;
+	count6++;
 	
-	Intermediate_Data.count7++;
+//	Intermediate_Data.count7++;
 
 	switch (output_data.MODEL_TYPE){
 		case 2:	/*debug model*/
@@ -523,13 +524,30 @@ __irq void TC0_IR (void)
 			break;
 			      
 		case 3:	/*calibrate model*/
-			  if (Intermediate_Data.Start_print_calibrate_H2R == 1){
-					Intermediate_Data.count6++;
-					if (Intermediate_Data.count6 == 60000){
-						Intermediate_Data.Start_print_calibrate_H2R = 2;
-						Intermediate_Data.count6 = 0;
-					}
+			if (Intermediate_Data.Start_print_calibrate_H2R == 1){
+				Intermediate_Data.count6++;
+				if (Intermediate_Data.count6 == 60000){
+					Intermediate_Data.Start_print_calibrate_H2R = 2;
+					Intermediate_Data.count6 = 0;
 				}
+			}
+			switch (count6){
+				case 60000:
+					Intermediate_Data.Power_On = 1;
+					break;
+				
+				case 120000:
+					Intermediate_Data.wait_1min_oil = 1;
+				break;
+				
+				case 180000:
+					Intermediate_Data.count7 = 1;
+				  count6 = 0;
+				break;
+					
+				default:
+				break;
+			}
 				break;
 		
 		case 4:	/*OilTemp model*/

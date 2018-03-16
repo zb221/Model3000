@@ -44,6 +44,7 @@ extern unsigned char rcv_char_flag;
 static unsigned int print_count = 0; /* Countdown to each state */
 unsigned char print_time = 30; /* console print cycle */
 unsigned char startup_time = 60;
+unsigned char cal_flag = 0;
 
 const char print_menu[] = 
 	"\n"
@@ -408,6 +409,8 @@ int main (void)
   DAC8568_INIT_SET(output_data.temperature,2*65536/5);	/* Set Senseor temperature :DOUT-C = xV*65536/5 */
 	DAC8568_PCB_TEMP_SET(output_data.PCB_temp,0x1000);    /* Set PCB default temperature */
 	M25P16_erase_map(31*0x10000,SE);
+	e2prom512_read(&output_data.MODEL_TYPE,1,160*2);
+//	UARTprintf("output_data.MODEL_TYPE=%d\n",output_data.MODEL_TYPE);
 
 	while (1)  
 	{
@@ -621,6 +624,12 @@ int main (void)
 			UpData_ModbBus(&CurrentTime);
 			update_e2c();
 			Intermediate_Data.flag2 = 0;
+			if ((cal_flag == 0)&&(Intermediate_Data.count7 == 1)){
+				output_data.temperature = 50;
+				DAC8568_INIT_SET(output_data.temperature,2*65536/5);	/* Set Senseor temperature :DOUT-C = xV*65536/5 */
+				Intermediate_Data.Start_print_calibrate_H2R = 1;
+				cal_flag = 1;
+			}
 			break;
 
 			case 2:
