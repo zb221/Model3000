@@ -3169,6 +3169,8 @@ void cf_arg(void)
 					case 0x31://n 
 						UARTprintf("change mode to normal Success, exit cf OK.\n");
 						output_data.MODEL_TYPE = 1;
+					  run_parameter.MODEL_TYPE= output_data.MODEL_TYPE;
+					  e2prom512_write((unsigned char*)&run_parameter.MODEL_TYPE,2,160*2);
 				    UARTprintf(print_menu);
 					  flag_screen = 0;
 						flag_function++;						
@@ -3176,6 +3178,8 @@ void cf_arg(void)
 					case 0x32:
 						UARTprintf("change mode to debug Success, exit cf OK.\n");
 						output_data.MODEL_TYPE = 2;
+					  run_parameter.MODEL_TYPE= output_data.MODEL_TYPE;
+					  e2prom512_write((unsigned char*)&run_parameter.MODEL_TYPE,2,160*2);
 				    UARTprintf(debug_menu);
 					  flag_screen = 0;
 						flag_function++;
@@ -3183,10 +3187,12 @@ void cf_arg(void)
 					case 0x33:
 						UARTprintf("change mode to calibration Success, exit cf OK.\n");
 						output_data.MODEL_TYPE = 3;
+					  run_parameter.MODEL_TYPE= output_data.MODEL_TYPE;
+					  e2prom512_write((unsigned char*)&run_parameter.MODEL_TYPE,2,160*2);
 						UARTprintf(calibrate_menu);
-						output_data.temperature = 50;
-						DAC8568_INIT_SET(output_data.temperature,2*65536/5);	/* Set Senseor temperature :DOUT-C = xV*65536/5 */
-		        Intermediate_Data.Start_print_calibrate_H2R = 1;
+//						output_data.temperature = 50;
+//						DAC8568_INIT_SET(output_data.temperature,2*65536/5);	/* Set Senseor temperature :DOUT-C = xV*65536/5 */
+//		        Intermediate_Data.Start_print_calibrate_H2R = 1;
 					  flag_screen = 0;
 						flag_function++;
 					break;

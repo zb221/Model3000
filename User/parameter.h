@@ -729,10 +729,10 @@ union
 //		unsigned short hilo;
 //	}h2_ppm_alarm_DRC;//157		
 				
-	unsigned short reserved_parameter50;//157
-	unsigned short reserved_parameter51;//158
+	unsigned short temp_cal;//157
+	unsigned short temp_cal_flag;//158
 	unsigned short reserved_parameter52;//159
-	unsigned short reserved_parameter53;//160
+	unsigned short MODEL_TYPE;//160 MODEL_TYPE
 	union
 	{
 		struct
@@ -1237,7 +1237,7 @@ VARIABLE_EXT Intermediate_Parameters Intermediate_Data;
 //}Sensor_Parameters;
 //VARIABLE_EXT Sensor_Parameters Sensor_Data;
 #ifndef DEBUG
-#define DEBUG
+//#define DEBUG
 #endif
 #endif
 

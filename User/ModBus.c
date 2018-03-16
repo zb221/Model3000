@@ -786,6 +786,16 @@ int RW_ModBus_Data (void)
 			//float_char(cmd_ConfigData.MaxAlarmOil,systemInf.AlarmOil);		
 			break;
 		}
+		
+		case 158:
+		{
+      UARTprintf("temp_cal data\n");
+      if (run_parameter.temp_cal_flag == 158)
+				run_parameter.reserved_parameter33 = run_parameter.temp_cal;
+					UARTprintf("Oiltemp_Cal value is %f\r\n",(float)run_parameter.reserved_parameter33/100.0);
+					e2prom512_write((unsigned char*)&run_parameter.reserved_parameter33,2,120*2);
+			break;
+		}
 
 		case 210:
 		{
