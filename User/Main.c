@@ -587,7 +587,7 @@ int main (void)
 			Intermediate_Data.flag1 = 0;
 			print_count = 90*60 / print_time;
 #ifdef DEBUG
-			UARTprintf("2H10min-3H40min set 70 temp and keep 1.5H\n");
+			UARTprintf("2H10min-4H10min set 70 temp and keep 2H\n");
 #endif
 			break;
 
@@ -597,17 +597,7 @@ int main (void)
 			Intermediate_Data.flag1 = 0;
 			print_count = 30*60 / print_time;
 #ifdef DEBUG
-			UARTprintf("3H40min-4H10min set 50 temp and keep 0.5H\n");
-#endif
-			break;
-
-			case 8:
-			output_data.temperature = 0;
-			DAC8568_INIT_SET(output_data.temperature,0);
-			Intermediate_Data.flag1 = 0;
-			print_count = 3*60 / print_time;
-#ifdef DEBUG
-			UARTprintf("4H10min-4H13min stop heating and capture oil temp 3min\n");
+			UARTprintf("4H10min-4H40min set 50 temp and keep 0.5H\n");
 #endif
 			break;
 

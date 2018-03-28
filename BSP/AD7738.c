@@ -288,6 +288,13 @@ float AVERAGE_F(float *p)
 			sum += Intermediate_Data.H2G_tmp[i];
 		}
 		sum = sum / number;
+	}else if (p == Intermediate_Data.SensorTemp_tmp){
+		number = sizeof(Intermediate_Data.SensorTemp_tmp)/sizeof(Intermediate_Data.SensorTemp_tmp[0]);
+		for (i=0;i<number;i++)
+		{
+			sum += Intermediate_Data.SensorTemp_tmp[i];
+		}
+		sum = sum / number;
 	}
 	return sum;
 }
@@ -380,7 +387,7 @@ Description: .
 ***********************************************************/
 void Temperature_of_resistance_Parameter(void)
 {	
-	static unsigned int number = 0;
+	static unsigned int number = 0, number1 = 0;
 	static unsigned char flag = 0;
 	static float OilTemp_b = 0;
 	static unsigned char Cal_flag = 0;
@@ -396,7 +403,11 @@ void Temperature_of_resistance_Parameter(void)
 		case 0:
 //			UARTprintf("Intermediate_Data.Temp_R_B = %f\n",Intermediate_Data.Temp_R_B);
 	    output_data.SensorTemp = Intermediate_Data.Temp_R_K*output_data.TempResistor + Intermediate_Data.Temp_R_B;
+		  Intermediate_Data.SensorTemp_tmp[number1++] = output_data.SensorTemp;
+		  if (number1 == sizeof(Intermediate_Data.SensorTemp_tmp)/sizeof(Intermediate_Data.SensorTemp_tmp[0]))
+				number1 = 0;
 		  if (Intermediate_Data.wait_1min_oil == 1){
+				output_data.SensorTemp = AVERAGE_F(Intermediate_Data.SensorTemp_tmp);
 				output_data.OilTemp = output_data.SensorTemp;
 				if ((output_data.MODEL_TYPE == 3)&&(Cal_flag == 0)){
 					e2prom512_read((unsigned char*)&run_parameter.reserved_parameter33,2,120*2);
@@ -418,8 +429,8 @@ void Temperature_of_resistance_Parameter(void)
 				Cal_flag = 1;
 			}
 			}
-			if (output_data.OilTemp<(-20))
-			    output_data.OilTemp = -20;
+			if (output_data.OilTemp<(-40))
+			    output_data.OilTemp = -40;
 			if (output_data.OilTemp>105)
 			    output_data.OilTemp = 105;
 			run_parameter.status_flag.ubit.senser_state0=0;
@@ -583,6 +594,7 @@ void ADC7738_acquisition_output(unsigned char channel)
 		number = sizeof(Intermediate_Data.OHM)/sizeof(Intermediate_Data.OHM[0]);
 
 		if (Intermediate_Data.Operat_temp_alarm == 0){
+//			if (output_data.OilTemp < 50){
 			if (output_data.temperature == 50 && Intermediate_Data.wait_1min == 1){
 //				if(output_data.H2Resistor < Intermediate_Data.OHM[0]){
 //					if (output_data.H2Resistor < (Intermediate_Data.OHM[0] - 0.5)){
@@ -620,6 +632,9 @@ void ADC7738_acquisition_output(unsigned char channel)
 				run_parameter.status_flag.ubit.senser_state1=1;
 				run_parameter.status_flag.ubit.senser_state2=0;
 			}
+//		}
+			
+			
 	  }else{
 			run_parameter.status_flag.ubit.senser_state0=1;
 			run_parameter.status_flag.ubit.senser_state1=0;

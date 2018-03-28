@@ -11,6 +11,7 @@
 #include "AD7738.h"
 #include "AD420.h"
 #include "e25LC512.h"
+#include "DAC8568.h"
 
 unsigned char Heating_R_failure = 0;
 /***********************************************************
@@ -160,10 +161,28 @@ void device_checkself(void)
 	  if (Intermediate_Data.Heat_V<200 && output_data.temperature>30){
 //					UARTprintf("%.3f Heating resistance self-check error.\n",Intermediate_Data.Heat_V);
 					Heating_R_failure = 1;
-		}else
-		{
-		  Heating_R_failure = 0;
 		}
+		if ((output_data.temperature == 50)||(output_data.temperature == 70)){
+			if (Intermediate_Data.Heat_V>1880)
+				DAC8568_SET(0x0,0x3,0x2,0,0);		       /* when > 400 mA, DAC-C set 0 */
+			else
+				DAC8568_SET(0x0,0x3,0x2,2.35*65536/5,0);
+	  }
+		if ((output_data.MODEL_TYPE == 1)||(output_data.MODEL_TYPE == 2)){
+		e2prom512_read((unsigned char*)&run_parameter.Piecewise_point0.ubit.hi,4,243*2);
+		e2prom512_read((unsigned char*)&run_parameter.Piecewise_point3.ubit.hi,4,249*2);
+			
+//    UARTprintf("%d \n",(run_parameter.Piecewise_point0.ubit.hi<<16 | run_parameter.Piecewise_point0.ubit.lo));
+//    UARTprintf("%f \n",(run_parameter.Piecewise_point0.ubit.hi<<16 | run_parameter.Piecewise_point0.ubit.lo));
+		
+		if ((output_data.H2Resistor < (run_parameter.Piecewise_point0.ubit.hi<<16 | run_parameter.Piecewise_point0.ubit.lo)-10) 
+			|| (output_data.H2Resistor > (run_parameter.Piecewise_point3.ubit.hi<<16 | run_parameter.Piecewise_point3.ubit.lo)+10))
+			Heating_R_failure = 1;
+		
+		if ((output_data.TempResistor < (-40.0 - Intermediate_Data.Temp_R_B)/Intermediate_Data.Temp_R_K) 
+		|| (output_data.TempResistor > (105.0 - Intermediate_Data.Temp_R_B)/Intermediate_Data.Temp_R_K))
+			Heating_R_failure = 1;
+	}
 		
 }
 
@@ -387,15 +406,15 @@ void E2C_Sensor_Fit_Para(void)
 		
 //		UARTprintf("run_parameter.Sensor_Fit_Para_Done=%d\n",run_parameter.Sensor_Fit_Para_Done);
 //		
-//	UARTprintf("test1=%lld\n",test1);
-//	UARTprintf("test2=%lld\n",test2);
-//	UARTprintf("test3=%lld\n",test3);
-//	UARTprintf("test4=%lld\n",test4);
-//	UARTprintf("test5=%lld\n",test5);
-//	UARTprintf("test6=%lld\n",test6);
-//	UARTprintf("test7=%lld\n",test7);
-//	UARTprintf("test8=%lld\n",test8);
-//	UARTprintf("test9=%lld\n",test9);
+	UARTprintf("test1=%lld\n",test1);
+	UARTprintf("test2=%lld\n",test2);
+	UARTprintf("test3=%lld\n",test3);
+	UARTprintf("test4=%lld\n",test4);
+	UARTprintf("test5=%lld\n",test5);
+	UARTprintf("test6=%lld\n",test6);
+	UARTprintf("test7=%lld\n",test7);
+	UARTprintf("test8=%lld\n",test8);
+	UARTprintf("test9=%lld\n",test9);
 	
 //  for(i=0;i<12;i++)
 //	UARTprintf("%d\n",run_parameter.Sensor_Fit_Para_C.Fit_Para_C[i]);
@@ -439,8 +458,8 @@ void E2C_Piecewise_point(void)
 	
 //	UARTprintf("run_parameter.Block_mark_Done=%d\n",run_parameter.Block_mark_Done);
 //	
-//	UARTprintf("point0=%d\n",run_parameter.Piecewise_point0.ubit.hi<<16 | run_parameter.Piecewise_point0.ubit.lo);
-//	UARTprintf("point1=%d\n",run_parameter.Piecewise_point1.ubit.hi<<16 | run_parameter.Piecewise_point1.ubit.lo);
-//	UARTprintf("point2=%d\n",run_parameter.Piecewise_point2.ubit.hi<<16 | run_parameter.Piecewise_point2.ubit.lo);
-//	UARTprintf("point3=%d\n",run_parameter.Piecewise_point3.ubit.hi<<16 | run_parameter.Piecewise_point3.ubit.lo);
+	UARTprintf("point0=%d\n",run_parameter.Piecewise_point0.ubit.hi<<16 | run_parameter.Piecewise_point0.ubit.lo);
+	UARTprintf("point1=%d\n",run_parameter.Piecewise_point1.ubit.hi<<16 | run_parameter.Piecewise_point1.ubit.lo);
+	UARTprintf("point2=%d\n",run_parameter.Piecewise_point2.ubit.hi<<16 | run_parameter.Piecewise_point2.ubit.lo);
+	UARTprintf("point3=%d\n",run_parameter.Piecewise_point3.ubit.hi<<16 | run_parameter.Piecewise_point3.ubit.lo);
 }

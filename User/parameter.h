@@ -1184,6 +1184,8 @@ typedef struct Intermediate_Data
 	float H2Resistor_Tmp_1[200];    /* Data for filtering processing */
 	float H2Resistor_Tmp_2[30];    /* Data for filtering processing */
 	
+	float SensorTemp_tmp[10];
+	
 	float H2Resistor_OilTemp_K;
 	float H2Resistor_OilTemp_B;
 
@@ -1237,7 +1239,7 @@ VARIABLE_EXT Intermediate_Parameters Intermediate_Data;
 //}Sensor_Parameters;
 //VARIABLE_EXT Sensor_Parameters Sensor_Data;
 #ifndef DEBUG
-//#define DEBUG
+#define DEBUG
 #endif
 #endif
 
