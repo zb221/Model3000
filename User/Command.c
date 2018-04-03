@@ -3214,6 +3214,7 @@ void cf_arg(void)
 						UARTprintf("\nPlease input the Oiltemp_Cal value you want:\n");
 						flag_function = 4;
 						break;
+					
 					default:
 						UARTprintf("Please input cf command again and set 0-7 at here, exit cf OK.\n");
 						flag_screen = 0;

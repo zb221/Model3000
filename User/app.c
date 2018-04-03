@@ -175,8 +175,8 @@ void device_checkself(void)
 //    UARTprintf("%d \n",(run_parameter.Piecewise_point0.ubit.hi<<16 | run_parameter.Piecewise_point0.ubit.lo));
 //    UARTprintf("%f \n",(run_parameter.Piecewise_point0.ubit.hi<<16 | run_parameter.Piecewise_point0.ubit.lo));
 		
-		if ((output_data.H2Resistor < (run_parameter.Piecewise_point0.ubit.hi<<16 | run_parameter.Piecewise_point0.ubit.lo)-10) 
-			|| (output_data.H2Resistor > (run_parameter.Piecewise_point3.ubit.hi<<16 | run_parameter.Piecewise_point3.ubit.lo)+10))
+		if ((output_data.H2Resistor < (float)(run_parameter.Piecewise_point0.ubit.hi<<16 | run_parameter.Piecewise_point0.ubit.lo)/1000.0-10) 
+			|| (output_data.H2Resistor > (float)(run_parameter.Piecewise_point3.ubit.hi<<16 | run_parameter.Piecewise_point3.ubit.lo)/1000.0+10))
 			Heating_R_failure = 1;
 		
 		if ((output_data.TempResistor < (-40.0 - Intermediate_Data.Temp_R_B)/Intermediate_Data.Temp_R_K) 
@@ -403,21 +403,37 @@ void E2C_Sensor_Fit_Para(void)
 			run_parameter.Sensor_Fit_Para_Done = 251;
 		else
 			run_parameter.Sensor_Fit_Para_Done = 0;
+
+  UARTprintf("test1=%lld\n",test1);
+  UARTprintf("test2=%lld\n",test2);
+  UARTprintf("test3=%lld\n",test3);
+  UARTprintf("test4=%lld\n",test4);
+  UARTprintf("test5=%lld\n",test5);
+  UARTprintf("test6=%lld\n",test6);
+  UARTprintf("test7=%lld\n",test7);
+  UARTprintf("test8=%lld\n",test8);
+  UARTprintf("test9=%lld\n",test9);
 		
-//		UARTprintf("run_parameter.Sensor_Fit_Para_Done=%d\n",run_parameter.Sensor_Fit_Para_Done);
-//		
-	UARTprintf("test1=%lld\n",test1);
-	UARTprintf("test2=%lld\n",test2);
-	UARTprintf("test3=%lld\n",test3);
-	UARTprintf("test4=%lld\n",test4);
-	UARTprintf("test5=%lld\n",test5);
-	UARTprintf("test6=%lld\n",test6);
-	UARTprintf("test7=%lld\n",test7);
-	UARTprintf("test8=%lld\n",test8);
-	UARTprintf("test9=%lld\n",test9);
-	
-//  for(i=0;i<12;i++)
-//	UARTprintf("%d\n",run_parameter.Sensor_Fit_Para_C.Fit_Para_C[i]);
+	UARTprintf("a1=%.7f\n",(double)(( long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[0]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[1]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[2]<<16
+	| (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[3])/10000000.0);
+	UARTprintf("b1=%.7f\n",(double)(( long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[4]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[5]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[6]<<16
+	| (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[7])/10000000.0);
+	UARTprintf("c1=%.7f\n",(double)(( long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[8]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[9]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[10]<<16
+	| (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[11])/10000000.0);
+
+	UARTprintf("a2=%.7f\n",(double)(( long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[0]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[1]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[2]<<16
+	| (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[3])/10000000.0);
+	UARTprintf("b2=%.7f\n",(double)(( long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[4]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[5]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[6]<<16
+	| (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[7])/10000000.0);
+	UARTprintf("c2=%.7f\n",(double)(( long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[8]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[9]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[10]<<16
+	| (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[11])/10000000.0);
+
+	UARTprintf("a3=%.7f\n",(double)(( long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[0]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[1]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[2]<<16
+	| (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[3])/10000000.0);
+	UARTprintf("b3=%.7f\n",(double)(( long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[4]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[5]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[6]<<16
+	| (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[7])/10000000.0);
+	UARTprintf("c3=%.7f\n",(double)(( long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[8]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[9]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[10]<<16
+	| (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[11])/10000000.0);
 		
 }
 
@@ -458,8 +474,13 @@ void E2C_Piecewise_point(void)
 	
 //	UARTprintf("run_parameter.Block_mark_Done=%d\n",run_parameter.Block_mark_Done);
 //	
-	UARTprintf("point0=%d\n",run_parameter.Piecewise_point0.ubit.hi<<16 | run_parameter.Piecewise_point0.ubit.lo);
-	UARTprintf("point1=%d\n",run_parameter.Piecewise_point1.ubit.hi<<16 | run_parameter.Piecewise_point1.ubit.lo);
-	UARTprintf("point2=%d\n",run_parameter.Piecewise_point2.ubit.hi<<16 | run_parameter.Piecewise_point2.ubit.lo);
-	UARTprintf("point3=%d\n",run_parameter.Piecewise_point3.ubit.hi<<16 | run_parameter.Piecewise_point3.ubit.lo);
+  UARTprintf("point0=%d\n",(run_parameter.Piecewise_point0.ubit.hi<<16 | run_parameter.Piecewise_point0.ubit.lo));
+  UARTprintf("point1=%d\n",(run_parameter.Piecewise_point1.ubit.hi<<16 | run_parameter.Piecewise_point1.ubit.lo));
+  UARTprintf("point2=%d\n",(run_parameter.Piecewise_point2.ubit.hi<<16 | run_parameter.Piecewise_point2.ubit.lo));
+  UARTprintf("point3=%d\n",(run_parameter.Piecewise_point3.ubit.hi<<16 | run_parameter.Piecewise_point3.ubit.lo));
+	
+	UARTprintf("point0=%.3f\n",(float)(run_parameter.Piecewise_point0.ubit.hi<<16 | run_parameter.Piecewise_point0.ubit.lo)/1000.0);
+	UARTprintf("point1=%.3f\n",(float)(run_parameter.Piecewise_point1.ubit.hi<<16 | run_parameter.Piecewise_point1.ubit.lo)/1000.0);
+	UARTprintf("point2=%.3f\n",(float)(run_parameter.Piecewise_point2.ubit.hi<<16 | run_parameter.Piecewise_point2.ubit.lo)/1000.0);
+	UARTprintf("point3=%.3f\n",(float)(run_parameter.Piecewise_point3.ubit.hi<<16 | run_parameter.Piecewise_point3.ubit.lo)/1000.0);
 }

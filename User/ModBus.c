@@ -827,8 +827,8 @@ int RW_ModBus_Data (void)
 /*----------------------------------------------add---------------------------------------------------------*/	
 		case 251:
 		{
-//      UARTprintf("Sensor Fit Para\n");
 			if (output_data.MODEL_TYPE == 3){
+//		  UARTprintf("Sensor Fit Para\n");
 			if (run_parameter.Sensor_Fit_Para_Done == 2510)
 			  E2C_Sensor_Fit_Para();
 		  }
@@ -837,8 +837,8 @@ int RW_ModBus_Data (void)
 		
 		case 252:
 		{
-//      UARTprintf("Piecewise data\n");
 			if (output_data.MODEL_TYPE == 3){
+//			UARTprintf("Piecewise data\n");
       if (run_parameter.Block_mark_Done == 2520)
 				E2C_Piecewise_point();
 		  }

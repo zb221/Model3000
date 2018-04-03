@@ -594,7 +594,6 @@ void ADC7738_acquisition_output(unsigned char channel)
 		number = sizeof(Intermediate_Data.OHM)/sizeof(Intermediate_Data.OHM[0]);
 
 		if (Intermediate_Data.Operat_temp_alarm == 0){
-//			if (output_data.OilTemp < 50){
 			if (output_data.temperature == 50 && Intermediate_Data.wait_1min == 1){
 //				if(output_data.H2Resistor < Intermediate_Data.OHM[0]){
 //					if (output_data.H2Resistor < (Intermediate_Data.OHM[0] - 0.5)){
@@ -608,21 +607,25 @@ void ADC7738_acquisition_output(unsigned char channel)
 //					output_data.H2AG = Intermediate_Data.H2[number-1];
 //					output_data.H2AG1 = Intermediate_Data.H2[number-1];
 //				}else{
-				if(output_data.H2Resistor < (run_parameter.Piecewise_point0.ubit.hi<<16 | run_parameter.Piecewise_point0.ubit.lo)){
-					if (output_data.H2Resistor < ((run_parameter.Piecewise_point0.ubit.hi<<16 | run_parameter.Piecewise_point0.ubit.lo) - 0.5)){
+				if(output_data.H2Resistor < (float)(run_parameter.Piecewise_point0.ubit.hi<<16 | run_parameter.Piecewise_point0.ubit.lo)/1000.0){
+					if (output_data.H2Resistor < ((float)(run_parameter.Piecewise_point0.ubit.hi<<16 | run_parameter.Piecewise_point0.ubit.lo)/1000.0 - 0.5)){
 						output_data.H2AG = 0;
 						output_data.H2AG1 = output_data.H2AG;
 					}else{
-						output_data.H2AG = 100.0*output_data.H2Resistor + (-(100.0*((run_parameter.Piecewise_point0.ubit.hi<<16 | run_parameter.Piecewise_point0.ubit.lo)-0.5)));
+						output_data.H2AG = 100.0*output_data.H2Resistor + (-(100.0*((float)(run_parameter.Piecewise_point0.ubit.hi<<16 | run_parameter.Piecewise_point0.ubit.lo)/1000.0-0.5)));
 						output_data.H2AG1 = output_data.H2AG;
 					}
-				}else if (output_data.H2Resistor > (run_parameter.Piecewise_point3.ubit.hi<<16 | run_parameter.Piecewise_point3.ubit.lo)){
-					output_data.H2AG = Intermediate_Data.H2[number-1];
-					output_data.H2AG1 = Intermediate_Data.H2[number-1];
+				}else if (output_data.H2Resistor > (float)(run_parameter.Piecewise_point3.ubit.hi<<16 | run_parameter.Piecewise_point3.ubit.lo)/1000.0){
+					output_data.H2AG = 100000;
+					output_data.H2AG1 = output_data.H2AG;
 				}else{
 //					output_data.H2AG = Cubic_main(output_data.H2Resistor,Hydrogen_Res);  /*H2AG*/
-					output_data.H2AG1 = quadratic_polynomial(output_data.H2Resistor);
-					output_data.H2AG = output_data.H2AG1;
+					output_data.H2AG = quadratic_polynomial(output_data.H2Resistor);
+					if (output_data.H2AG > 100000)
+					  output_data.H2AG = 100000;
+					if (output_data.H2AG < 0)
+					  output_data.H2AG = 0;
+					output_data.H2AG1 = output_data.H2AG;
 				}
 				run_parameter.status_flag.ubit.senser_state0=1;
 				run_parameter.status_flag.ubit.senser_state1=0;
@@ -632,9 +635,6 @@ void ADC7738_acquisition_output(unsigned char channel)
 				run_parameter.status_flag.ubit.senser_state1=1;
 				run_parameter.status_flag.ubit.senser_state2=0;
 			}
-//		}
-			
-			
 	  }else{
 			run_parameter.status_flag.ubit.senser_state0=1;
 			run_parameter.status_flag.ubit.senser_state1=0;
@@ -644,6 +644,8 @@ void ADC7738_acquisition_output(unsigned char channel)
 		output_data.H2DG += (float)((run_parameter.h2_ppm_calibration_gas_h16.hilo << 16) | run_parameter.h2_ppm_calibration_gas_l16.hilo);
 		if (output_data.H2DG > 5000)
 			output_data.H2DG = 5000;
+		if (output_data.H2DG < 0)
+			output_data.H2DG = 0;
 		output_data.H2G = output_data.H2DG;
 		break;
 

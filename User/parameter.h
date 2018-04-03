@@ -1221,23 +1221,6 @@ typedef struct Intermediate_Data
 }Intermediate_Parameters;
 VARIABLE_EXT Intermediate_Parameters Intermediate_Data;
 
-//typedef struct Sensor_Data
-//{
-//	unsigned char original_data[80];
-//	unsigned char Sensor_Fit_Para[72];
-//	
-//	double p1;
-//	double p2;
-//	double p3;
-//	double p4;
-//	double p5;
-//	double p6;
-//	double p7;
-//	double p8;
-//	double p9;
-//	
-//}Sensor_Parameters;
-//VARIABLE_EXT Sensor_Parameters Sensor_Data;
 #ifndef DEBUG
 #define DEBUG
 #endif
