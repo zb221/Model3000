@@ -14,10 +14,13 @@ void DelayNS (unsigned int uiDly);
 void FrecInit(void);
 
 /*-------------------------------------------------LED-----------------------------------------------------------*/
-#define		LED_RED_SET		IO1SET|=(1<<17);
-#define		LED_RED_CLR		IO1CLR|=(1<<17);
+#define		LED_RED_SET		  IO1SET|=(1<<17);
+#define		LED_RED_CLR		  IO1CLR|=(1<<17);
 #define		LED_BLUE_SET		IO1SET|=(1<<18);
 #define		LED_BLUE_CLR		IO1CLR|=(1<<18);
+
+#define		TP2_CLR		IO0CLR|=(1<<29);
+#define		TP2_SET		IO0SET|=(1<<29);
 
 void LED_init(void);
 void ZIGBB_PWR(void);

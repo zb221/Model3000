@@ -649,6 +649,13 @@ int RW_ModBus_Data (void)
 			//    UARTprintf("Calibration Gas finished\n");	
 			break;		
 		}	
+		
+		case 124:
+		{
+			UARTprintf("reboot\n");
+			run_parameter.reboot = 1;
+			break;
+		}
 
 		case 150:
 		{
@@ -790,10 +797,12 @@ int RW_ModBus_Data (void)
 		case 158:
 		{
       UARTprintf("temp_cal data\n");
-      if (run_parameter.temp_cal_flag == 158)
+      if (run_parameter.temp_cal_flag == 158){
 				run_parameter.reserved_parameter33 = run_parameter.temp_cal;
-					UARTprintf("Oiltemp_Cal value is %f\r\n",(float)run_parameter.reserved_parameter33/100.0);
-					e2prom512_write((unsigned char*)&run_parameter.reserved_parameter33,2,120*2);
+				UARTprintf("Oiltemp_Cal value is %.2f\r\n",(float)run_parameter.reserved_parameter33/100.0);
+				e2prom512_write((unsigned char*)&run_parameter.reserved_parameter33,2,120*2);
+				run_parameter.temp_cal_flag = 15;
+			}
 			break;
 		}
 
@@ -844,6 +853,7 @@ int RW_ModBus_Data (void)
 		  }
 			break;
 		}
+	
 //		default:
 //		UARTprintf("user_parameter.function_point=%d\n",user_parameter.function_point);
 //		break;

@@ -630,6 +630,29 @@ void ADC7738_acquisition_output(unsigned char channel)
 				run_parameter.status_flag.ubit.senser_state0=1;
 				run_parameter.status_flag.ubit.senser_state1=0;
 				run_parameter.status_flag.ubit.senser_state2=0;
+			}else if (output_data.temperature == 70 && Intermediate_Data.wait_1min == 1){
+				if(output_data.H2Resistor < (float)(run_parameter.Piecewise_point0.ubit.hi<<16 | run_parameter.Piecewise_point0.ubit.lo)/1000.0){
+					if (output_data.H2Resistor < ((float)(run_parameter.Piecewise_point0.ubit.hi<<16 | run_parameter.Piecewise_point0.ubit.lo)/1000.0 - 0.5)){
+						output_data.H2AG = 0;
+						output_data.H2AG1 = output_data.H2AG;
+					}else{
+						output_data.H2AG = 100.0*output_data.H2Resistor + (-(100.0*((float)(run_parameter.Piecewise_point0.ubit.hi<<16 | run_parameter.Piecewise_point0.ubit.lo)/1000.0-0.5)));
+						output_data.H2AG1 = output_data.H2AG;
+					}
+				}else if (output_data.H2Resistor > (float)(run_parameter.Piecewise_point3.ubit.hi<<16 | run_parameter.Piecewise_point3.ubit.lo)/1000.0){
+					output_data.H2AG = 100000;
+					output_data.H2AG1 = output_data.H2AG;
+				}else{
+					output_data.H2AG = quadratic_polynomial(output_data.H2Resistor);
+					if (output_data.H2AG > 100000)
+					  output_data.H2AG = 100000;
+					if (output_data.H2AG < 0)
+					  output_data.H2AG = 0;
+					output_data.H2AG1 = output_data.H2AG;
+				}
+				run_parameter.status_flag.ubit.senser_state0=1;
+				run_parameter.status_flag.ubit.senser_state1=0;
+				run_parameter.status_flag.ubit.senser_state2=0;
 			}else{
 				run_parameter.status_flag.ubit.senser_state0=1;
 				run_parameter.status_flag.ubit.senser_state1=1;

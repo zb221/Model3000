@@ -540,7 +540,7 @@ union
 	unsigned short da_command;//121	
 	unsigned short db_command;//122
 	unsigned short dx_command;//123
-	unsigned short reserved_parameter34;//124
+	unsigned short reboot;//124 reboot
 	union
 	{
 		struct
