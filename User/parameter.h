@@ -1198,6 +1198,9 @@ typedef struct Intermediate_Data
 	float Temp_R_K;
 	float Temp_R_B;
 	
+	float H2Resistor_T_K;
+	float H2Resistor_T_B;
+	
 	unsigned int da_H2ppm;
 	unsigned int db_H2ppm;
 	
@@ -1215,6 +1218,8 @@ typedef struct Intermediate_Data
 	unsigned char Oiltemp_Cal_flag;
 	
 	unsigned char Oiltemp_Cal_OK;
+
+	unsigned char Oiltemp_Over;
 	
 	float intercept;
 

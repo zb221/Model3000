@@ -221,6 +221,8 @@ float quadratic_polynomial(float data)
   	p1 = (double)test1/10000000.0;
     p2 = (double)test2/10000000.0;
 		p3 = (double)test3/10000000.0;
+		if (output_data.temperature == 70 && Intermediate_Data.wait_1min == 1 && Intermediate_Data.Oiltemp_Over == 1)
+			p3 = (double)test3/10000000.0 + (Intermediate_Data.H2Resistor_T_K*(70-50));
 	}else if (data >= (float)(run_parameter.Piecewise_point1.ubit.hi<<16 | run_parameter.Piecewise_point1.ubit.lo)/1000.0 && data < (float)(run_parameter.Piecewise_point2.ubit.hi<<16 | run_parameter.Piecewise_point2.ubit.lo)/1000.0){
 		test4 = (( long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[0]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[1]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[2]<<16
 			| (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[3]);
@@ -234,6 +236,8 @@ float quadratic_polynomial(float data)
   	p1 = (double)test4/10000000.0;
     p2 = (double)test5/10000000.0;
 		p3 = (double)test6/10000000.0;
+		if (output_data.temperature == 70 && Intermediate_Data.wait_1min == 1 && Intermediate_Data.Oiltemp_Over == 1)
+			p3 = (double)test6/10000000.0 + (Intermediate_Data.H2Resistor_T_K*(70-50));
 	}else if (data >= (float)(run_parameter.Piecewise_point2.ubit.hi<<16 | run_parameter.Piecewise_point2.ubit.lo)/1000.0 && data < (float)(run_parameter.Piecewise_point3.ubit.hi<<16 | run_parameter.Piecewise_point3.ubit.lo)/1000.0){
 		test7 = (( long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[0]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[1]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[2]<<16
 			| (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[3]);
@@ -247,6 +251,8 @@ float quadratic_polynomial(float data)
 		p1 = (double)test7/10000000.0;
 		p2 = (double)test8/10000000.0;
 		p3 = (double)test9/10000000.0;
+		if (output_data.temperature == 70 && Intermediate_Data.wait_1min == 1 && Intermediate_Data.Oiltemp_Over == 1)
+			p3 = (double)test9/10000000.0 + (Intermediate_Data.H2Resistor_T_K*(70-50));
 	}
 #ifdef DEBUG
 	UARTprintf("p1=%.7f\n",p1);

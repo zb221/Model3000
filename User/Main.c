@@ -169,6 +169,7 @@ void init_Global_Variable(void)
 	Intermediate_Data.Oiltemp_Cal_flag = 0;
 	Intermediate_Data.Oiltemp_Cal_OK = 0;
 	Intermediate_Data.intercept = 0;
+	Intermediate_Data.Oiltemp_Over = 0;
 	
 	run_parameter.reboot = 0;
 
@@ -263,6 +264,9 @@ void command_print(void)
 	
 	if (output_data.H2DG >= run_parameter.h2_ppm_alert_low_l16.hilo)
 			UARTprintf(",R1");
+	
+	if (Intermediate_Data.Operat_temp_alarm == 1)
+		;
 	
 //	if (Intermediate_Data.Heat_V > 100){
 //		UARTprintf(message2);
