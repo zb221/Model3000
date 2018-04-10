@@ -339,7 +339,7 @@ void read_Piecewise_point_Sensor_Fit_Para(void)
   test9 = (( long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[8]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[9]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[10]<<16
 		| (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[11]);
 	
-#ifdef DEBUG
+	if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
 	UARTprintf("point0=%.3f\n",(float)(run_parameter.Piecewise_point0.ubit.hi<<16 | run_parameter.Piecewise_point0.ubit.lo)/1000.0);
 	UARTprintf("point1=%.3f\n",(float)(run_parameter.Piecewise_point1.ubit.hi<<16 | run_parameter.Piecewise_point1.ubit.lo)/1000.0);
 	UARTprintf("point2=%.3f\n",(float)(run_parameter.Piecewise_point2.ubit.hi<<16 | run_parameter.Piecewise_point2.ubit.lo)/1000.0);
@@ -347,7 +347,7 @@ void read_Piecewise_point_Sensor_Fit_Para(void)
 
 
 	UARTprintf("a1=%.7f\n",(double)test1/10000000.0);
-	UARTprintf("a1=%.7f\n",(double)test2/10000000.0);
+	UARTprintf("b1=%.7f\n",(double)test2/10000000.0);
 	UARTprintf("c1=%.7f\n",(double)test3/10000000.0);
 
 	UARTprintf("a2=%.7f\n",(double)test4/10000000.0);
@@ -357,8 +357,7 @@ void read_Piecewise_point_Sensor_Fit_Para(void)
 	UARTprintf("a3=%.7f\n",(double)test7/10000000.0);
 	UARTprintf("b3=%.7f\n",(double)test8/10000000.0);
 	UARTprintf("c3=%.7f\n",(double)test9/10000000.0);
-
-#endif
+	}
 	
 }
 
@@ -539,9 +538,9 @@ int main (void)
 				if(findcmdfunction(cmd_tmp) == 1){
 					a = 0;
 					flag_screen = 1;
-#ifdef DEBUG
+if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
 					UARTprintf("Close the echo\n\n");
-#endif
+}
 				}
 				memset(cmd_tmp,0,sizeof(cmd_tmp));
 				break;
@@ -634,9 +633,9 @@ int main (void)
 			DAC8568_INIT_SET(output_data.temperature,0);
 			Intermediate_Data.flag1 = 0;
 			print_count = 3*60 / print_time;
-#ifdef DEBUG
+if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
 			UARTprintf("1-4min capture 3min oil temp\n");	
-#endif
+}
 			break;
 
 			case 2:
@@ -644,9 +643,9 @@ int main (void)
 			DAC8568_INIT_SET(output_data.temperature,2.35*65536/5);
 			Intermediate_Data.flag1 = 0;
 			print_count = 60*60 / print_time;
-#ifdef DEBUG
+if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
 			UARTprintf("4-1H4min set 50 temp, keep 1H\n");
-#endif
+}
 			break;
 
 			case 3:
@@ -654,9 +653,9 @@ int main (void)
 			DAC8568_INIT_SET(output_data.temperature,0);
 			Intermediate_Data.flag1 = 0;
 			print_count = 3*60 / print_time;
-#ifdef DEBUG
+if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
 			UARTprintf("1H4min-1H7min stop heating, capture 3min oil temp\n");
-#endif
+}
 			break;
 
 			case 4:
@@ -664,9 +663,9 @@ int main (void)
 			DAC8568_INIT_SET(output_data.temperature,2.35*65536/5);
 			Intermediate_Data.flag1 = 0;
 			print_count = 60*60 / print_time;
-#ifdef DEBUG
+if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
 			UARTprintf("1H7min-2H7min set 50 temp and keep 1H\n");
-#endif
+}
 			break;
 
 			case 5:
@@ -674,9 +673,9 @@ int main (void)
 			DAC8568_INIT_SET(output_data.temperature,0);
 			Intermediate_Data.flag1 = 0;
 			print_count = 3*60 / print_time;
-#ifdef DEBUG
+if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
 			UARTprintf("2H7min-2H10min stop heating and capture oil temp 3min\n");
-#endif
+}
 			break;
 
 			case 6:
@@ -684,9 +683,9 @@ int main (void)
 			DAC8568_INIT_SET(output_data.temperature,2.35*65536/5);
 			Intermediate_Data.flag1 = 0;
 			print_count = 120*60 / print_time;
-#ifdef DEBUG
+if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
 			UARTprintf("2H10min-4H10min set 70 temp and keep 2H\n");
-#endif
+}
 			break;
 
 			case 7:
@@ -694,9 +693,9 @@ int main (void)
 			DAC8568_INIT_SET(output_data.temperature,2.35*65536/5);
 			Intermediate_Data.flag1 = 0;
 			print_count = 30*60 / print_time;
-#ifdef DEBUG
+if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
 			UARTprintf("4H10min-4H40min set 50 temp and keep 0.5H\n");
-#endif
+}
 			break;
 
 			default:
@@ -756,9 +755,9 @@ int main (void)
 			M25P16_Data_Records();
 			if (output_data.OilTemp >= run_parameter.OilTemp_Alarm_celsius.hilo || output_data.DayROC >= run_parameter.h2_ppm_alarm_low_l16.hilo || output_data.H2DG >= run_parameter.h2_ppm_alert_low_l16.hilo)
 				M25P16_Alarm_Log_Records();
-#ifdef DEBUG
+if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
 		  UARTprintf("save data into flash\n");			
-#endif
+}
 		}
 
 		if (Intermediate_Data.flag4 == 1)

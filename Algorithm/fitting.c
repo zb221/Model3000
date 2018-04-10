@@ -254,11 +254,11 @@ float quadratic_polynomial(float data)
 		if (output_data.temperature == 70 && Intermediate_Data.wait_1min == 1 && Intermediate_Data.Oiltemp_Over == 1)
 			p3 = (double)test9/10000000.0 + (Intermediate_Data.H2Resistor_T_K*(70-50));
 	}
-#ifdef DEBUG
+if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
 	UARTprintf("p1=%.7f\n",p1);
 	UARTprintf("p2=%.7f\n",p1);
 	UARTprintf("p3=%.7f\n",p1);
-#endif
+}
 	tmp = p1 * data * data + p2 * data + p3;
 	return tmp;
 }

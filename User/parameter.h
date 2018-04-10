@@ -1226,8 +1226,5 @@ typedef struct Intermediate_Data
 }Intermediate_Parameters;
 VARIABLE_EXT Intermediate_Parameters Intermediate_Data;
 
-#ifndef DEBUG
-#define DEBUG
-#endif
 #endif
 
