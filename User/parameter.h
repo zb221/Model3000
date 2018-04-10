@@ -540,7 +540,7 @@ union
 	unsigned short da_command;//121	
 	unsigned short db_command;//122
 	unsigned short dx_command;//123
-	unsigned short reserved_parameter34;//124
+	unsigned short reboot;//124 reboot
 	union
 	{
 		struct
@@ -1184,6 +1184,8 @@ typedef struct Intermediate_Data
 	float H2Resistor_Tmp_1[200];    /* Data for filtering processing */
 	float H2Resistor_Tmp_2[30];    /* Data for filtering processing */
 	
+	float SensorTemp_tmp[10];
+	
 	float H2Resistor_OilTemp_K;
 	float H2Resistor_OilTemp_B;
 
@@ -1195,6 +1197,9 @@ typedef struct Intermediate_Data
 
 	float Temp_R_K;
 	float Temp_R_B;
+	
+	float H2Resistor_T_K;
+	float H2Resistor_T_B;
 	
 	unsigned int da_H2ppm;
 	unsigned int db_H2ppm;
@@ -1213,31 +1218,13 @@ typedef struct Intermediate_Data
 	unsigned char Oiltemp_Cal_flag;
 	
 	unsigned char Oiltemp_Cal_OK;
+
+	unsigned char Oiltemp_Over;
 	
 	float intercept;
 
 }Intermediate_Parameters;
 VARIABLE_EXT Intermediate_Parameters Intermediate_Data;
 
-//typedef struct Sensor_Data
-//{
-//	unsigned char original_data[80];
-//	unsigned char Sensor_Fit_Para[72];
-//	
-//	double p1;
-//	double p2;
-//	double p3;
-//	double p4;
-//	double p5;
-//	double p6;
-//	double p7;
-//	double p8;
-//	double p9;
-//	
-//}Sensor_Parameters;
-//VARIABLE_EXT Sensor_Parameters Sensor_Data;
-#ifndef DEBUG
-//#define DEBUG
-#endif
 #endif
 

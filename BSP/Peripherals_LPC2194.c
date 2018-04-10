@@ -481,42 +481,24 @@ __irq void TC0_IR (void)
 				case 7740000: /*wait 2min for 2H7min-2H10min stop heating and capture oil temp 3min */
 				Intermediate_Data.wait_1min_oil = 1;
 				break;
-				
-				case 7800000: /* set 50 temp, and while */
-				count1 = 240000 - 1;
-				break;
 
-				case 7800001: /* 2H10min-3H40min set 70 temp and keep 1.5H */
+				case 7800000: /* 2H10min-4H10min set 70 temp and keep 2H */
 				Intermediate_Data.flag1 = 6;
 				Intermediate_Data.wait_1min = 0;
 				break;
 				
-				case 7860000: /* wait 1min for 2H10min-3H40min set 70 temp and keep 1.5H */
+				case 8400000: /* wait 10min for 2H10min-4H10min set 70 temp and keep 2H */
 				Intermediate_Data.wait_1min = 1;
 				break;
 
-				case 13200000: /* 3H40min-4H10min set 50 temp and keep 0.5H */
+				case 15000000: /* 4H10min-4H40min set 50 temp and keep 0.5H */
 				Intermediate_Data.flag1 = 7;
-        Intermediate_Data.wait_1min = 0;
+				Intermediate_Data.wait_1min = 0;
 				break;
 
-				case 13260000: /* wait 1min for 3H40min-4H10min set 50 temp and keep 0.5H */
-				Intermediate_Data.wait_1min = 1;
+				case 16800000: /*wait 1min for 4H10min-4H13min stop heating and capture oil temp 3min */
+				count1 = 60000 - 1;
 				break;
-
-				case 15000000: /* 4H10min-4H13min stop heating and capture oil temp 3min */
-				Intermediate_Data.flag1 = 8;
-				Intermediate_Data.wait_1min_oil = 0;
-				break;
-
-				case 15060000: /*wait 1min for 4H10min-4H13min stop heating and capture oil temp 3min */
-				Intermediate_Data.wait_1min_oil = 1;
-				count1 = 240000 - 1;
-				break;				
-				
-//				case 15180000: /* 4H13min reset count1 */
-//				count1 = 0;
-//				break;
 
 				default:
 				break;
