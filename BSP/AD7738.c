@@ -421,10 +421,10 @@ void Temperature_of_resistance_Parameter(void)
 		  Intermediate_Data.SensorTemp_tmp[number1++] = output_data.SensorTemp;
 		  if (number1 == sizeof(Intermediate_Data.SensorTemp_tmp)/sizeof(Intermediate_Data.SensorTemp_tmp[0]))
 				number1 = 0;
-		  if ((Intermediate_Data.wait_1min_oil == 1)&&(output_data.MODEL_TYPE == 3)){
+		  if (Intermediate_Data.wait_1min_oil == 1){
 				output_data.SensorTemp = AVERAGE_F(Intermediate_Data.SensorTemp_tmp);
 				output_data.OilTemp = output_data.SensorTemp;
-				if (Cal_flag == 0){
+				if ((Cal_flag == 0)&&(output_data.MODEL_TYPE == 3)){
 					e2prom512_read((unsigned char*)&run_parameter.reserved_parameter33,2,120*2);
 					UARTprintf("%d, %f, %f, %f\n",run_parameter.reserved_parameter33,
 					((float)run_parameter.reserved_parameter33/100.0 - output_data.OilTemp),Intermediate_Data.Temp_R_K,Intermediate_Data.Temp_R_B);
