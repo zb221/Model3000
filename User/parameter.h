@@ -581,8 +581,8 @@ union
 	unsigned short reserved_parameter36;//132 hour
 	unsigned short reserved_parameter37;//133 min/second
 		
-	unsigned short reserved_parameter38;//134
-	unsigned short reserved_parameter39;//135
+	unsigned short Temp_R_B_cal_hi;//134 ->Intermediate_Data.Temp_R_B (cal)
+	unsigned short Temp_R_B_cal_lo;//135 ->Intermediate_Data.Temp_R_B (cal)
 	unsigned short reserved_parameter40;//136
 	unsigned short reserved_parameter41;//137
 	unsigned short reserved_parameter42;//138
