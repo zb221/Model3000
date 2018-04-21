@@ -221,6 +221,12 @@ float quadratic_polynomial(float data)
   	p1 = (double)test1/10000000.0;
     p2 = (double)test2/10000000.0;
 		p3 = (double)test3/10000000.0;
+		if (output_data.MODEL_TYPE == 2){
+      UARTprintf("1->a1=%.7f\n",p1);
+      UARTprintf("1->b1=%.7f\n",p2);
+      UARTprintf("1->c1=%.7f\n",p3);
+			UARTprintf("H2R=%.7f H2AG=%.7f\n",data,p1 * data * data + p2 * data + p3);
+		}
 		if (output_data.temperature == 70 && Intermediate_Data.wait_1min == 1 && Intermediate_Data.Oiltemp_Over == 1)
 			p3 = (double)test3/10000000.0 + (Intermediate_Data.H2Resistor_T_K*(70-50));
 	}else if (data >= (float)(run_parameter.Piecewise_point1.ubit.hi<<16 | run_parameter.Piecewise_point1.ubit.lo)/1000.0 && data < (float)(run_parameter.Piecewise_point2.ubit.hi<<16 | run_parameter.Piecewise_point2.ubit.lo)/1000.0){
@@ -236,6 +242,12 @@ float quadratic_polynomial(float data)
   	p1 = (double)test4/10000000.0;
     p2 = (double)test5/10000000.0;
 		p3 = (double)test6/10000000.0;
+		if (output_data.MODEL_TYPE == 2){
+	   UARTprintf("2->a2=%.7f\n",p1);
+	   UARTprintf("2->b2=%.7f\n",p2);
+	   UARTprintf("2->c2=%.7f\n",p3);
+			UARTprintf("H2R=%.7f H2AG=%.7f\n",data,p1 * data * data + p2 * data + p3);
+		}
 		if (output_data.temperature == 70 && Intermediate_Data.wait_1min == 1 && Intermediate_Data.Oiltemp_Over == 1)
 			p3 = (double)test6/10000000.0 + (Intermediate_Data.H2Resistor_T_K*(70-50));
 	}else if (data >= (float)(run_parameter.Piecewise_point2.ubit.hi<<16 | run_parameter.Piecewise_point2.ubit.lo)/1000.0 && data < (float)(run_parameter.Piecewise_point3.ubit.hi<<16 | run_parameter.Piecewise_point3.ubit.lo)/1000.0){
@@ -251,13 +263,19 @@ float quadratic_polynomial(float data)
 		p1 = (double)test7/10000000.0;
 		p2 = (double)test8/10000000.0;
 		p3 = (double)test9/10000000.0;
+		if (output_data.MODEL_TYPE == 2){
+	    UARTprintf("3->a3=%.7f\n",p1);
+	    UARTprintf("3->b3=%.7f\n",p2);
+	    UARTprintf("3->c3=%.7f\n",p3);
+			UARTprintf("H2R=%.7f H2AG=%.7f\n",data,p1 * data * data + p2 * data + p3);
+		}
 		if (output_data.temperature == 70 && Intermediate_Data.wait_1min == 1 && Intermediate_Data.Oiltemp_Over == 1)
 			p3 = (double)test9/10000000.0 + (Intermediate_Data.H2Resistor_T_K*(70-50));
 	}
-if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
+if (output_data.MODEL_TYPE == 20){
 	UARTprintf("p1=%.7f\n",p1);
-	UARTprintf("p2=%.7f\n",p1);
-	UARTprintf("p3=%.7f\n",p1);
+	UARTprintf("p2=%.7f\n",p2);
+	UARTprintf("p3=%.7f\n",p3);
 }
 	tmp = p1 * data * data + p2 * data + p3;
 	return tmp;

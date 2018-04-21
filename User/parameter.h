@@ -1228,3 +1228,6 @@ VARIABLE_EXT Intermediate_Parameters Intermediate_Data;
 
 #endif
 
+#ifndef debug
+#define debug 0
+#endif
