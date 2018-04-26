@@ -165,6 +165,8 @@ Description: all Global variable region init should add here.
 ***********************************************************/
 void init_Global_Variable(void)
 {
+	unsigned char numb = 0;
+	unsigned int temp_tmp = 0;
 	float Temp[4] = {10,30,50,70};                            /* hhl */
 	float Temp_R[4] = {107.506,114.057,120.848,128.008};        /* hhl */
 	float DAC_Din[5] =  {39577,39677,39877,40000,40200};      /* hhl */
@@ -268,7 +270,17 @@ void init_Global_Variable(void)
 	memcpy(Intermediate_Data.Temp_R,Temp_R,sizeof(float)*sizeof(Temp_R)/sizeof(Temp_R[0]));
 	memcpy(Intermediate_Data.DAC_Din,DAC_Din,sizeof(float)*sizeof(DAC_Din)/sizeof(DAC_Din[0]));
 	memcpy(Intermediate_Data.Din_temp,Din_temp,sizeof(float)*sizeof(Din_temp)/sizeof(Din_temp[0]));
-	
+
+	numb = sizeof(Intermediate_Data.Temp)/sizeof(Intermediate_Data.Temp[0]);
+	for (unsigned i = 0;i < numb;i++){
+		e2prom512_read((unsigned char*)&temp_tmp,4,(260+(i*2))*2);
+		Intermediate_Data.Temp[i] = (float)temp_tmp/100.0;
+		e2prom512_read((unsigned char*)&temp_tmp,4,(268+(i*2))*2);
+		Intermediate_Data.Temp_R[i] = (float)temp_tmp/1000.0;
+		if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
+				UARTprintf("%.2f/%.3f\n",Intermediate_Data.Temp[i],Intermediate_Data.Temp_R[i]);
+		}
+	}
 	/*cpy H2-OHM*/
 	memcpy(Intermediate_Data.H2,H2,sizeof(float)*sizeof(H2)/sizeof(H2[0]));
 	memcpy(Intermediate_Data.OHM,OHM,sizeof(float)*sizeof(OHM)/sizeof(OHM[0]));

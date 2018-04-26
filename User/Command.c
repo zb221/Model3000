@@ -3148,7 +3148,7 @@ Description:  .
 ***********************************************************/
 void cf_arg(void)
 {
-	unsigned char i = 0, number = 0;
+	unsigned char i = 0, number = 0, numb_of_temp = 0;
 	unsigned int temp_tmp = 0;
 	static char number1 = 0;
 
@@ -3254,10 +3254,12 @@ void cf_arg(void)
 						break;
 					case 16:
 						UARTprintf("\please input temp_point one by one:\n");
+					  UARTprintf("Please input 0 temp point:\n");
 						flag_function = 13;
 						break;
 					case 17:
 						UARTprintf("\please input temp_R_point one by one:\n");
+					  UARTprintf("Please input 0 temp_R_point point:\n");
 						flag_function = 14;
 						break;
 
@@ -3439,17 +3441,19 @@ void cf_arg(void)
 			break;
 			
 		case 13:
-			UARTprintf("Please input %d temp point:\n",number1);
 			if(strlen(cmd_tmp)>0)
 			{
-				if (number1 < 4){
-				temp_tmp = atoi(cmd_tmp)*100;
+				numb_of_temp = sizeof(Intermediate_Data.Temp)/sizeof(Intermediate_Data.Temp[0]);
+				if (number1 < numb_of_temp){
+				temp_tmp = atof(cmd_tmp)*100;
 				e2prom512_write((unsigned char*)&temp_tmp,4,(260+(number1*2))*2);
 				e2prom512_read((unsigned char*)&temp_tmp,4,(260+(number1*2))*2);
 				UARTprintf("write value: %.2f\r\n",(float)temp_tmp/100.0);
 				Intermediate_Data.Temp[number1++] = (float)temp_tmp/100.0;
+				if (number1 < numb_of_temp)
+				    UARTprintf("Please input %d temp point:\n",number1);
 				}
-				if (number1 == 4){
+				if (number1 == numb_of_temp){
 				flag_screen = 0;
 				flag_function = 2;
 					number1 = 0;
@@ -3460,20 +3464,23 @@ void cf_arg(void)
 			a = 0;	
 			break;
 		case 14:
-			UARTprintf("Please input %d temp_R point:\n",number1);
 			if(strlen(cmd_tmp)>0)
 			{
-				if (number1 < 4){
-				temp_tmp = atoi(cmd_tmp)*100;
+				numb_of_temp = sizeof(Intermediate_Data.Temp_R)/sizeof(Intermediate_Data.Temp_R[0]);
+				if (number1 < numb_of_temp){
+				temp_tmp = atof(cmd_tmp)*1000;
 				e2prom512_write((unsigned char*)&temp_tmp,4,(268+(number1*2))*2);
 				e2prom512_read((unsigned char*)&temp_tmp,4,(268+(number1*2))*2);
-				UARTprintf("write value: %.2f\r\n",(float)temp_tmp/100.0);
-				Intermediate_Data.Temp_R[number1++] = (float)temp_tmp/100.0;
+				UARTprintf("write value: %.2f\r\n",(float)temp_tmp/1000.0);
+				Intermediate_Data.Temp_R[number1++] = (float)temp_tmp/1000.0;
+				if (number1 < numb_of_temp)
+				    UARTprintf("Please input %d temp_R point:\n",number1);
 				}
-				if (number1 == 4){
+				if (number1 == numb_of_temp){
 				flag_screen = 0;
 				flag_function = 2;
 					number1 = 0;
+					temp_tmp = 0;
 				}
 			}
 			memset(cmd_tmp,0,sizeof(cmd_tmp));
