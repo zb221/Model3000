@@ -458,9 +458,9 @@ union
 		unsigned char character18;//97
 		unsigned char character19;
 		unsigned char character20;//98
-		}firmware_revesion_sstr;
-		char firmware_revesion_str[20];
-}firmware_revesion;
+		}Sensor_model_sstr;
+		char Sensor_model_str[20];
+}Sensor_model;
 	unsigned short reserved_parameter13;//99
 	unsigned short reserved_parameter14;//100
 	unsigned short reserved_parameter15;//101
@@ -559,7 +559,7 @@ union
 			unsigned char hi;	
 			}ubit;	
 		unsigned short hilo;
-		}h2_ppm_calibration_gas_h16;//126
+		}h2_ppm_calibration_gas_h16;//126->600
 	union
 	{
 		struct
@@ -568,7 +568,7 @@ union
 			unsigned char hi;	
 			}ubit;	
 		unsigned short hilo;
-		}h2_ppm_calibration_gas_l16;//127 
+		}h2_ppm_calibration_gas_l16;//127->601 
 	struct
 	{
 		unsigned char day;		
@@ -1076,6 +1076,41 @@ union
 		unsigned short reserved_parameter77;//253
 		unsigned short reserved_parameter78;//254
 		unsigned short reserved_parameter100;//255
+		
+		union
+   {		
+	 struct
+	  {
+		unsigned char character1;
+		unsigned char character2;//256
+		unsigned char character3;
+		unsigned char character4;//257
+		unsigned char character5;
+		unsigned char character6;//258
+		unsigned char character7;
+		unsigned char character8;//259
+		}firmware_revesion_sstr;
+		char firmware_revesion_str[8];
+	}firmware_revesion;
+	 
+//260->temp0
+//261
+//262->temp1
+//263
+//264->temp2
+//265
+//266->temp3
+//267
+	
+//268->temp_R0
+//269
+//270->temp_R1
+//271
+//272->temp_R2
+//273
+//274->temp_R3
+//275
+	
 }RUN_PARAMETER;
 //RUN_PARAMETER  run_parameter;
 VARIABLE_EXT  RUN_PARAMETER  run_parameter;//moudlebus ??????		
