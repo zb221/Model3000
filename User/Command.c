@@ -531,7 +531,7 @@ void config_arg_d0(void)//e2c do not save just init give these value
 			Field: %d-%d-%d\n",
 			run_parameter.model_number.model_number_str,
 			run_parameter.product_serial_number.product_serial_number_str,
-			run_parameter.sensor_serial_number.sensor_serial_number_str,
+			run_parameter.Sensor_model.Sensor_model_str,
 			run_parameter.firmware_revesion.firmware_revesion_str,
 			run_parameter.hardware_version.hardware_version_str,
 			run_parameter.factory.factory_str,	
@@ -659,8 +659,7 @@ void config_arg_d2(void)
 			UARTprintf("Manufacturing information is:\n\
 			Sensor Serial Number: %s\n\
 			Sensor Board Serial Number: %s\n\
-			Interface Board Serial Number: %s\n\
-			Date Built: 20180101\n",run_parameter.sensor_serial_number.sensor_serial_number_str,
+			Interface Board Serial Number: %s\n",run_parameter.sensor_serial_number.sensor_serial_number_str,
 			run_parameter.sensor_board_serial_number.sensor_board_serial_number_str,
 			run_parameter.interface_board_serial_number.interface_board_serial_number_str); 	
 			flag_function++;
@@ -3149,24 +3148,31 @@ Description:  .
 ***********************************************************/
 void cf_arg(void)
 {
-	unsigned char i = 0;
+	unsigned char i = 0, number = 0, numb_of_temp = 0;
+	unsigned int temp_tmp = 0;
+	static char number1 = 0;
+
 	switch(flag_function)
 	{
 		case 0:
-			UARTprintf("0 - Exit cf\n1 - Normal\n2 - Debug\n3 - Calibration\n4 - set temperature\n5 - turn off the screen\n6 - turn on the screen\n7 - Oiltemp_Cal\nSelect function:\n");
-			flag_function++;
+			UARTprintf("0 - Exit cf\n1 - Normal\n2 - Debug\n3 - Calibration\n4- set temperature\n5 - turn off the screen\n6 - turn on the screen\n7 - Oiltemp_Cal\n");
+      UARTprintf("8 - Model Number:\n9 - Serial Number:\n10 - Sensor model:\n11 - Hardware Version:\n");
+      UARTprintf("12 - Factory:\n13 - Sensor Serial Number:\n14 - Sensor Board Serial Number:\n15 - Interface Board Serial Number:\n");
+		  UARTprintf("16 - set temp_point:\n17 - set temp_R_point:\nSelect function:\n");
+		flag_function++;
 			break;
 		
 		case 1:
 			if(strlen(cmd_tmp)>0)
 			{
-				switch(cmd_tmp[0]){
-					case 0x30://0
+				number = atoi(cmd_tmp);
+				switch(number){
+					case 0://0
 						UARTprintf("Exit cf Success, exit cf OK.\n");	
 						flag_screen = 0;					
 						flag_function++;
 					break;
-					case 0x31://n 
+					case 1://n 
 						UARTprintf("change mode to normal Success, exit cf OK.\n");
 						output_data.MODEL_TYPE = 1;
 					  run_parameter.MODEL_TYPE= output_data.MODEL_TYPE;
@@ -3175,7 +3181,7 @@ void cf_arg(void)
 					  flag_screen = 0;
 						flag_function++;						
 					break;
-					case 0x32:
+					case 2:
 						UARTprintf("change mode to debug Success, exit cf OK.\n");
 						output_data.MODEL_TYPE = 2;
 					  run_parameter.MODEL_TYPE= output_data.MODEL_TYPE;
@@ -3184,7 +3190,7 @@ void cf_arg(void)
 					  flag_screen = 0;
 						flag_function++;
 					break;
-					case 0x33:
+					case 3:
 						UARTprintf("change mode to calibration Success, exit cf OK.\n");
 						output_data.MODEL_TYPE = 3;
 					  run_parameter.MODEL_TYPE= output_data.MODEL_TYPE;
@@ -3196,25 +3202,67 @@ void cf_arg(void)
 					  flag_screen = 0;
 						flag_function++;
 					break;
-					case 0x34:
+					case 4:
 						UARTprintf("Please input the temperature you want:\n");
 						flag_function = 3;
 					break;
-					case 0x35:
+					case 5:
 						UARTprintf("\nturn off the screen Success, exit cf OK.\r\n\r\n");
 						flag_screen = 1;
 						flag_function++;
 					break;
-					case 0x36:
+					case 6:
 						UARTprintf("\nturn on the screen Success, exit cf OK.\r\n\r\n");
 						flag_screen = 0;
 						flag_function++;
 						break;
-					case 0x37:
+					case 7:
 						UARTprintf("\nPlease input the Oiltemp_Cal value you want:\n");
 						flag_function = 4;
 						break;
-					
+					case 8:
+						UARTprintf("\nModel Number:\n");
+						flag_function = 5;
+						break;
+					case 9:
+						UARTprintf("\Serial Number:\n");
+						flag_function = 6;
+						break;
+					case 10:
+						UARTprintf("\Sensor model:\n");
+						flag_function = 7;
+						break;
+					case 11:
+						UARTprintf("\Hardware Version:\n");
+						flag_function = 8;
+						break;
+					case 12:
+						UARTprintf("\Factory:\n");
+						flag_function = 9;
+						break;
+					case 13:
+						UARTprintf("\Sensor Serial Number:\n");
+						flag_function = 10;
+						break;
+					case 14:
+						UARTprintf("\Sensor Board Serial Number:\n");
+						flag_function = 11;
+						break;
+					case 15:
+						UARTprintf("\Interface Board Serial Number:\n");
+						flag_function = 12;
+						break;
+					case 16:
+						UARTprintf("\please input temp_point one by one:\n");
+					  UARTprintf("Please input 0 temp point:\n");
+						flag_function = 13;
+						break;
+					case 17:
+						UARTprintf("\please input temp_R_point one by one:\n");
+					  UARTprintf("Please input 0 temp_R_point point:\n");
+						flag_function = 14;
+						break;
+
 					default:
 						UARTprintf("Please input cf command again and set 0-7 at here, exit cf OK.\n");
 						flag_screen = 0;
@@ -3288,7 +3336,157 @@ void cf_arg(void)
 			memset(cmd_tmp,0,sizeof(cmd_tmp));
 			a = 0;		
 			break;
-		
+		case 5:
+			if(strlen(cmd_tmp)>0)
+			{
+				strcpy(run_parameter.model_number.model_number_str,cmd_tmp);
+				e2prom512_write((unsigned char*)&run_parameter.model_number.model_number_str,20,31*2);
+//				UARTprintf("Model Number:%s\r\n",run_parameter.model_number.model_number_str);
+
+				flag_screen = 0;
+				flag_function = 2;
+			}
+			memset(cmd_tmp,0,sizeof(cmd_tmp));
+			a = 0;	
+			break;
+		case 6:
+			if(strlen(cmd_tmp)>0)
+			{
+				strcpy(run_parameter.product_serial_number.product_serial_number_str,cmd_tmp);
+				e2prom512_write((unsigned char*)&run_parameter.product_serial_number.product_serial_number_str,20,41*2);
+//				UARTprintf("Serial Number:%s\r\n",run_parameter.product_serial_number.product_serial_number_str);
+
+				flag_screen = 0;
+				flag_function = 2;
+			}
+			memset(cmd_tmp,0,sizeof(cmd_tmp));
+			a = 0;	
+			break;
+		case 7:
+			if(strlen(cmd_tmp)>0)
+			{
+				strcpy(run_parameter.Sensor_model.Sensor_model_str,cmd_tmp);
+				e2prom512_write((unsigned char*)&run_parameter.Sensor_model.Sensor_model_str,20,89*2);
+
+				flag_screen = 0;
+				flag_function = 2;
+			}
+			memset(cmd_tmp,0,sizeof(cmd_tmp));
+			a = 0;	
+			break;
+		case 8:
+			if(strlen(cmd_tmp)>0)
+			{
+				strcpy(run_parameter.hardware_version.hardware_version_str,cmd_tmp);
+				e2prom512_write((unsigned char*)&run_parameter.hardware_version.hardware_version_str,8,106*2);
+//				UARTprintf("Hardware Version:%s\r\n",run_parameter.hardware_version.hardware_version_str);
+
+				flag_screen = 0;
+				flag_function = 2;
+			}
+			memset(cmd_tmp,0,sizeof(cmd_tmp));
+			a = 0;	
+			break;
+		case 9:
+			if(strlen(cmd_tmp)>0)
+			{
+				strcpy(run_parameter.factory.factory_str,cmd_tmp);
+				e2prom512_write((unsigned char*)&run_parameter.factory.factory_str,8,102*2);
+//				UARTprintf("Factory:%s\r\n",run_parameter.factory.factory_str);
+
+				flag_screen = 0;
+				flag_function = 2;
+			}
+			memset(cmd_tmp,0,sizeof(cmd_tmp));
+			a = 0;	
+			break;
+		case 10:
+			if(strlen(cmd_tmp)>0)
+			{
+				strcpy(run_parameter.sensor_serial_number.sensor_serial_number_str,cmd_tmp);
+				e2prom512_write((unsigned char*)&run_parameter.sensor_serial_number.sensor_serial_number_str,20,51*2);
+//				UARTprintf("Sensor Serial Number:%s\r\n",run_parameter.sensor_serial_number.sensor_serial_number_str);
+
+				flag_screen = 0;
+				flag_function = 2;
+			}
+			memset(cmd_tmp,0,sizeof(cmd_tmp));
+			a = 0;	
+			break;
+		case 11:
+			if(strlen(cmd_tmp)>0)
+			{
+				strcpy(run_parameter.sensor_board_serial_number.sensor_board_serial_number_str,cmd_tmp);
+				e2prom512_write((unsigned char*)&run_parameter.sensor_board_serial_number.sensor_board_serial_number_str,20,61*2);
+//				UARTprintf("Sensor Board Serial Number:%s\r\n",run_parameter.sensor_board_serial_number.sensor_board_serial_number_str);
+
+				flag_screen = 0;
+				flag_function = 2;
+			}
+			memset(cmd_tmp,0,sizeof(cmd_tmp));
+			a = 0;	
+			break;
+		case 12:
+			if(strlen(cmd_tmp)>0)
+			{
+				strcpy(run_parameter.interface_board_serial_number.interface_board_serial_number_str,cmd_tmp);
+				e2prom512_write((unsigned char*)&run_parameter.interface_board_serial_number.interface_board_serial_number_str,20,71*2);
+//				UARTprintf("Interface Board Serial Number:%s\r\n",run_parameter.interface_board_serial_number.interface_board_serial_number_str);
+
+				flag_screen = 0;
+				flag_function = 2;
+			}
+			memset(cmd_tmp,0,sizeof(cmd_tmp));
+			a = 0;	
+			break;
+			
+		case 13:
+			if(strlen(cmd_tmp)>0)
+			{
+				numb_of_temp = sizeof(Intermediate_Data.Temp)/sizeof(Intermediate_Data.Temp[0]);
+				if (number1 < numb_of_temp){
+				temp_tmp = atof(cmd_tmp)*100;
+				e2prom512_write((unsigned char*)&temp_tmp,4,(260+(number1*2))*2);
+				e2prom512_read((unsigned char*)&temp_tmp,4,(260+(number1*2))*2);
+				UARTprintf("write value: %.2f\r\n",(float)temp_tmp/100.0);
+				Intermediate_Data.Temp[number1++] = (float)temp_tmp/100.0;
+				if (number1 < numb_of_temp)
+				    UARTprintf("Please input %d temp point:\n",number1);
+				}
+				if (number1 == numb_of_temp){
+				flag_screen = 0;
+				flag_function = 2;
+					number1 = 0;
+					temp_tmp = 0;
+				}
+			}
+			memset(cmd_tmp,0,sizeof(cmd_tmp));
+			a = 0;	
+			break;
+		case 14:
+			if(strlen(cmd_tmp)>0)
+			{
+				numb_of_temp = sizeof(Intermediate_Data.Temp_R)/sizeof(Intermediate_Data.Temp_R[0]);
+				if (number1 < numb_of_temp){
+				temp_tmp = atof(cmd_tmp)*1000;
+				e2prom512_write((unsigned char*)&temp_tmp,4,(268+(number1*2))*2);
+				e2prom512_read((unsigned char*)&temp_tmp,4,(268+(number1*2))*2);
+				UARTprintf("write value: %.2f\r\n",(float)temp_tmp/1000.0);
+				Intermediate_Data.Temp_R[number1++] = (float)temp_tmp/1000.0;
+				if (number1 < numb_of_temp)
+				    UARTprintf("Please input %d temp_R point:\n",number1);
+				}
+				if (number1 == numb_of_temp){
+				flag_screen = 0;
+				flag_function = 2;
+					number1 = 0;
+					temp_tmp = 0;
+				}
+			}
+			memset(cmd_tmp,0,sizeof(cmd_tmp));
+			a = 0;	
+			break;
+
 		default:
 			flag_function = 0;
 			flag_command = 0;

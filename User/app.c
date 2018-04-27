@@ -414,17 +414,17 @@ void E2C_Sensor_Fit_Para(void)
 //	UARTprintf("test8=%lld\n",test8);
 //	UARTprintf("test9=%lld\n",test9);
 		
-	UARTprintf("a1=%.7f\n",(double)test1/10000000.0);
-	UARTprintf("b1=%.7f\n",(double)test2/10000000.0);
-	UARTprintf("c1=%.7f\n",(double)test3/10000000.0);
+	UARTprintf("a1=%.7f\n",(double)test1/1000000000.0);
+	UARTprintf("b1=%.7f\n",(double)test2/1000000000.0);
+	UARTprintf("c1=%.7f\n",(double)test3/1000000000.0);
 
-	UARTprintf("a2=%.7f\n",(double)test4/10000000.0);
-	UARTprintf("b2=%.7f\n",(double)test5/10000000.0);
-	UARTprintf("c2=%.7f\n",(double)test6/10000000.0);
+	UARTprintf("a2=%.7f\n",(double)test4/1000000000.0);
+	UARTprintf("b2=%.7f\n",(double)test5/1000000000.0);
+	UARTprintf("c2=%.7f\n",(double)test6/1000000000.0);
 
-	UARTprintf("a3=%.7f\n",(double)test7/10000000.0);
-	UARTprintf("b3=%.7f\n",(double)test8/10000000.0);
-	UARTprintf("c3=%.7f\n",(double)test9/10000000.0);
+	UARTprintf("a3=%.7f\n",(double)test7/1000000000.0);
+	UARTprintf("b3=%.7f\n",(double)test8/1000000000.0);
+	UARTprintf("c3=%.7f\n",(double)test9/1000000000.0);
 		
 //	UARTprintf("a1=%.7f\n",(double)(( long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[0]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[1]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[2]<<16
 //	| (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[3])/10000000.0);

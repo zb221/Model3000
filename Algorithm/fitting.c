@@ -187,26 +187,12 @@ float quadratic_polynomial(float data)
 	long long int test8 = 0;	
 	long long int test9 = 0;
 	
-	static unsigned char number = 0;
+	static unsigned char number = 0, flag = 0;
   float tmp = 0;
 	double p1 = 0, p2 = 0, p3 = 0;
 	
 	if (number == 0)
 	    number = sizeof(Intermediate_Data.OHM)/sizeof(Intermediate_Data.OHM[0]);
-
-//	if (data >= Intermediate_Data.OHM[0] && data < Intermediate_Data.OHM[4]){
-//	  p1 = 121.8358416;
-//    p2 = -233115.092865;
-//		p3 = 111507922.798009;
-//	}else if (data >= Intermediate_Data.OHM[4] && data < Intermediate_Data.OHM[8]){
-//	  p1 = 256.222696;
-//    p2 = -490933.428946;
-//		p3 = 235162655.440190;
-//	}else if (data >= Intermediate_Data.OHM[8] && data < Intermediate_Data.OHM[12]){
-//	  p1 = 409.052293;
-//    p2 = -785623.724501;
-//		p3 = 377220150.322393;
-//	}
 	
 	if (data >= (float)(run_parameter.Piecewise_point0.ubit.hi<<16 | run_parameter.Piecewise_point0.ubit.lo)/1000.0 && data < (float)(run_parameter.Piecewise_point1.ubit.hi<<16 | run_parameter.Piecewise_point1.ubit.lo)/1000.0){
 		test1 = (( long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[0]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[1]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[2]<<16
@@ -218,11 +204,19 @@ float quadratic_polynomial(float data)
 		test3 = (( long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[8]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[9]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[10]<<16
 			| (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[11]);
 
-  	p1 = (double)test1/10000000.0;
-    p2 = (double)test2/10000000.0;
-		p3 = (double)test3/10000000.0;
+  	p1 = (double)test1/1000000000.0;
+    p2 = (double)test2/1000000000.0;
+		p3 = (double)test3/1000000000.0;
+		if ((output_data.MODEL_TYPE == 2)&&(flag == 50)){
+      UARTprintf("1->a1=%.7f\n",p1);
+      UARTprintf("1->b1=%.7f\n",p2);
+      UARTprintf("1->c1=%.7f\n",p3);
+			UARTprintf("H2R=%.3f H2AG=%.3f\n",data,p1 * data * data + p2 * data + p3);
+			flag = 0;
+		}
+		flag++;
 		if (output_data.temperature == 70 && Intermediate_Data.wait_1min == 1 && Intermediate_Data.Oiltemp_Over == 1)
-			p3 = (double)test3/10000000.0 + (Intermediate_Data.H2Resistor_T_K*(70-50));
+			p3 = (double)test3/1000000000.0 + (Intermediate_Data.H2Resistor_T_K*(70-50));
 	}else if (data >= (float)(run_parameter.Piecewise_point1.ubit.hi<<16 | run_parameter.Piecewise_point1.ubit.lo)/1000.0 && data < (float)(run_parameter.Piecewise_point2.ubit.hi<<16 | run_parameter.Piecewise_point2.ubit.lo)/1000.0){
 		test4 = (( long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[0]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[1]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[2]<<16
 			| (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[3]);
@@ -233,11 +227,19 @@ float quadratic_polynomial(float data)
 		test6 = (( long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[8]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[9]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[10]<<16
 			| (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[11]);
 
-  	p1 = (double)test4/10000000.0;
-    p2 = (double)test5/10000000.0;
-		p3 = (double)test6/10000000.0;
+  	p1 = (double)test4/1000000000.0;
+    p2 = (double)test5/1000000000.0;
+		p3 = (double)test6/1000000000.0;
+		if ((output_data.MODEL_TYPE == 2)&&(flag == 50)){
+	   UARTprintf("2->a2=%.7f\n",p1);
+	   UARTprintf("2->b2=%.7f\n",p2);
+	   UARTprintf("2->c2=%.7f\n",p3);
+			UARTprintf("H2R=%.3f H2AG=%.3f\n",data,p1 * data * data + p2 * data + p3);
+			flag = 0;
+		}
+		flag++;
 		if (output_data.temperature == 70 && Intermediate_Data.wait_1min == 1 && Intermediate_Data.Oiltemp_Over == 1)
-			p3 = (double)test6/10000000.0 + (Intermediate_Data.H2Resistor_T_K*(70-50));
+			p3 = (double)test6/1000000000.0 + (Intermediate_Data.H2Resistor_T_K*(70-50));
 	}else if (data >= (float)(run_parameter.Piecewise_point2.ubit.hi<<16 | run_parameter.Piecewise_point2.ubit.lo)/1000.0 && data < (float)(run_parameter.Piecewise_point3.ubit.hi<<16 | run_parameter.Piecewise_point3.ubit.lo)/1000.0){
 		test7 = (( long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[0]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[1]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[2]<<16
 			| (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[3]);
@@ -248,17 +250,20 @@ float quadratic_polynomial(float data)
 		test9 = (( long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[8]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[9]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[10]<<16
 			| (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[11]);
 		
-		p1 = (double)test7/10000000.0;
-		p2 = (double)test8/10000000.0;
-		p3 = (double)test9/10000000.0;
+		p1 = (double)test7/1000000000.0;
+		p2 = (double)test8/1000000000.0;
+		p3 = (double)test9/1000000000.0;
+		if ((output_data.MODEL_TYPE == 2)&&(flag == 50)){
+	    UARTprintf("3->a3=%.7f\n",p1);
+	    UARTprintf("3->b3=%.7f\n",p2);
+	    UARTprintf("3->c3=%.7f\n",p3);
+			UARTprintf("H2R=%.3f H2AG=%.3f\n",data,p1 * data * data + p2 * data + p3);
+			flag = 0;
+		}
+		flag++;
 		if (output_data.temperature == 70 && Intermediate_Data.wait_1min == 1 && Intermediate_Data.Oiltemp_Over == 1)
-			p3 = (double)test9/10000000.0 + (Intermediate_Data.H2Resistor_T_K*(70-50));
+			p3 = (double)test9/1000000000.0 + (Intermediate_Data.H2Resistor_T_K*(70-50));
 	}
-if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
-	UARTprintf("p1=%.7f\n",p1);
-	UARTprintf("p2=%.7f\n",p1);
-	UARTprintf("p3=%.7f\n",p1);
-}
 	tmp = p1 * data * data + p2 * data + p3;
 	return tmp;
 }

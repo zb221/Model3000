@@ -70,6 +70,91 @@ char message10[] = "R1";
 char message11[] = "R2";
 char message12[] = "R3";
 
+
+void read_Piecewise_point_Sensor_Fit_Para(void)
+{
+  long long int test1 = 0;
+  long long int test2 = 0;	
+  long long int test3 = 0;	
+	
+	long long int test4 = 0;
+	long long int test5 = 0;	
+	long long int test6 = 0;	
+
+	long long int test7 = 0;
+	long long int test8 = 0;	
+	long long int test9 = 0;	
+	
+	e2prom512_read((unsigned char*)&run_parameter.Piecewise_point0.ubit.hi,4,243*2);
+	e2prom512_read((unsigned char*)&run_parameter.Piecewise_point1.ubit.hi,4,245*2);
+	e2prom512_read((unsigned char*)&run_parameter.Piecewise_point2.ubit.hi,4,247*2);
+	e2prom512_read((unsigned char*)&run_parameter.Piecewise_point3.ubit.hi,4,249*2);
+	
+	e2prom512_read((unsigned char*)&run_parameter.Sensor_Fit_Para_A.A.A1,24,19*2);
+	e2prom512_read((unsigned char*)&run_parameter.Sensor_Fit_Para_B.B.B1,24,179*2);
+	e2prom512_read((unsigned char*)&run_parameter.Sensor_Fit_Para_C.C.C1,24,231*2);
+	
+	test1 = (( long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[0]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[1]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[2]<<16
+		| (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[3]);
+	
+	test2 = (( long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[4]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[5]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[6]<<16
+		| (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[7]);
+	
+	test3 = (( long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[8]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[9]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[10]<<16
+		| (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[11]);
+	
+	test4 = (( long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[0]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[1]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[2]<<16
+		| (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[3]);
+	
+  test5 = (( long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[4]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[5]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[6]<<16
+		| (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[7]);
+		
+  test6 = (( long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[8]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[9]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[10]<<16
+		| (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[11]);
+	
+	test7 = (( long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[0]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[1]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[2]<<16
+		| (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[3]);
+	
+  test8 = (( long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[4]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[5]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[6]<<16
+		| (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[7]);
+			
+  test9 = (( long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[8]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[9]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[10]<<16
+		| (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[11]);
+	
+	if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
+	UARTprintf("point0=%.3f\n",(float)(run_parameter.Piecewise_point0.ubit.hi<<16 | run_parameter.Piecewise_point0.ubit.lo)/1000.0);
+	UARTprintf("point1=%.3f\n",(float)(run_parameter.Piecewise_point1.ubit.hi<<16 | run_parameter.Piecewise_point1.ubit.lo)/1000.0);
+	UARTprintf("point2=%.3f\n",(float)(run_parameter.Piecewise_point2.ubit.hi<<16 | run_parameter.Piecewise_point2.ubit.lo)/1000.0);
+	UARTprintf("point3=%.3f\n",(float)(run_parameter.Piecewise_point3.ubit.hi<<16 | run_parameter.Piecewise_point3.ubit.lo)/1000.0);
+
+
+	UARTprintf("a1=%.7f\n",(double)test1/1000000000.0);
+	UARTprintf("b1=%.7f\n",(double)test2/1000000000.0);
+	UARTprintf("c1=%.7f\n",(double)test3/1000000000.0);
+
+	UARTprintf("a2=%.7f\n",(double)test4/1000000000.0);
+	UARTprintf("b2=%.7f\n",(double)test5/1000000000.0);
+	UARTprintf("c2=%.7f\n",(double)test6/1000000000.0);
+
+	UARTprintf("a3=%.7f\n",(double)test7/1000000000.0);
+	UARTprintf("b3=%.7f\n",(double)test8/1000000000.0);
+	UARTprintf("c3=%.7f\n",(double)test9/1000000000.0);
+	}
+	
+}
+
+void reboot(void)
+{
+	if (run_parameter.reboot == 1){
+	    UARTprintf("SYSTEM REBOOT\n");
+
+		  IOCLR0 = IOCLR0 | 0x1<<29;
+		  DelayNS(200);
+			IOSET0 = IOSET0 | 0x1<<29;
+		  run_parameter.reboot = 2;
+	}
+}
+
 /***********************************************************
 Function:	INIT Global variable region.
 Input:	none
@@ -80,18 +165,20 @@ Description: all Global variable region init should add here.
 ***********************************************************/
 void init_Global_Variable(void)
 {
-//	float Temp[4] = {10,30,50,70};                            /* zsy */
-//	float Temp_R[4] = {92.130,97.952,104.021,110.174};        /* zsy */
-//	float DAC_Din[5] =  {39577,39677,39877,40000,40200};      /* zsy */
-//	float Din_temp[5] = {45.8,50.8,61.1,66.9,76.9};           /* zsy */
+	unsigned char numb = 0;
+	unsigned int temp_tmp = 0;
+	float Temp[4] = {10,30,50,70};                            /* hhl */
+	float Temp_R[4] = {107.506,114.057,120.848,128.008};        /* hhl */
+	float DAC_Din[5] =  {39577,39677,39877,40000,40200};      /* hhl */
+	float Din_temp[5] = {45.8,50.8,61.1,66.9,76.9};           /* hhl */
 	
 	float PCB_TEMP_Din[3] =  {11336,11536,11636};
 	float PCB_TEMP_SET[3] = {37.5,42.6,44.9};
 	
-	float Temp[4] = {10,30,50,70};                          /* new sense */
-	float Temp_R[4] = {93.661,100.345,107.373,114.696};     /* new sense */
-	float DAC_Din[5] =  {39777,39877,40000,40200,40300};    /* new sense */
-	float Din_temp[5] = {45.7,49.4,55,63.9,68.3};           /* new sense */
+//	float Temp[4] = {10,30,50,70};                          /* new sense */
+//	float Temp_R[4] = {93.661,100.345,107.373,114.696};     /* new sense */
+//	float DAC_Din[5] =  {39777,39877,40000,40200,40300};    /* new sense */
+//	float Din_temp[5] = {45.7,49.4,55,63.9,68.3};           /* new sense */
 	
 	/*The relationship between H2 and H2_resistance*/
 	float H2[13] = {50,100,200,400,800,1600,3000,5000,10000,30000,40000,60000,100000};  /* new sense */
@@ -173,12 +260,27 @@ void init_Global_Variable(void)
 	
 	run_parameter.reboot = 0;
 
+  /* read eeprom init data*/
+	e2prom512_read(&run_parameter.h2_ppm_calibration_gas_h16.ubit.lo,4,126*2);
+	e2prom512_read(&output_data.MODEL_TYPE,1,160*2);
+	read_Piecewise_point_Sensor_Fit_Para();
+	
   /*copy Temp-Temp_R Temp-DAC_Din*/
 	memcpy(Intermediate_Data.Temp,Temp,sizeof(float)*sizeof(Temp)/sizeof(Temp[0]));
 	memcpy(Intermediate_Data.Temp_R,Temp_R,sizeof(float)*sizeof(Temp_R)/sizeof(Temp_R[0]));
 	memcpy(Intermediate_Data.DAC_Din,DAC_Din,sizeof(float)*sizeof(DAC_Din)/sizeof(DAC_Din[0]));
 	memcpy(Intermediate_Data.Din_temp,Din_temp,sizeof(float)*sizeof(Din_temp)/sizeof(Din_temp[0]));
-	
+
+	numb = sizeof(Intermediate_Data.Temp)/sizeof(Intermediate_Data.Temp[0]);
+	for (unsigned i = 0;i < numb;i++){
+		e2prom512_read((unsigned char*)&temp_tmp,4,(260+(i*2))*2);
+		Intermediate_Data.Temp[i] = (float)temp_tmp/100.0;
+		e2prom512_read((unsigned char*)&temp_tmp,4,(268+(i*2))*2);
+		Intermediate_Data.Temp_R[i] = (float)temp_tmp/1000.0;
+		if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
+				UARTprintf("%.2f/%.3f\n",Intermediate_Data.Temp[i],Intermediate_Data.Temp_R[i]);
+		}
+	}
 	/*cpy H2-OHM*/
 	memcpy(Intermediate_Data.H2,H2,sizeof(float)*sizeof(H2)/sizeof(H2[0]));
 	memcpy(Intermediate_Data.OHM,OHM,sizeof(float)*sizeof(OHM)/sizeof(OHM[0]));
@@ -268,109 +370,7 @@ void command_print(void)
 	if (Intermediate_Data.Operat_temp_alarm == 1)
 		;
 	
-//	if (Intermediate_Data.Heat_V > 100){
-//		UARTprintf(message2);
-//	}else{
-//	  UARTprintf(message5);
-//	}
-//	
-//	if(output_data.temperature == 70){
-//    UARTprintf(message6);
-//		UARTprintf(message7);
-//	}
-//	
-//  if (run_parameter.status_flag.ubit.relay1==1)
-//		UARTprintf(message10);
-//	if (run_parameter.status_flag.ubit.relay2==1)
-//	  UARTprintf(message11);
-//  if (run_parameter.status_flag.ubit.relay3==1)
-//	  UARTprintf(message12);
-	
 	UARTprintf("\r\n");
-}
-
-void read_Piecewise_point_Sensor_Fit_Para(void)
-{
-  long long int test1 = 0;
-  long long int test2 = 0;	
-  long long int test3 = 0;	
-	
-	long long int test4 = 0;
-	long long int test5 = 0;	
-	long long int test6 = 0;	
-
-	long long int test7 = 0;
-	long long int test8 = 0;	
-	long long int test9 = 0;	
-	
-	e2prom512_read((unsigned char*)&run_parameter.Piecewise_point0.ubit.hi,4,243*2);
-	e2prom512_read((unsigned char*)&run_parameter.Piecewise_point1.ubit.hi,4,245*2);
-	e2prom512_read((unsigned char*)&run_parameter.Piecewise_point2.ubit.hi,4,247*2);
-	e2prom512_read((unsigned char*)&run_parameter.Piecewise_point3.ubit.hi,4,249*2);
-	
-	e2prom512_read((unsigned char*)&run_parameter.Sensor_Fit_Para_A.A.A1,24,19*2);
-	e2prom512_read((unsigned char*)&run_parameter.Sensor_Fit_Para_B.B.B1,24,179*2);
-	e2prom512_read((unsigned char*)&run_parameter.Sensor_Fit_Para_C.C.C1,24,231*2);
-	
-	test1 = (( long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[0]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[1]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[2]<<16
-		| (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[3]);
-	
-	test2 = (( long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[4]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[5]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[6]<<16
-		| (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[7]);
-	
-	test3 = (( long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[8]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[9]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[10]<<16
-		| (unsigned long long int)run_parameter.Sensor_Fit_Para_A.Fit_Para_A[11]);
-	
-	test4 = (( long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[0]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[1]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[2]<<16
-		| (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[3]);
-	
-  test5 = (( long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[4]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[5]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[6]<<16
-		| (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[7]);
-		
-  test6 = (( long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[8]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[9]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[10]<<16
-		| (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[11]);
-	
-	test7 = (( long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[0]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[1]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[2]<<16
-		| (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[3]);
-	
-  test8 = (( long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[4]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[5]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[6]<<16
-		| (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[7]);
-			
-  test9 = (( long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[8]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[9]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[10]<<16
-		| (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[11]);
-	
-	if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
-	UARTprintf("point0=%.3f\n",(float)(run_parameter.Piecewise_point0.ubit.hi<<16 | run_parameter.Piecewise_point0.ubit.lo)/1000.0);
-	UARTprintf("point1=%.3f\n",(float)(run_parameter.Piecewise_point1.ubit.hi<<16 | run_parameter.Piecewise_point1.ubit.lo)/1000.0);
-	UARTprintf("point2=%.3f\n",(float)(run_parameter.Piecewise_point2.ubit.hi<<16 | run_parameter.Piecewise_point2.ubit.lo)/1000.0);
-	UARTprintf("point3=%.3f\n",(float)(run_parameter.Piecewise_point3.ubit.hi<<16 | run_parameter.Piecewise_point3.ubit.lo)/1000.0);
-
-
-	UARTprintf("a1=%.7f\n",(double)test1/10000000.0);
-	UARTprintf("b1=%.7f\n",(double)test2/10000000.0);
-	UARTprintf("c1=%.7f\n",(double)test3/10000000.0);
-
-	UARTprintf("a2=%.7f\n",(double)test4/10000000.0);
-	UARTprintf("b2=%.7f\n",(double)test5/10000000.0);
-	UARTprintf("c2=%.7f\n",(double)test6/10000000.0);
-
-	UARTprintf("a3=%.7f\n",(double)test7/10000000.0);
-	UARTprintf("b3=%.7f\n",(double)test8/10000000.0);
-	UARTprintf("c3=%.7f\n",(double)test9/10000000.0);
-	}
-	
-}
-
-void reboot(void)
-{
-	if (run_parameter.reboot == 1){
-	    UARTprintf("SYSTEM REBOOT\n");
-
-		  IOCLR0 = IOCLR0 | 0x1<<29;
-		  DelayNS(200);
-			IOSET0 = IOSET0 | 0x1<<29;
-		  run_parameter.reboot = 2;
-	}
 }
 
 void update_e2c(void)//run_parameter all save
@@ -501,9 +501,6 @@ int main (void)
   DAC8568_INIT_SET(output_data.temperature,2*65536/5);	/* Set Senseor temperature :DOUT-C = xV*65536/5 */
 	DAC8568_PCB_TEMP_SET(output_data.PCB_temp,0x1000);    /* Set PCB default temperature */
 	M25P16_erase_map(31*0x10000,SE);
-	e2prom512_read(&output_data.MODEL_TYPE,1,160*2);
-//	UARTprintf("output_data.MODEL_TYPE=%d\n",output_data.MODEL_TYPE);
-	read_Piecewise_point_Sensor_Fit_Para();
 	
 	PINSEL1 = PINSEL1 & (~(0x03 << 26));        /*P0.29*/	
 	IODIR0 = IODIR0 | 0x1<<29;
@@ -515,7 +512,6 @@ int main (void)
 			UART0_SendData(rcv_char,rcv_char_cnt);
 			memset(rcv_char,0,sizeof(rcv_char));
 			rcv_char_cnt = 0;
-//			flag_screen = 1;
 			rcv_char_flag = 0;
 		}
 		
@@ -538,9 +534,9 @@ int main (void)
 				if(findcmdfunction(cmd_tmp) == 1){
 					a = 0;
 					flag_screen = 1;
-if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
-					UARTprintf("Close the echo\n\n");
-}
+          if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
+		  			UARTprintf("Close the echo\n\n");
+          }
 				}
 				memset(cmd_tmp,0,sizeof(cmd_tmp));
 				break;
@@ -633,9 +629,9 @@ if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
 			DAC8568_INIT_SET(output_data.temperature,0);
 			Intermediate_Data.flag1 = 0;
 			print_count = 3*60 / print_time;
-if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
-			UARTprintf("1-4min capture 3min oil temp\n");	
-}
+      if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
+			  UARTprintf("1-4min capture 3min oil temp\n");	
+      }
 			break;
 
 			case 2:
@@ -643,9 +639,9 @@ if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
 			DAC8568_INIT_SET(output_data.temperature,2.35*65536/5);
 			Intermediate_Data.flag1 = 0;
 			print_count = 60*60 / print_time;
-if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
-			UARTprintf("4-1H4min set 50 temp, keep 1H\n");
-}
+      if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
+	  		UARTprintf("4-1H4min set 50 temp, keep 1H\n");
+      }
 			break;
 
 			case 3:
@@ -653,9 +649,9 @@ if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
 			DAC8568_INIT_SET(output_data.temperature,0);
 			Intermediate_Data.flag1 = 0;
 			print_count = 3*60 / print_time;
-if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
-			UARTprintf("1H4min-1H7min stop heating, capture 3min oil temp\n");
-}
+      if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
+			  UARTprintf("1H4min-1H7min stop heating, capture 3min oil temp\n");
+      }
 			break;
 
 			case 4:
@@ -663,9 +659,9 @@ if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
 			DAC8568_INIT_SET(output_data.temperature,2.35*65536/5);
 			Intermediate_Data.flag1 = 0;
 			print_count = 60*60 / print_time;
-if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
-			UARTprintf("1H7min-2H7min set 50 temp and keep 1H\n");
-}
+      if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
+		  	UARTprintf("1H7min-2H7min set 50 temp and keep 1H\n");
+      }
 			break;
 
 			case 5:
@@ -673,9 +669,9 @@ if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
 			DAC8568_INIT_SET(output_data.temperature,0);
 			Intermediate_Data.flag1 = 0;
 			print_count = 3*60 / print_time;
-if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
-			UARTprintf("2H7min-2H10min stop heating and capture oil temp 3min\n");
-}
+      if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
+		  	UARTprintf("2H7min-2H10min stop heating and capture oil temp 3min\n");
+      }
 			break;
 
 			case 6:
@@ -683,9 +679,9 @@ if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
 			DAC8568_INIT_SET(output_data.temperature,2.35*65536/5);
 			Intermediate_Data.flag1 = 0;
 			print_count = 120*60 / print_time;
-if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
-			UARTprintf("2H10min-4H10min set 70 temp and keep 2H\n");
-}
+      if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
+	   		UARTprintf("2H10min-4H10min set 70 temp and keep 2H\n");
+      }
 			break;
 
 			case 7:
@@ -693,9 +689,9 @@ if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
 			DAC8568_INIT_SET(output_data.temperature,2.35*65536/5);
 			Intermediate_Data.flag1 = 0;
 			print_count = 30*60 / print_time;
-if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
-			UARTprintf("4H10min-4H40min set 50 temp and keep 0.5H\n");
-}
+      if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
+	   		UARTprintf("4H10min-4H40min set 50 temp and keep 0.5H\n");
+      }
 			break;
 
 			default:
@@ -755,9 +751,9 @@ if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
 			M25P16_Data_Records();
 			if (output_data.OilTemp >= run_parameter.OilTemp_Alarm_celsius.hilo || output_data.DayROC >= run_parameter.h2_ppm_alarm_low_l16.hilo || output_data.H2DG >= run_parameter.h2_ppm_alert_low_l16.hilo)
 				M25P16_Alarm_Log_Records();
-if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
-		  UARTprintf("save data into flash\n");			
-}
+      if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
+		    UARTprintf("save data into flash\n");			
+      }
 		}
 
 		if (Intermediate_Data.flag4 == 1)
@@ -802,12 +798,10 @@ if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
 		if(user_parameter.flag.ubit.recept_ok==1)
 		{			
 			Data_Ack_Processor();
-//			UARTprintf("Data Ack\n");
 		}
 		if(user_parameter.flag.ubit.recept_write==1)
 		{
 			RW_ModBus_Data();
-			//after writing save to e2c	
 		}
    reboot();		
 	}
