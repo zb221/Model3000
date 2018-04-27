@@ -493,9 +493,8 @@ int main (void)
 {
 	short val1 = 0, val2 = 0;
 	FrecInit();
-
-	init_Global_Variable();
 	init_peripherals();
+	init_Global_Variable();
 	Init_ModBus();
 
   DAC8568_INIT_SET(output_data.temperature,2*65536/5);	/* Set Senseor temperature :DOUT-C = xV*65536/5 */
