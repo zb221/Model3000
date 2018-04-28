@@ -128,17 +128,17 @@ void read_Piecewise_point_Sensor_Fit_Para(void)
 	UARTprintf("point3=%.3f\n",(float)(run_parameter.Piecewise_point3.ubit.hi<<16 | run_parameter.Piecewise_point3.ubit.lo)/1000.0);
 
 
-	UARTprintf("a1=%.7f\n",(double)test1/1000000000.0);
-	UARTprintf("b1=%.7f\n",(double)test2/1000000000.0);
-	UARTprintf("c1=%.7f\n",(double)test3/1000000000.0);
+	UARTprintf("a1=%.9f\n",(double)test1/1000000000.0);
+	UARTprintf("b1=%.9f\n",(double)test2/1000000000.0);
+	UARTprintf("c1=%.9f\n",(double)test3/1000000000.0);
 
-	UARTprintf("a2=%.7f\n",(double)test4/1000000000.0);
-	UARTprintf("b2=%.7f\n",(double)test5/1000000000.0);
-	UARTprintf("c2=%.7f\n",(double)test6/1000000000.0);
+	UARTprintf("a2=%.9f\n",(double)test4/1000000000.0);
+	UARTprintf("b2=%.9f\n",(double)test5/1000000000.0);
+	UARTprintf("c2=%.9f\n",(double)test6/1000000000.0);
 
-	UARTprintf("a3=%.7f\n",(double)test7/1000000000.0);
-	UARTprintf("b3=%.7f\n",(double)test8/1000000000.0);
-	UARTprintf("c3=%.7f\n",(double)test9/1000000000.0);
+	UARTprintf("a3=%.9f\n",(double)test7/1000000000.0);
+	UARTprintf("b3=%.9f\n",(double)test8/1000000000.0);
+	UARTprintf("c3=%.9f\n",(double)test9/1000000000.0);
 	}
 	
 }

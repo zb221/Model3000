@@ -208,9 +208,9 @@ float quadratic_polynomial(float data)
     p2 = (double)test2/1000000000.0;
 		p3 = (double)test3/1000000000.0;
 		if ((output_data.MODEL_TYPE == 2)&&(flag == 50)){
-      UARTprintf("1->a1=%.7f\n",p1);
-      UARTprintf("1->b1=%.7f\n",p2);
-      UARTprintf("1->c1=%.7f\n",p3);
+      UARTprintf("1->a1=%.9f\n",p1);
+      UARTprintf("1->b1=%.9f\n",p2);
+      UARTprintf("1->c1=%.9f\n",p3);
 			UARTprintf("H2R=%.3f H2AG=%.3f\n",data,p1 * data * data + p2 * data + p3);
 			flag = 0;
 		}
@@ -231,9 +231,9 @@ float quadratic_polynomial(float data)
     p2 = (double)test5/1000000000.0;
 		p3 = (double)test6/1000000000.0;
 		if ((output_data.MODEL_TYPE == 2)&&(flag == 50)){
-	   UARTprintf("2->a2=%.7f\n",p1);
-	   UARTprintf("2->b2=%.7f\n",p2);
-	   UARTprintf("2->c2=%.7f\n",p3);
+	   UARTprintf("2->a2=%.9f\n",p1);
+	   UARTprintf("2->b2=%.9f\n",p2);
+	   UARTprintf("2->c2=%.9f\n",p3);
 			UARTprintf("H2R=%.3f H2AG=%.3f\n",data,p1 * data * data + p2 * data + p3);
 			flag = 0;
 		}
@@ -254,9 +254,9 @@ float quadratic_polynomial(float data)
 		p2 = (double)test8/1000000000.0;
 		p3 = (double)test9/1000000000.0;
 		if ((output_data.MODEL_TYPE == 2)&&(flag == 50)){
-	    UARTprintf("3->a3=%.7f\n",p1);
-	    UARTprintf("3->b3=%.7f\n",p2);
-	    UARTprintf("3->c3=%.7f\n",p3);
+	    UARTprintf("3->a3=%.9f\n",p1);
+	    UARTprintf("3->b3=%.9f\n",p2);
+	    UARTprintf("3->c3=%.9f\n",p3);
 			UARTprintf("H2R=%.3f H2AG=%.3f\n",data,p1 * data * data + p2 * data + p3);
 			flag = 0;
 		}
