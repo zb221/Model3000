@@ -24,6 +24,8 @@
 #include "parameter.h"
 #include "ModBus.h"
 #include "AD420.h"
+#include "fitting.h"
+#include "Cubic.h"
 
 /*-------------------------Global variable region----------------------*/
 extern unsigned char flag_command;
@@ -70,7 +72,6 @@ char message10[] = "R1";
 char message11[] = "R2";
 char message12[] = "R3";
 
-
 void read_Piecewise_point_Sensor_Fit_Para(void)
 {
   long long int test1 = 0;
@@ -84,6 +85,11 @@ void read_Piecewise_point_Sensor_Fit_Para(void)
 	long long int test7 = 0;
 	long long int test8 = 0;	
 	long long int test9 = 0;	
+	
+	double a1 = 0, b1 = 0, c1 = 0;
+	double a2 = 0, b2 = 0, c2 = 0;
+	double a3 = 0, b3 = 0, c3 = 0;
+	float point0 = 0,point1 = 0,point2 = 0,point3 = 0;
 	
 	e2prom512_read((unsigned char*)&run_parameter.Piecewise_point0.ubit.hi,4,243*2);
 	e2prom512_read((unsigned char*)&run_parameter.Piecewise_point1.ubit.hi,4,245*2);
@@ -122,24 +128,64 @@ void read_Piecewise_point_Sensor_Fit_Para(void)
 		| (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[11]);
 	
 	if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
-	UARTprintf("point0=%.3f\n",(float)(run_parameter.Piecewise_point0.ubit.hi<<16 | run_parameter.Piecewise_point0.ubit.lo)/1000.0);
-	UARTprintf("point1=%.3f\n",(float)(run_parameter.Piecewise_point1.ubit.hi<<16 | run_parameter.Piecewise_point1.ubit.lo)/1000.0);
-	UARTprintf("point2=%.3f\n",(float)(run_parameter.Piecewise_point2.ubit.hi<<16 | run_parameter.Piecewise_point2.ubit.lo)/1000.0);
-	UARTprintf("point3=%.3f\n",(float)(run_parameter.Piecewise_point3.ubit.hi<<16 | run_parameter.Piecewise_point3.ubit.lo)/1000.0);
+		
+	point0 = (float)(run_parameter.Piecewise_point0.ubit.hi<<16 | run_parameter.Piecewise_point0.ubit.lo)/1000.0;
+	point1 = (float)(run_parameter.Piecewise_point1.ubit.hi<<16 | run_parameter.Piecewise_point1.ubit.lo)/1000.0;
+	point2 = (float)(run_parameter.Piecewise_point2.ubit.hi<<16 | run_parameter.Piecewise_point2.ubit.lo)/1000.0;
+	point3 = (float)(run_parameter.Piecewise_point3.ubit.hi<<16 | run_parameter.Piecewise_point3.ubit.lo)/1000.0;
+		
+	UARTprintf("point0=%.3f\n",point0);
+	UARTprintf("point1=%.3f\n",point1);
+	UARTprintf("point2=%.3f\n",point2);
+	UARTprintf("point3=%.3f\n",point3);
 
+  a1 = (double)test1/1000000000.0;
+  b1 = (double)test2/1000000000.0;
+  c1 = (double)test3/1000000000.0;
+  a2 = (double)test4/1000000000.0;
+  b2 = (double)test5/1000000000.0;
+  c2 = (double)test6/1000000000.0;
+  a3 = (double)test7/1000000000.0;
+  b3 = (double)test8/1000000000.0;
+  c3 = (double)test9/1000000000.0;
 
-	UARTprintf("a1=%.9f\n",(double)test1/1000000000.0);
-	UARTprintf("b1=%.9f\n",(double)test2/1000000000.0);
-	UARTprintf("c1=%.9f\n",(double)test3/1000000000.0);
+	UARTprintf("a1=%.9f\n", a1);
+	UARTprintf("b1=%.9f\n", b1);
+	UARTprintf("c1=%.9f\n", c1);
 
-	UARTprintf("a2=%.9f\n",(double)test4/1000000000.0);
-	UARTprintf("b2=%.9f\n",(double)test5/1000000000.0);
-	UARTprintf("c2=%.9f\n",(double)test6/1000000000.0);
+	UARTprintf("a2=%.9f\n", a2);
+	UARTprintf("b2=%.9f\n", b2);
+	UARTprintf("c2=%.9f\n", c2);
 
-	UARTprintf("a3=%.9f\n",(double)test7/1000000000.0);
-	UARTprintf("b3=%.9f\n",(double)test8/1000000000.0);
-	UARTprintf("c3=%.9f\n",(double)test9/1000000000.0);
+	UARTprintf("a3=%.9f\n", a3);
+	UARTprintf("b3=%.9f\n", b3);
+	UARTprintf("c3=%.9f\n", c3);
 	}
+	/****************************70 temp **********************************/
+//	float H2[30] = {0};
+//	float H2_R[30] = {0};
+//	float data;
+//	float number = 0;
+//	unsigned int i = 0, number1 = 0;
+//	float R_diff_70 = 0;
+//	
+//	number1 = (sizeof(Intermediate_Data.H2_70)/sizeof(Intermediate_Data.H2_70[0]));
+//	for (number1=0;number1<(sizeof(Intermediate_Data.H2_70)/sizeof(Intermediate_Data.H2_70[0]));number1++){
+//		  UARTprintf("Intermediate_Data.H2_70[%d] = %.3f,Intermediate_Data.H2_R_70[%d] = %.3f\n", number1,Intermediate_Data.H2_70[number1],number1,Intermediate_Data.H2_R_70[number1]);
+//	}
+//	for (data=Intermediate_Data.H2_70[0];data<Intermediate_Data.H2_70[number1-1];data+=100){
+////	    R_diff_70 = Cubic_main(data,Hydrogen_Res_70);
+////		  UARTprintf("R_diff_70[%.3f] = %.3f\n", data,R_diff_70);
+//	}
+//	
+//	
+//	number = (point3 - point0)/(sizeof(H2)/sizeof(H2[0]));
+//	for (data = point0;data <= point3;data +=number){
+//		H2_R[i] = data;
+//	  H2[i++] = quadratic_polynomial(data);
+//	}
+//	for (i= 0;i < sizeof(H2)/sizeof(H2[0]);i++)
+//	UARTprintf("H2[%d]=%f,H2_R[%d]=%f\n",i,H2[i],i,H2_R[i]);
 	
 }
 
@@ -167,8 +213,8 @@ void init_Global_Variable(void)
 {
 	unsigned char numb = 0;
 	unsigned int temp_tmp = 0;
-	float Temp[4] = {10,30,50,70};                            /* hhl */
-	float Temp_R[4] = {107.506,114.057,120.848,128.008};        /* hhl */
+	float Temp[4] = {30,50,70,90};                            /* hhl */
+	float Temp_R[4] = {91.676,97.891,104.181,110.836};        /* hhl */
 	float DAC_Din[5] =  {39577,39677,39877,40000,40200};      /* hhl */
 	float Din_temp[5] = {45.8,50.8,61.1,66.9,76.9};           /* hhl */
 	
@@ -184,6 +230,8 @@ void init_Global_Variable(void)
 	float H2[13] = {50,100,200,400,800,1600,3000,5000,10000,30000,40000,60000,100000};  /* new sense */
 	float OHM[13] = {957.362,957.512,957.932,958.498,959.230,960.226,961.227,962.232,964.148,968.251,969.743,971.975,975.627};  /* new sense */
 
+	float H2_70[12] = {50,100,200,400,1000,1600,3000,5000,10000,20000,40000,60000};
+	float H2_R_70[12] = {36.52,36.99,36.56,36.02,35.23,34.53,32.74,31.66,29.25,26.91,23.45,19.67};
 //	float H2[13] = {50,100,200,400,800,1600,3000,5000,8000,30000,40000,80000,100000};
 //	float OHM[13] = {948.391,948.653,948.952,949.426,950.044,950.848,951.771,952.573,953.628,957.897,959.167,963.071,964.484};
 	
@@ -261,11 +309,6 @@ void init_Global_Variable(void)
 	Intermediate_Data.sensor_heat_current = 1.66*65536/5.0; /* set 1.66v*/
 	
 	run_parameter.reboot = 0;
-
-  /* read eeprom init data*/
-	e2prom512_read(&run_parameter.h2_ppm_calibration_gas_h16.ubit.lo,4,126*2);
-	e2prom512_read(&output_data.MODEL_TYPE,1,160*2);
-	read_Piecewise_point_Sensor_Fit_Para();
 	
   /*copy Temp-Temp_R Temp-DAC_Din*/
 	memcpy(Intermediate_Data.Temp,Temp,sizeof(float)*sizeof(Temp)/sizeof(Temp[0]));
@@ -286,12 +329,21 @@ void init_Global_Variable(void)
 	/*cpy H2-OHM*/
 	memcpy(Intermediate_Data.H2,H2,sizeof(float)*sizeof(H2)/sizeof(H2[0]));
 	memcpy(Intermediate_Data.OHM,OHM,sizeof(float)*sizeof(OHM)/sizeof(OHM[0]));
+	
+	/*cpy H2-OHM 70*/
+	memcpy(Intermediate_Data.H2_70,H2_70,sizeof(float)*sizeof(H2_70)/sizeof(H2_70[0]));
+	memcpy(Intermediate_Data.H2_R_70,H2_R_70,sizeof(float)*sizeof(H2_R_70)/sizeof(H2_R_70[0]));
 
 	/*cpy DAC8568 Din data - PCB temp control*/
 	memcpy(Intermediate_Data.PCB_TEMP_Din,PCB_TEMP_Din,sizeof(float)*sizeof(PCB_TEMP_Din)/sizeof(PCB_TEMP_Din[0]));
 	memcpy(Intermediate_Data.PCB_TEMP_SET,PCB_TEMP_SET,sizeof(float)*sizeof(PCB_TEMP_SET)/sizeof(PCB_TEMP_SET[0]));
 
 	memset(Intermediate_Data.H2G_tmp,0,sizeof(Intermediate_Data.H2G_tmp)/sizeof(Intermediate_Data.H2G_tmp[0]));
+	
+	  /* read eeprom init data*/
+	e2prom512_read(&run_parameter.h2_ppm_calibration_gas_h16.ubit.lo,4,126*2);
+	e2prom512_read(&output_data.MODEL_TYPE,1,160*2);
+	read_Piecewise_point_Sensor_Fit_Para();
 }
 
 /***********************************************************
@@ -803,6 +855,7 @@ int main (void)
 		{
 			RW_ModBus_Data();
 		}
+
    reboot();		
 	}
 }

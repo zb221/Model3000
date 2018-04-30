@@ -1242,8 +1242,7 @@ typedef struct Intermediate_Data
 	unsigned char unready_current;
 	
 	unsigned int M25P16_Data_Addr;
-//	unsigned char sector;
-//	unsigned short page;
+
 	unsigned short Alarm_page;
 	
 	unsigned int count6, count7;
@@ -1260,6 +1259,12 @@ typedef struct Intermediate_Data
 	
 	float sensor_heat_current;
 
+	double a1_70, b1_70, c1_70;
+	double a2_70, b2_70, c2_70;
+	double a3_70, b3_70, c3_70;
+	float point0_70,point1_70,point2_70,point3_70;
+	float H2_70[12];
+	float H2_R_70[12];
 }Intermediate_Parameters;
 VARIABLE_EXT Intermediate_Parameters Intermediate_Data;
 

@@ -16,7 +16,7 @@ Description: Global variable region.
 Author: zhuobin
 Date: 2017/10/10
 ***********************************************************/
-#define  MAXNUM  50   
+#define  MAXNUM  15   
 
 typedef struct SPLINE    
 {
@@ -56,7 +56,7 @@ void Spline3(void)
     float Y[MAXNUM+1] = {0};    //???????
     int i = 0;
 
-
+    UARTprintf("pLine1->point_num = %d\n", pLine1->point_num);
     if((pLine1->point_num < 3) || (pLine1->point_num > MAXNUM + 1))
     {
         UARTprintf("point num error\n");
@@ -133,11 +133,27 @@ float Cubic_main(float value,unsigned char type)
 			else{
 					number = sizeof(Intermediate_Data.OHM)/sizeof(Intermediate_Data.OHM[0]);
 					line1.point_num = number;
+
 			}
 
 			for (i=0;i<number;i++){
 					line1.x[i] = Intermediate_Data.OHM[i];
 					line1.y[i] = Intermediate_Data.H2[i];
+			}
+			break;
+		case Hydrogen_Res_70:
+			if (sizeof(Intermediate_Data.H2_70)/sizeof(Intermediate_Data.H2_70[0]) != sizeof(Intermediate_Data.H2_R_70)/sizeof(Intermediate_Data.H2_R_70[0]))
+					UARTprintf("input data ERROR!\n");
+			else{
+					number = sizeof(Intermediate_Data.H2_R_70)/sizeof(Intermediate_Data.H2_R_70[0]);
+					line1.point_num = number;
+				  UARTprintf("number of H2_R_70 array =%d\n", line1.point_num);
+			}
+
+			for (i=0;i<number;i++){
+					line1.y[i] = Intermediate_Data.H2_R_70[i];
+					line1.x[i] = Intermediate_Data.H2_70[i];
+				  UARTprintf("line1.x[%d] = %.3f, line1.y[%d] = %.3f\n",i,line1.x[i],i,line1.y[i]);
 			}
 			break;
 		default: break;
@@ -146,6 +162,7 @@ float Cubic_main(float value,unsigned char type)
 	line1.begin_k1 = ((line1.y[1]-line1.y[0])/(line1.x[1]-line1.x[0]))*0.9;
 	line1.end_k1 = ((line1.y[number-1]-line1.y[number-2])/(line1.x[number-1]-line1.x[number-2]))*1.1;
 
+  UARTprintf("1->pLine1->point_num = %d\n", pLine1->point_num);
 	Spline3();
 
 	if (value>=line1.x[0] && value<=line1.x[number-1]){
