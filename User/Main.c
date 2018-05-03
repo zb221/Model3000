@@ -74,6 +74,13 @@ char message12[] = "R3";
 
 void read_Piecewise_point_Sensor_Fit_Para(void)
 {
+	float H2[30] = {0};
+	float H2_R[30] = {0};
+	float data = 0;
+	float data_add = 0;
+	unsigned int i = 0, number1 = 0;
+	float R_diff_70 = 0;
+	
   long long int test1 = 0;
   long long int test2 = 0;	
   long long int test3 = 0;	
@@ -162,31 +169,29 @@ void read_Piecewise_point_Sensor_Fit_Para(void)
 	UARTprintf("c3=%.9f\n", c3);
 	}
 	/****************************70 temp **********************************/
-//	float H2[30] = {0};
-//	float H2_R[30] = {0};
-//	float data;
-//	float number = 0;
-//	unsigned int i = 0, number1 = 0;
-//	float R_diff_70 = 0;
-//	
-//	number1 = (sizeof(Intermediate_Data.H2_70)/sizeof(Intermediate_Data.H2_70[0]));
-//	for (number1=0;number1<(sizeof(Intermediate_Data.H2_70)/sizeof(Intermediate_Data.H2_70[0]));number1++){
-//		  UARTprintf("Intermediate_Data.H2_70[%d] = %.3f,Intermediate_Data.H2_R_70[%d] = %.3f\n", number1,Intermediate_Data.H2_70[number1],number1,Intermediate_Data.H2_R_70[number1]);
-//	}
-//	for (data=Intermediate_Data.H2_70[0];data<Intermediate_Data.H2_70[number1-1];data+=100){
-////	    R_diff_70 = Cubic_main(data,Hydrogen_Res_70);
-////		  UARTprintf("R_diff_70[%.3f] = %.3f\n", data,R_diff_70);
-//	}
-//	
-//	
-//	number = (point3 - point0)/(sizeof(H2)/sizeof(H2[0]));
-//	for (data = point0;data <= point3;data +=number){
-//		H2_R[i] = data;
-//	  H2[i++] = quadratic_polynomial(data);
-//	}
-//	for (i= 0;i < sizeof(H2)/sizeof(H2[0]);i++)
-//	UARTprintf("H2[%d]=%f,H2_R[%d]=%f\n",i,H2[i],i,H2_R[i]);
+if (output_data.MODEL_TYPE == 2){
+	for (number1=0;number1<(sizeof(Intermediate_Data.H2_70)/sizeof(Intermediate_Data.H2_70[0]));number1++){
+		  UARTprintf("Intermediate_Data.H2_70[%d] = %.3f,Intermediate_Data.H2_R_70[%d] = %.3f\n", number1,Intermediate_Data.H2_70[number1],number1,Intermediate_Data.H2_R_70[number1]);
+	}
+	for (data=Intermediate_Data.H2_70[0];data<Intermediate_Data.H2_70[number1-1];data+=200){
+//	    R_diff_70 = Cubic_main(data,Hydrogen_Res_70);
+		  UARTprintf("R_diff_70[%.3f] = %.3f\n", data,R_diff_70);
+	}
+  point3 = 965.12;
+	point0 = 933.26;
+  if (point3 > point0){
+	data_add = (point3 - point0)/(sizeof(H2)/sizeof(H2[0]));
+	UARTprintf("data_add = %.3f\n",data_add);
+	i = 0;
+	for (data = point0;data <= point3;data +=data_add){
+		H2_R[i] = data;
+	  H2[i++] = quadratic_polynomial(data);
+	}
+	for (i= 0;i < sizeof(H2)/sizeof(H2[0]);i++)
+	UARTprintf("H2[%d]=%f,H2_R[%d]=%f\n",i,H2[i],i,H2_R[i]);
+  }
 	
+}
 }
 
 void reboot(void)
