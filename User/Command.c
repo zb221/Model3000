@@ -3196,9 +3196,6 @@ void cf_arg(void)
 					  run_parameter.MODEL_TYPE= output_data.MODEL_TYPE;
 					  e2prom512_write((unsigned char*)&run_parameter.MODEL_TYPE,2,160*2);
 						UARTprintf(calibrate_menu);
-//						output_data.temperature = 50;
-//						DAC8568_INIT_SET(output_data.temperature,2*65536/5);	/* Set Senseor temperature :DOUT-C = xV*65536/5 */
-//		        Intermediate_Data.Start_print_calibrate_H2R = 1;
 					  flag_screen = 0;
 						flag_function++;
 					break;
@@ -3299,7 +3296,7 @@ void cf_arg(void)
 					output_data.temperature = atoi(cmd_tmp);
 					UARTprintf("now heat temperature is %d\r\n",output_data.temperature);
 					UARTprintf("\nSAVED  heat temperature Success, exit cf OK.\r\n\r\n");
-					DAC8568_INIT_SET(output_data.temperature,2*65536/5);
+					DAC8568_INIT_SET(output_data.temperature,Intermediate_Data.sensor_heat_current);
 					flag_screen = 0;
 					flag_function = 2;
 				}

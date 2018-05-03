@@ -1257,6 +1257,8 @@ typedef struct Intermediate_Data
 	unsigned char Oiltemp_Over;
 	
 	float intercept;
+	
+	float sensor_heat_current;
 
 }Intermediate_Parameters;
 VARIABLE_EXT Intermediate_Parameters Intermediate_Data;

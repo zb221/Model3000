@@ -51,7 +51,7 @@ const char print_menu[] =
 	"TimeStamp               PcbTemp         H2AG.ppm    OilTemp    H2DG.ppm    H2G.ppm    H2SldAv    DayROC    WeekROC    MonthROC    Message    \r\n";
 const char debug_menu[] =
 	"\n"
-	"TimeStamp               PcbTemp         H2AG.ppm        OilTemp  H2DG.ppm   H2G.ppm   H2SldAv    DayROC   WeekROC  MonthROC    SensorTemp    H2Resistor    TemResistor    Message    \r\n";\
+	"TimeStamp               PcbTemp         H2AG.ppm        OilTemp  H2DG.ppm   H2G.ppm   H2SldAv    DayROC   WeekROC  MonthROC    SensorTemp    H2Resistor    TemResistor    U23-AIN7    Message    \r\n";\
 const char calibrate_menu[] =
 	"\n"
 	"TimeStamp               PcbTemp        H2AG.ppm            SensorTemp    H2Resistor    TemResistor        Message    \r\n";\
@@ -258,6 +258,8 @@ void init_Global_Variable(void)
 	Intermediate_Data.intercept = 0;
 	Intermediate_Data.Oiltemp_Over = 0;
 	
+	Intermediate_Data.sensor_heat_current = 1.66*65536/5.0; /* set 1.66v*/
+	
 	run_parameter.reboot = 0;
 
   /* read eeprom init data*/
@@ -335,8 +337,8 @@ void command_print(void)
     UARTprintf("	%7.3f       %10.3f    %7.3f    %8.3f   %8.3f   %8.3f  %8.3f   %8.3f    %8.3f    ",output_data.PcbTemp,output_data.H2AG,output_data.OilTemp,output_data.H2DG,output_data.H2G,output_data.H2SldAv,
 		output_data.DayROC,output_data.WeekROC,output_data.MonthROC);
 	else if (output_data.MODEL_TYPE == 2)
-    UARTprintf("	%7.3f  %10.3f %10.3f  %7.3f  %8.3f  %8.3f  %8.3f  %8.3f  %8.3f  %8.3f      %8.3f      %8.3f       %8.3f    ",output_data.PcbTemp,output_data.H2AG,output_data.H2AG1,output_data.OilTemp,output_data.H2DG,output_data.H2G,output_data.H2SldAv,
-		output_data.DayROC,output_data.WeekROC,output_data.MonthROC,output_data.SensorTemp,output_data.H2Resistor,output_data.TempResistor);
+    UARTprintf("	%7.3f  %10.3f %10.3f  %7.3f  %8.3f  %8.3f  %8.3f  %8.3f  %8.3f  %8.3f      %8.3f      %8.3f       %8.3f    %8.3f    ",output_data.PcbTemp,output_data.H2AG,output_data.H2AG1,output_data.OilTemp,output_data.H2DG,output_data.H2G,output_data.H2SldAv,
+		output_data.DayROC,output_data.WeekROC,output_data.MonthROC,output_data.SensorTemp,output_data.H2Resistor,output_data.TempResistor,Intermediate_Data.Heat_V);
 	else if (output_data.MODEL_TYPE == 3)
 		UARTprintf("	%7.3f    %10.3f %10.3f      %7.3f      %8.3f        %7.3f        ",output_data.PcbTemp,output_data.H2AG,output_data.H2AG1,
 	  output_data.SensorTemp,output_data.H2Resistor,output_data.TempResistor);
@@ -497,7 +499,6 @@ int main (void)
 	init_Global_Variable();
 	Init_ModBus();
 
-  DAC8568_INIT_SET(output_data.temperature,2*65536/5);	/* Set Senseor temperature :DOUT-C = xV*65536/5 */
 	DAC8568_PCB_TEMP_SET(output_data.PCB_temp,0x1000);    /* Set PCB default temperature */
 	M25P16_erase_map(31*0x10000,SE);
 	
@@ -635,7 +636,7 @@ int main (void)
 
 			case 2:
 			output_data.temperature = 50;
-			DAC8568_INIT_SET(output_data.temperature,2.35*65536/5);
+			DAC8568_INIT_SET(output_data.temperature,Intermediate_Data.sensor_heat_current);
 			Intermediate_Data.flag1 = 0;
 			print_count = 60*60 / print_time;
       if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
@@ -655,7 +656,7 @@ int main (void)
 
 			case 4:
 			output_data.temperature = 50;
-			DAC8568_INIT_SET(output_data.temperature,2.35*65536/5);
+			DAC8568_INIT_SET(output_data.temperature,Intermediate_Data.sensor_heat_current);
 			Intermediate_Data.flag1 = 0;
 			print_count = 60*60 / print_time;
       if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
@@ -675,7 +676,7 @@ int main (void)
 
 			case 6:
 			output_data.temperature = 70;
-			DAC8568_INIT_SET(output_data.temperature,2.35*65536/5);
+			DAC8568_INIT_SET(output_data.temperature,Intermediate_Data.sensor_heat_current);
 			Intermediate_Data.flag1 = 0;
 			print_count = 120*60 / print_time;
       if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
@@ -685,7 +686,7 @@ int main (void)
 
 			case 7:
 			output_data.temperature = 50;
-			DAC8568_INIT_SET(output_data.temperature,2.35*65536/5);
+			DAC8568_INIT_SET(output_data.temperature,Intermediate_Data.sensor_heat_current);
 			Intermediate_Data.flag1 = 0;
 			print_count = 30*60 / print_time;
       if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
@@ -708,7 +709,7 @@ int main (void)
 			Intermediate_Data.flag2 = 0;
 			if ((cal_flag == 0)&&(Intermediate_Data.count7 == 1)){
 				output_data.temperature = 50;
-				DAC8568_INIT_SET(output_data.temperature,2*65536/5);	/* Set Senseor temperature :DOUT-C = xV*65536/5 */
+				DAC8568_INIT_SET(output_data.temperature,Intermediate_Data.sensor_heat_current);	/* Set Senseor temperature :DOUT-C = xV*65536/5 */
 				Intermediate_Data.Start_print_calibrate_H2R = 1;
 				cal_flag = 1;
 			}

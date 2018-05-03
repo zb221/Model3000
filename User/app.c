@@ -156,17 +156,18 @@ Description: device checkself for connectivity of the sensor .....
 void device_checkself(void)
 {
     Intermediate_Data.Heat_V = Heat_R_checkself();
-//		UARTprintf("%.3f\n",Intermediate_Data.Heat_V);
+	  if (output_data.MODEL_TYPE == 2)
+		    UARTprintf("U23-AIN7 = %.3f\n",Intermediate_Data.Heat_V);
 	  Heating_R_failure = 0;
 	  if (Intermediate_Data.Heat_V<200 && output_data.temperature>30){
 //					UARTprintf("%.3f Heating resistance self-check error.\n",Intermediate_Data.Heat_V);
 					Heating_R_failure = 1;
 		}
 		if ((output_data.temperature == 50)||(output_data.temperature == 70)){
-			if (Intermediate_Data.Heat_V>1880)
-				DAC8568_SET(0x0,0x3,0x2,0,0);		       /* when > 400 mA, DAC-C set 0 */
-			else
-				DAC8568_SET(0x0,0x3,0x2,2.35*65536/5,0);
+//			if (Intermediate_Data.Heat_V>940)
+//				DAC8568_SET(0x0,0x3,0x2,0,0);		       /* when > 400 mA, DAC-C set 0 */
+//			else
+//				DAC8568_SET(0x0,0x3,0x2,2.35*65536/5,0);
 	  }
 		if ((output_data.MODEL_TYPE == 1)||(output_data.MODEL_TYPE == 2)){
 		e2prom512_read((unsigned char*)&run_parameter.Piecewise_point0.ubit.hi,4,243*2);
@@ -175,8 +176,8 @@ void device_checkself(void)
 //    UARTprintf("%d \n",(run_parameter.Piecewise_point0.ubit.hi<<16 | run_parameter.Piecewise_point0.ubit.lo));
 //    UARTprintf("%f \n",(run_parameter.Piecewise_point0.ubit.hi<<16 | run_parameter.Piecewise_point0.ubit.lo));
 		
-		if ((output_data.H2Resistor < (float)(run_parameter.Piecewise_point0.ubit.hi<<16 | run_parameter.Piecewise_point0.ubit.lo)/1000.0-10) 
-			|| (output_data.H2Resistor > (float)(run_parameter.Piecewise_point3.ubit.hi<<16 | run_parameter.Piecewise_point3.ubit.lo)/1000.0+10))
+		if ((output_data.H2Resistor < (float)(run_parameter.Piecewise_point0.ubit.hi<<16 | run_parameter.Piecewise_point0.ubit.lo)/1000.0-1000) 
+			|| (output_data.H2Resistor > (float)(run_parameter.Piecewise_point3.ubit.hi<<16 | run_parameter.Piecewise_point3.ubit.lo)/1000.0+1000))
 			Heating_R_failure = 1;
 		
 		if ((output_data.TempResistor < (-40.0 - Intermediate_Data.Temp_R_B)/Intermediate_Data.Temp_R_K) 
