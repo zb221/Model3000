@@ -48,6 +48,8 @@ unsigned char print_time = 30; /* console print cycle */
 unsigned char startup_time = 60;
 unsigned char cal_flag = 0;
 
+float point0 = 0,point1 = 0,point2 = 0,point3 = 0;
+
 const char print_menu[] = 
 	"\n"
 	"TimeStamp               PcbTemp         H2AG.ppm    OilTemp    H2DG.ppm    H2G.ppm    H2SldAv    DayROC    WeekROC    MonthROC    Message    \r\n";
@@ -74,13 +76,9 @@ char message12[] = "R3";
 
 void read_Piecewise_point_Sensor_Fit_Para(void)
 {
-	float H2[30] = {0};
-	float H2_R[30] = {0};
-	float data = 0;
-	float data_add = 0;
-	unsigned int i = 0, number1 = 0;
-	float R_diff_70 = 0;
-	
+  double a1 = 0, b1 = 0, c1 = 0;
+  double a2 = 0, b2 = 0, c2 = 0;
+  double a3 = 0, b3 = 0, c3 = 0;
   long long int test1 = 0;
   long long int test2 = 0;	
   long long int test3 = 0;	
@@ -92,11 +90,6 @@ void read_Piecewise_point_Sensor_Fit_Para(void)
 	long long int test7 = 0;
 	long long int test8 = 0;	
 	long long int test9 = 0;	
-	
-	double a1 = 0, b1 = 0, c1 = 0;
-	double a2 = 0, b2 = 0, c2 = 0;
-	double a3 = 0, b3 = 0, c3 = 0;
-	float point0 = 0,point1 = 0,point2 = 0,point3 = 0;
 	
 	e2prom512_read((unsigned char*)&run_parameter.Piecewise_point0.ubit.hi,4,243*2);
 	e2prom512_read((unsigned char*)&run_parameter.Piecewise_point1.ubit.hi,4,245*2);
@@ -168,32 +161,65 @@ void read_Piecewise_point_Sensor_Fit_Para(void)
 	UARTprintf("b3=%.9f\n", b3);
 	UARTprintf("c3=%.9f\n", c3);
 	}
+
+}
+void born_70_Piecewise_point_Sensor_Fit_Para(void){
+	float H2[40] = {0};
+	float H2_R[40] = {0};
+	float data = 0;
+	float data_add = 0;
+	unsigned int i = 0, number1 = 0;
+	float R_diff_70 = 0;
+	
 	/****************************70 temp **********************************/
-if (output_data.MODEL_TYPE == 2){
-	for (number1=0;number1<(sizeof(Intermediate_Data.H2_70)/sizeof(Intermediate_Data.H2_70[0]));number1++){
-		  UARTprintf("Intermediate_Data.H2_70[%d] = %.3f,Intermediate_Data.H2_R_70[%d] = %.3f\n", number1,Intermediate_Data.H2_70[number1],number1,Intermediate_Data.H2_R_70[number1]);
-	}
-	for (data=Intermediate_Data.H2_70[0];data<Intermediate_Data.H2_70[number1-1];data+=200){
-//	    R_diff_70 = Cubic_main(data,Hydrogen_Res_70);
-		  UARTprintf("R_diff_70[%.3f] = %.3f\n", data,R_diff_70);
-	}
-  point3 = 965.12;
-	point0 = 933.26;
+
   if (point3 > point0){
 	data_add = (point3 - point0)/(sizeof(H2)/sizeof(H2[0]));
-	UARTprintf("data_add = %.3f\n",data_add);
+
 	i = 0;
 	for (data = point0;data <= point3;data +=data_add){
 		H2_R[i] = data;
-	  H2[i++] = quadratic_polynomial(data);
+
+		if(data < (float)(run_parameter.Piecewise_point0.ubit.hi<<16 | run_parameter.Piecewise_point0.ubit.lo)/1000.0){
+			if (data < ((float)(run_parameter.Piecewise_point0.ubit.hi<<16 | run_parameter.Piecewise_point0.ubit.lo)/1000.0 - 0.5)){
+				Intermediate_Data.hydrogen_70[i] = 0;
+			}else{
+				Intermediate_Data.hydrogen_70[i] = 10000*(0.01*data + (-(0.01*((float)(run_parameter.Piecewise_point0.ubit.hi<<16 | run_parameter.Piecewise_point0.ubit.lo)/1000.0-0.5))));
+			}
+		}else if (data > (float)(run_parameter.Piecewise_point3.ubit.hi<<16 | run_parameter.Piecewise_point3.ubit.lo)/1000.0){
+			Intermediate_Data.hydrogen_70[i] = 100000;
+		}else{
+			Intermediate_Data.hydrogen_70[i] = 10000*quadratic_polynomial(data);
+			if (Intermediate_Data.hydrogen_70[i] > 100000)
+				Intermediate_Data.hydrogen_70[i] = 100000;
+			if (Intermediate_Data.hydrogen_70[i] < 0)
+				Intermediate_Data.hydrogen_70[i] = 0;
+		}
+		
+	  H2[i] = Intermediate_Data.hydrogen_70[i];
+		i++;
 	}
+
+	if (output_data.MODEL_TYPE == 2){
 	for (i= 0;i < sizeof(H2)/sizeof(H2[0]);i++)
 	UARTprintf("H2[%d]=%f,H2_R[%d]=%f\n",i,H2[i],i,H2_R[i]);
-  }
-	
-}
-}
+	}
+	number1 = (sizeof(Intermediate_Data.hydrogen_70)/sizeof(Intermediate_Data.hydrogen_70[0]));
 
+	UARTprintf("Intermediate_Data.hydrogen_70[0]=%f\n",Intermediate_Data.hydrogen_70[0]);
+	if (Intermediate_Data.hydrogen_70[0] < 50){
+	  Intermediate_Data.hydrogen_70[0] = 50;
+	}
+		
+	for (i=0;i<number1;i++){
+	    R_diff_70 = Cubic_main(Intermediate_Data.hydrogen_70[i],Hydrogen_Res_70);
+		  UARTprintf("R_diff_70(%d)=%f\n",i,R_diff_70);
+		  Intermediate_Data.hydrogen_R_70[i] = R_diff_70 + H2_R[i];
+		  if (output_data.MODEL_TYPE == 2)
+		    UARTprintf("[%.3f] = %.3f\n", Intermediate_Data.hydrogen_70[i],Intermediate_Data.hydrogen_R_70[i]);
+	}
+ }
+}
 void reboot(void)
 {
 	if (run_parameter.reboot == 1){
@@ -235,8 +261,8 @@ void init_Global_Variable(void)
 	float H2[13] = {50,100,200,400,800,1600,3000,5000,10000,30000,40000,60000,100000};  /* new sense */
 	float OHM[13] = {957.362,957.512,957.932,958.498,959.230,960.226,961.227,962.232,964.148,968.251,969.743,971.975,975.627};  /* new sense */
 
-	float H2_70[12] = {50,100,200,400,1000,1600,3000,5000,10000,20000,40000,60000};
-	float H2_R_70[12] = {36.52,36.99,36.56,36.02,35.23,34.53,32.74,31.66,29.25,26.91,23.45,19.67};
+	float H2_70[13] = {50,100,200,400,800,1600,3000,5000,10000,20000,40000,60000,100000};
+	float H2_R_70[13] = {14.57,14.83,14.71,14.65,14.46,14.34,14.23,14.02,13.78,13.55,13.17,12.88,12.12};
 //	float H2[13] = {50,100,200,400,800,1600,3000,5000,8000,30000,40000,80000,100000};
 //	float OHM[13] = {948.391,948.653,948.952,949.426,950.044,950.848,951.771,952.573,953.628,957.897,959.167,963.071,964.484};
 	
@@ -553,16 +579,17 @@ int main (void)
 	short val1 = 0, val2 = 0;
 	FrecInit();
 	init_peripherals();
-	init_Global_Variable();
 	Init_ModBus();
-
-	DAC8568_PCB_TEMP_SET(output_data.PCB_temp,0x1000);    /* Set PCB default temperature */
-	M25P16_erase_map(31*0x10000,SE);
 	
 	PINSEL1 = PINSEL1 & (~(0x03 << 26));        /*P0.29*/	
 	IODIR0 = IODIR0 | 0x1<<29;
 	IOSET0 = IOSET0 | 0x1<<29;		
 
+	M25P16_erase_map(31*0x10000,SE);
+	init_Global_Variable();
+	DAC8568_PCB_TEMP_SET(output_data.PCB_temp,0x1000);    /* Set PCB default temperature */
+	born_70_Piecewise_point_Sensor_Fit_Para();
+	
 	while (1)  
 	{
     if (rcv_char_flag == 1){
@@ -776,8 +803,7 @@ int main (void)
 			Intermediate_Data.flag2 = 0;
       if (Intermediate_Data.Power_On == 0)		
 			    UARTprintf("System startup wait time %d\n",--startup_time);
-			if (startup_time == 2){
-				--startup_time;
+			if (startup_time == 0){
 				switch (output_data.MODEL_TYPE){
 					case 1:
 						UARTprintf(print_menu);

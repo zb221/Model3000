@@ -422,7 +422,7 @@ void Temperature_of_resistance_Parameter(void)
 		  if (Intermediate_Data.wait_1min_oil == 1){
 				output_data.SensorTemp = AVERAGE_F(Intermediate_Data.SensorTemp_tmp);
 				output_data.OilTemp = output_data.SensorTemp;
-				if ((Cal_flag == 0)&&(output_data.MODEL_TYPE == 3)){
+				if (((Cal_flag == 0)&&(output_data.MODEL_TYPE == 3))&&(Intermediate_Data.Oiltemp_Cal_flag == 1)){
 					e2prom512_read((unsigned char*)&run_parameter.reserved_parameter33,2,120*2);
 					UARTprintf("befor calibrate, %d, %f,K =  %f,B = %f\n",run_parameter.reserved_parameter33,
 					((float)run_parameter.reserved_parameter33/100.0 - output_data.OilTemp),Intermediate_Data.Temp_R_K,Intermediate_Data.Temp_R_B);
@@ -449,7 +449,7 @@ void Temperature_of_resistance_Parameter(void)
 						run_parameter.reserved_parameter40 = 200;
 						e2prom512_write((unsigned char*)&run_parameter.reserved_parameter40,2,136*2);
 				}
-				UARTprintf("After calibrate,K = %f,B = %f\n",Intermediate_Data.Temp_R_K,Intermediate_Data.Temp_R_B);
+				UARTprintf("OilTemp calibrate OK and SAVE, After calibrate,K = %f,B = %f\n",Intermediate_Data.Temp_R_K,Intermediate_Data.Temp_R_B);
 				Intermediate_Data.Oiltemp_Cal_flag = 0;
 				Intermediate_Data.Oiltemp_Cal_OK = 1;
 				Cal_flag = 1;
@@ -492,7 +492,10 @@ void Temperature_of_resistance_Parameter(void)
 	if ((output_data.OilTemp > 50) && (output_data.OilTemp < 70)){
 		Intermediate_Data.Oiltemp_Over = 1;
 	}else{
-	  Intermediate_Data.Oiltemp_Over = 0;
+		if (output_data.OilTemp < 50)
+	    Intermediate_Data.Oiltemp_Over = 0;
+		else
+			Intermediate_Data.Oiltemp_Over = 2;
 	}
 	
 	Intermediate_Data.OilTemp_Tmp[number++] = Intermediate_Data.Temp_R_K*output_data.TempResistor + Intermediate_Data.Temp_R_B;
@@ -625,6 +628,7 @@ void ADC7738_acquisition_output(unsigned char channel)
 
 		if (Intermediate_Data.Operat_temp_alarm == 0){
 			if (output_data.temperature == 50 && Intermediate_Data.wait_1min == 1 && Intermediate_Data.Oiltemp_Over == 0){
+				if (output_data.SensorTemp < 51){
 				if(output_data.H2Resistor < (float)(run_parameter.Piecewise_point0.ubit.hi<<16 | run_parameter.Piecewise_point0.ubit.lo)/1000.0){
 					if (output_data.H2Resistor < ((float)(run_parameter.Piecewise_point0.ubit.hi<<16 | run_parameter.Piecewise_point0.ubit.lo)/1000.0 - 0.5)){
 						output_data.H2AG = 0;
@@ -661,29 +665,32 @@ void ADC7738_acquisition_output(unsigned char channel)
 				run_parameter.status_flag.ubit.senser_state0=1;
 				run_parameter.status_flag.ubit.senser_state1=0;
 				run_parameter.status_flag.ubit.senser_state2=0;
+		    }
 			}else if (output_data.temperature == 70 && Intermediate_Data.wait_1min == 1 && Intermediate_Data.Oiltemp_Over == 1){
-        // R = Intermediate_Data.H2Resistor_T_K*T + Intermediate_Data.H2Resistor_T_B
-				if(output_data.H2Resistor < ((Intermediate_Data.H2Resistor_T_K*(70-50))+((float)(run_parameter.Piecewise_point0.ubit.hi<<16 | run_parameter.Piecewise_point0.ubit.lo)/1000.0))){
-					if (output_data.H2Resistor < ((Intermediate_Data.H2Resistor_T_K*(70-50))+((float)(run_parameter.Piecewise_point0.ubit.hi<<16 | run_parameter.Piecewise_point0.ubit.lo)/1000.0) - 0.5)){
+        if (output_data.SensorTemp < 71){
+				if(output_data.H2Resistor < Intermediate_Data.hydrogen_R_70[0]){
+					if (output_data.H2Resistor < (Intermediate_Data.hydrogen_R_70[0] - 0.5)){
 						output_data.H2AG = 0;
 						output_data.H2AG1 = output_data.H2AG;
 					}else{
-						output_data.H2AG = 10000*(0.01*output_data.H2Resistor + (-(0.01*(((Intermediate_Data.H2Resistor_T_K*(70-50))+((float)(run_parameter.Piecewise_point0.ubit.hi<<16 | run_parameter.Piecewise_point0.ubit.lo)/1000.0))-0.5))));
+						output_data.H2AG = 10000*(0.01*output_data.H2Resistor + (-(0.01*(Intermediate_Data.hydrogen_R_70[0]-0.5))));
 						output_data.H2AG1 = output_data.H2AG;
 					}
-				}else if (output_data.H2Resistor > ((Intermediate_Data.H2Resistor_T_K*(70-50))+(float)(run_parameter.Piecewise_point3.ubit.hi<<16 | run_parameter.Piecewise_point3.ubit.lo)/1000.0)){
+					if (output_data.MODEL_TYPE == 2)
+					    UARTprintf("output_data.H2Resistor[%f] < Intermediate_Data.hydrogen_R_70[0][%f]\n",output_data.H2Resistor,Intermediate_Data.hydrogen_R_70[0]);
+				}else if (output_data.H2Resistor > Intermediate_Data.hydrogen_R_70[(sizeof(Intermediate_Data.hydrogen_R_70)/sizeof(Intermediate_Data.hydrogen_R_70[0]))-1]){
 					output_data.H2AG = 100000;
 					output_data.H2AG1 = output_data.H2AG;
+					if (output_data.MODEL_TYPE == 2)
+					    UARTprintf("output_data.H2Resistor[%f] > Intermediate_Data.hydrogen_R_70[39][%f]\n",output_data.H2Resistor,Intermediate_Data.hydrogen_R_70[(sizeof(Intermediate_Data.hydrogen_R_70)/sizeof(Intermediate_Data.hydrogen_R_70[0]))-1]);
 				}else{
-					output_data.H2AG = 10000*quadratic_polynomial(output_data.H2Resistor);
+					output_data.H2AG = Cubic_main(output_data.H2Resistor,H_R_70);
 					if (output_data.H2AG > 100000)
 					  output_data.H2AG = 100000;
 					if (output_data.H2AG < 0)
 					  output_data.H2AG = 0;
 					output_data.H2AG1 = output_data.H2AG;
 				}
-			 if (debug == 1)
-        UARTprintf("4->output_data.H2AG=%.7f output_data.H2DG=%.7f\n",output_data.H2AG,output_data.H2DG);
        output_data.H2DG = output_data.H2AG / 20.0;
        output_data.H2DG += (float)((run_parameter.h2_ppm_calibration_gas_h16.hilo << 16) | run_parameter.h2_ppm_calibration_gas_l16.hilo);
        if (output_data.H2DG > 5000)
@@ -691,11 +698,10 @@ void ADC7738_acquisition_output(unsigned char channel)
        if (output_data.H2DG < 0)
       	 output_data.H2DG = 0;
        output_data.H2G = output_data.H2DG;
-			 if (debug == 1)
-        UARTprintf("5->output_data.H2AG=%.7f output_data.H2DG=%.7f\n",output_data.H2AG,output_data.H2DG);
 				run_parameter.status_flag.ubit.senser_state0=1;
 				run_parameter.status_flag.ubit.senser_state1=0;
 				run_parameter.status_flag.ubit.senser_state2=0;
+		    }
 			}else{
 				run_parameter.status_flag.ubit.senser_state0=1;
 				run_parameter.status_flag.ubit.senser_state1=1;

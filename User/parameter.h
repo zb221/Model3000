@@ -1259,12 +1259,10 @@ typedef struct Intermediate_Data
 	
 	float sensor_heat_current;
 
-	double a1_70, b1_70, c1_70;
-	double a2_70, b2_70, c2_70;
-	double a3_70, b3_70, c3_70;
-	float point0_70,point1_70,point2_70,point3_70;
-	float H2_70[12];
-	float H2_R_70[12];
+	float H2_70[13];
+	float H2_R_70[13];
+	float hydrogen_70[40];
+	float hydrogen_R_70[40];
 }Intermediate_Parameters;
 VARIABLE_EXT Intermediate_Parameters Intermediate_Data;
 

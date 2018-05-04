@@ -9,6 +9,7 @@
 #include "fitting.h"
 #include "parameter.h"
 #include <math.h>
+#include "Cubic.h"
 
 void Line_Fit(float *X, float *Y)
 {
@@ -215,8 +216,7 @@ float quadratic_polynomial(float data)
 			flag = 0;
 		}
 		flag++;
-		if (output_data.temperature == 70 && Intermediate_Data.wait_1min == 1 && Intermediate_Data.Oiltemp_Over == 1)
-			p3 = (double)test3/1000000000.0 + (Intermediate_Data.H2Resistor_T_K*(70-50));
+
 	}else if (data >= (float)(run_parameter.Piecewise_point1.ubit.hi<<16 | run_parameter.Piecewise_point1.ubit.lo)/1000.0 && data < (float)(run_parameter.Piecewise_point2.ubit.hi<<16 | run_parameter.Piecewise_point2.ubit.lo)/1000.0){
 		test4 = (( long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[0]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[1]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[2]<<16
 			| (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[3]);
@@ -238,8 +238,7 @@ float quadratic_polynomial(float data)
 			flag = 0;
 		}
 		flag++;
-		if (output_data.temperature == 70 && Intermediate_Data.wait_1min == 1 && Intermediate_Data.Oiltemp_Over == 1)
-			p3 = (double)test6/1000000000.0 + (Intermediate_Data.H2Resistor_T_K*(70-50));
+
 	}else if (data >= (float)(run_parameter.Piecewise_point2.ubit.hi<<16 | run_parameter.Piecewise_point2.ubit.lo)/1000.0 && data < (float)(run_parameter.Piecewise_point3.ubit.hi<<16 | run_parameter.Piecewise_point3.ubit.lo)/1000.0){
 		test7 = (( long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[0]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[1]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[2]<<16
 			| (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[3]);
@@ -261,9 +260,9 @@ float quadratic_polynomial(float data)
 			flag = 0;
 		}
 		flag++;
-		if (output_data.temperature == 70 && Intermediate_Data.wait_1min == 1 && Intermediate_Data.Oiltemp_Over == 1)
-			p3 = (double)test9/1000000000.0 + (Intermediate_Data.H2Resistor_T_K*(70-50));
+
 	}
 	tmp = p1 * data * data + p2 * data + p3;
+
 	return tmp;
 }
