@@ -1206,11 +1206,6 @@ typedef struct Intermediate_Data
 	float PCB_TEMP_Din[3];
 	float PCB_TEMP_SET[3];
 	
-	float Temp[4];      
-	float Temp_R[4]; 
-	float DAC_Din[5]; 
-	float Din_temp[5]; 
-	
 	float H2[13];
 	float OHM[13];
 
@@ -1223,9 +1218,6 @@ typedef struct Intermediate_Data
 	
 	float H2Resistor_OilTemp_K;
 	float H2Resistor_OilTemp_B;
-
-	float Din_temp_DAC_Din_K;
-	float Din_temp_DAC_Din_B;
 
 	float PCB_TEMP_Din_K;
 	float PCB_TEMP_Din_B;

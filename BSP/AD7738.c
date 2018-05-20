@@ -391,11 +391,28 @@ void Temperature_of_resistance_Parameter(void)
 	static unsigned char flag = 0, flag1 = 0;
 	static float OilTemp_b = 0;
 	static unsigned char Cal_flag = 0;
-	
+	unsigned int temp_tmp = 0;
 
 	if (flag == 0){
-	    Line_Fit(Intermediate_Data.Temp_R, Intermediate_Data.Temp);
-	    flag = 1;
+//	    Line_Fit(Intermediate_Data.Temp_R, Intermediate_Data.Temp);
+				e2prom512_read((unsigned char*)&temp_tmp,4,(260)*2);
+		    Intermediate_Data.Temp_R_K = (float)temp_tmp/1000000.0;
+		    if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3)
+				  UARTprintf("read K: %.6f\r\n",Intermediate_Data.Temp_R_K);
+		
+				e2prom512_read((unsigned char*)&temp_tmp,4,(268+(2*2))*2);
+				if (temp_tmp == 1){
+				  e2prom512_read((unsigned char*)&temp_tmp,4,(268+(1*2))*2);
+					Intermediate_Data.Temp_R_B = -(float)temp_tmp/1000000.0;
+					if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3)
+				    UARTprintf("read B: %.6f\r\n",Intermediate_Data.Temp_R_B);
+				}else if (temp_tmp == 2){
+				  e2prom512_read((unsigned char*)&temp_tmp,4,(268+(1*2))*2);
+					Intermediate_Data.Temp_R_B = (float)temp_tmp/1000000.0;
+					if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3)
+				    UARTprintf("read B: %.6f\r\n",Intermediate_Data.Temp_R_B);
+				}
+	      flag = 1;
   }
 
 	if (flag1 == 0){

@@ -20,42 +20,7 @@ void Line_Fit(float *X, float *Y)
     unsigned int length = 0, i = 0;
     double sum = 0;
 	
-		if ((X == Intermediate_Data.Temp_R) && (Y == Intermediate_Data.Temp)){
-			if (sizeof(Intermediate_Data.Temp)/sizeof(Intermediate_Data.Temp[0]) == sizeof(Intermediate_Data.Temp_R)/sizeof(Intermediate_Data.Temp_R[0])){
-					length = sizeof(Intermediate_Data.Temp)/sizeof(Intermediate_Data.Temp[0]);
-
-					for(i=0;i<length;i++)
-					{
-							sum += Intermediate_Data.Temp_R[i];
-					} 
-					x_sum_average = sum / length;
-
-					sum = 0;
-					for(i=0;i<length;i++)
-					{
-							sum += Intermediate_Data.Temp[i];
-					} 
-					y_sum_average = sum / length;
-
-					sum = 0;
-					for(i=0;i<length;i++)
-					{
-							sum += Intermediate_Data.Temp_R[i]*Intermediate_Data.Temp_R[i];
-					}
-					x_square_sum = sum;
-
-					sum = 0;
-					for(i=0;i<length;i++)
-					{
-							sum += Intermediate_Data.Temp[i]*Intermediate_Data.Temp_R[i];
-					}
-					x_multiply_y = sum;
-					
-					Intermediate_Data.Temp_R_K = ( x_multiply_y - length * x_sum_average * y_sum_average)/(x_square_sum - length * x_sum_average * x_sum_average);
-					Intermediate_Data.Temp_R_B = y_sum_average - Intermediate_Data.Temp_R_K * x_sum_average;
-					//	UARTprintf("%.3f,%.4f\n",Temp_R_K,Temp_R_B);
-			}
-    }else if ((X == Intermediate_Data.OilTemp_Tmp) && (Y == Intermediate_Data.H2Resistor_Tmp)){
+    if ((X == Intermediate_Data.OilTemp_Tmp) && (Y == Intermediate_Data.H2Resistor_Tmp)){
         if (sizeof(Intermediate_Data.OilTemp_Tmp)/sizeof(Intermediate_Data.OilTemp_Tmp[0]) == sizeof(Intermediate_Data.H2Resistor_Tmp)/sizeof(Intermediate_Data.H2Resistor_Tmp[0])){
             length = sizeof(Intermediate_Data.H2Resistor_Tmp)/sizeof(Intermediate_Data.H2Resistor_Tmp[0]);
 
@@ -89,41 +54,6 @@ void Line_Fit(float *X, float *Y)
             Intermediate_Data.H2Resistor_OilTemp_K = ( x_multiply_y - length * x_sum_average * y_sum_average)/(x_square_sum - length * x_sum_average * x_sum_average);
             Intermediate_Data.H2Resistor_OilTemp_B = y_sum_average - Intermediate_Data.H2Resistor_OilTemp_K * x_sum_average;
             //UARTprintf("%.3f,%.4f\n",Intermediate_Data.H2Resistor_OilTemp_K,Intermediate_Data.H2Resistor_OilTemp_B);
-        }
-    }else if ((X == Intermediate_Data.Din_temp) && (Y == Intermediate_Data.DAC_Din)){
-        if (sizeof(Intermediate_Data.DAC_Din)/sizeof(Intermediate_Data.DAC_Din[0]) == sizeof(Intermediate_Data.Din_temp)/sizeof(Intermediate_Data.Din_temp[0])){
-            length = sizeof(Intermediate_Data.Din_temp)/sizeof(Intermediate_Data.Din_temp[0]);
-
-            for(i=0;i<length;i++)
-            {
-                sum += Intermediate_Data.Din_temp[i];
-            } 
-            x_sum_average = sum / length;
-
-            sum = 0;
-            for(i=0;i<length;i++)
-            {
-                sum += Intermediate_Data.DAC_Din[i];
-            } 
-            y_sum_average = sum / length;
-
-            sum = 0;
-            for(i=0;i<length;i++)
-            {
-                sum += Intermediate_Data.Din_temp[i]*Intermediate_Data.Din_temp[i];
-            }
-            x_square_sum = sum;
-
-            sum = 0;
-            for(i=0;i<length;i++)
-            {
-                sum += Intermediate_Data.DAC_Din[i]*Intermediate_Data.Din_temp[i];
-            }
-            x_multiply_y = sum;
-            
-            Intermediate_Data.Din_temp_DAC_Din_K = ( x_multiply_y - length * x_sum_average * y_sum_average)/(x_square_sum - length * x_sum_average * x_sum_average);
-            Intermediate_Data.Din_temp_DAC_Din_B = y_sum_average - Intermediate_Data.Din_temp_DAC_Din_K * x_sum_average;
-            //	UARTprintf("%.3f,%.4f\n",Din_temp_DAC_Din_K,Din_temp_DAC_Din_B);
         }
     }else if ((X == Intermediate_Data.PCB_TEMP_SET) && (Y == Intermediate_Data.PCB_TEMP_Din)){
         if (sizeof(Intermediate_Data.PCB_TEMP_Din)/sizeof(Intermediate_Data.PCB_TEMP_Din[0]) == sizeof(Intermediate_Data.PCB_TEMP_SET)/sizeof(Intermediate_Data.PCB_TEMP_SET[0])){

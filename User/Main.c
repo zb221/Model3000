@@ -242,20 +242,12 @@ Description: all Global variable region init should add here.
 ***********************************************************/
 void init_Global_Variable(void)
 {
-	unsigned char numb = 0;
-	unsigned int temp_tmp = 0;
-	float Temp[4] = {30,50,70,90};                            /* hhl */
-	float Temp_R[4] = {91.676,97.891,104.181,110.836};        /* hhl */
 	float DAC_Din[5] =  {39577,39677,39877,40000,40200};      /* hhl */
 	float Din_temp[5] = {45.8,50.8,61.1,66.9,76.9};           /* hhl */
 	
 	float PCB_TEMP_Din[3] =  {11336,11536,11636};
 	float PCB_TEMP_SET[3] = {37.5,42.6,44.9};
-	
-//	float Temp[4] = {10,30,50,70};                          /* new sense */
-//	float Temp_R[4] = {93.661,100.345,107.373,114.696};     /* new sense */
-//	float DAC_Din[5] =  {39777,39877,40000,40200,40300};    /* new sense */
-//	float Din_temp[5] = {45.7,49.4,55,63.9,68.3};           /* new sense */
+
 	
 	/*The relationship between H2 and H2_resistance*/
 	float H2[13] = {50,100,200,400,800,1600,3000,5000,10000,30000,40000,60000,100000};  /* new sense */
@@ -263,8 +255,6 @@ void init_Global_Variable(void)
 
 	float H2_70[13] = {50,100,200,400,800,1600,3000,5000,10000,20000,40000,60000,100000};
 	float H2_R_70[13] = {14.57,14.83,14.71,14.65,14.46,14.34,14.23,14.02,13.78,13.55,13.17,12.88,12.12};
-//	float H2[13] = {50,100,200,400,800,1600,3000,5000,8000,30000,40000,80000,100000};
-//	float OHM[13] = {948.391,948.653,948.952,949.426,950.044,950.848,951.771,952.573,953.628,957.897,959.167,963.071,964.484};
 	
 	print_count = 60 / print_time;
 	
@@ -309,9 +299,6 @@ void init_Global_Variable(void)
 	Intermediate_Data.H2Resistor_OilTemp_K = 0;
 	Intermediate_Data.H2Resistor_OilTemp_B = 0;
 
-	Intermediate_Data.Din_temp_DAC_Din_K = 0;
-	Intermediate_Data.Din_temp_DAC_Din_B = 0;
-
 	Intermediate_Data.PCB_TEMP_Din_K = 0;
 	Intermediate_Data.PCB_TEMP_Din_B = 0;
 
@@ -341,22 +328,8 @@ void init_Global_Variable(void)
 	
 	run_parameter.reboot = 0;
 	
-  /*copy Temp-Temp_R Temp-DAC_Din*/
-	memcpy(Intermediate_Data.Temp,Temp,sizeof(float)*sizeof(Temp)/sizeof(Temp[0]));
-	memcpy(Intermediate_Data.Temp_R,Temp_R,sizeof(float)*sizeof(Temp_R)/sizeof(Temp_R[0]));
-	memcpy(Intermediate_Data.DAC_Din,DAC_Din,sizeof(float)*sizeof(DAC_Din)/sizeof(DAC_Din[0]));
-	memcpy(Intermediate_Data.Din_temp,Din_temp,sizeof(float)*sizeof(Din_temp)/sizeof(Din_temp[0]));
+	e2prom512_read(&output_data.MODEL_TYPE,1,160*2);
 
-	numb = sizeof(Intermediate_Data.Temp)/sizeof(Intermediate_Data.Temp[0]);
-	for (unsigned i = 0;i < numb;i++){
-		e2prom512_read((unsigned char*)&temp_tmp,4,(260+(i*2))*2);
-		Intermediate_Data.Temp[i] = (float)temp_tmp/100.0;
-		e2prom512_read((unsigned char*)&temp_tmp,4,(268+(i*2))*2);
-		Intermediate_Data.Temp_R[i] = (float)temp_tmp/1000.0;
-		if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
-				UARTprintf("%.2f/%.3f\n",Intermediate_Data.Temp[i],Intermediate_Data.Temp_R[i]);
-		}
-	}
 	/*cpy H2-OHM*/
 	memcpy(Intermediate_Data.H2,H2,sizeof(float)*sizeof(H2)/sizeof(H2[0]));
 	memcpy(Intermediate_Data.OHM,OHM,sizeof(float)*sizeof(OHM)/sizeof(OHM[0]));
@@ -373,7 +346,6 @@ void init_Global_Variable(void)
 	
 	  /* read eeprom init data*/
 	e2prom512_read(&run_parameter.h2_ppm_calibration_gas_h16.ubit.lo,4,126*2);
-	e2prom512_read(&output_data.MODEL_TYPE,1,160*2);
 	read_Piecewise_point_Sensor_Fit_Para();
 }
 
@@ -587,7 +559,7 @@ int main (void)
 
 	M25P16_erase_map(31*0x10000,SE);
 	init_Global_Variable();
-	DAC8568_PCB_TEMP_SET(output_data.PCB_temp,0x1000);    /* Set PCB default temperature */
+//	DAC8568_PCB_TEMP_SET(output_data.PCB_temp,0x1000);    /* Set PCB default temperature */
 	born_70_Piecewise_point_Sensor_Fit_Para();
 	
 	while (1)  
