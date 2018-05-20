@@ -1206,11 +1206,6 @@ typedef struct Intermediate_Data
 	float PCB_TEMP_Din[3];
 	float PCB_TEMP_SET[3];
 	
-	float Temp[4];      
-	float Temp_R[4]; 
-	float DAC_Din[5]; 
-	float Din_temp[5]; 
-	
 	float H2[13];
 	float OHM[13];
 
@@ -1223,9 +1218,6 @@ typedef struct Intermediate_Data
 	
 	float H2Resistor_OilTemp_K;
 	float H2Resistor_OilTemp_B;
-
-	float Din_temp_DAC_Din_K;
-	float Din_temp_DAC_Din_B;
 
 	float PCB_TEMP_Din_K;
 	float PCB_TEMP_Din_B;
@@ -1242,8 +1234,7 @@ typedef struct Intermediate_Data
 	unsigned char unready_current;
 	
 	unsigned int M25P16_Data_Addr;
-//	unsigned char sector;
-//	unsigned short page;
+
 	unsigned short Alarm_page;
 	
 	unsigned int count6, count7;
@@ -1257,7 +1248,13 @@ typedef struct Intermediate_Data
 	unsigned char Oiltemp_Over;
 	
 	float intercept;
+	
+	float sensor_heat_current;
 
+	float H2_70[13];
+	float H2_R_70[13];
+	float hydrogen_70[40];
+	float hydrogen_R_70[40];
 }Intermediate_Parameters;
 VARIABLE_EXT Intermediate_Parameters Intermediate_Data;
 

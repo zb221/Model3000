@@ -25,7 +25,8 @@
 #define Hydrogen_Res		1
 #define DAC_temp			2
 #define PCB_TEMP			3
-
+#define Hydrogen_Res_70			4
+#define H_R_70			5
 float Cubic_main(float value,unsigned char type);
 
 #endif

@@ -9,6 +9,7 @@
 #include "fitting.h"
 #include "parameter.h"
 #include <math.h>
+#include "Cubic.h"
 
 void Line_Fit(float *X, float *Y)
 {
@@ -19,42 +20,7 @@ void Line_Fit(float *X, float *Y)
     unsigned int length = 0, i = 0;
     double sum = 0;
 	
-		if ((X == Intermediate_Data.Temp_R) && (Y == Intermediate_Data.Temp)){
-			if (sizeof(Intermediate_Data.Temp)/sizeof(Intermediate_Data.Temp[0]) == sizeof(Intermediate_Data.Temp_R)/sizeof(Intermediate_Data.Temp_R[0])){
-					length = sizeof(Intermediate_Data.Temp)/sizeof(Intermediate_Data.Temp[0]);
-
-					for(i=0;i<length;i++)
-					{
-							sum += Intermediate_Data.Temp_R[i];
-					} 
-					x_sum_average = sum / length;
-
-					sum = 0;
-					for(i=0;i<length;i++)
-					{
-							sum += Intermediate_Data.Temp[i];
-					} 
-					y_sum_average = sum / length;
-
-					sum = 0;
-					for(i=0;i<length;i++)
-					{
-							sum += Intermediate_Data.Temp_R[i]*Intermediate_Data.Temp_R[i];
-					}
-					x_square_sum = sum;
-
-					sum = 0;
-					for(i=0;i<length;i++)
-					{
-							sum += Intermediate_Data.Temp[i]*Intermediate_Data.Temp_R[i];
-					}
-					x_multiply_y = sum;
-					
-					Intermediate_Data.Temp_R_K = ( x_multiply_y - length * x_sum_average * y_sum_average)/(x_square_sum - length * x_sum_average * x_sum_average);
-					Intermediate_Data.Temp_R_B = y_sum_average - Intermediate_Data.Temp_R_K * x_sum_average;
-					//	UARTprintf("%.3f,%.4f\n",Temp_R_K,Temp_R_B);
-			}
-    }else if ((X == Intermediate_Data.OilTemp_Tmp) && (Y == Intermediate_Data.H2Resistor_Tmp)){
+    if ((X == Intermediate_Data.OilTemp_Tmp) && (Y == Intermediate_Data.H2Resistor_Tmp)){
         if (sizeof(Intermediate_Data.OilTemp_Tmp)/sizeof(Intermediate_Data.OilTemp_Tmp[0]) == sizeof(Intermediate_Data.H2Resistor_Tmp)/sizeof(Intermediate_Data.H2Resistor_Tmp[0])){
             length = sizeof(Intermediate_Data.H2Resistor_Tmp)/sizeof(Intermediate_Data.H2Resistor_Tmp[0]);
 
@@ -88,41 +54,6 @@ void Line_Fit(float *X, float *Y)
             Intermediate_Data.H2Resistor_OilTemp_K = ( x_multiply_y - length * x_sum_average * y_sum_average)/(x_square_sum - length * x_sum_average * x_sum_average);
             Intermediate_Data.H2Resistor_OilTemp_B = y_sum_average - Intermediate_Data.H2Resistor_OilTemp_K * x_sum_average;
             //UARTprintf("%.3f,%.4f\n",Intermediate_Data.H2Resistor_OilTemp_K,Intermediate_Data.H2Resistor_OilTemp_B);
-        }
-    }else if ((X == Intermediate_Data.Din_temp) && (Y == Intermediate_Data.DAC_Din)){
-        if (sizeof(Intermediate_Data.DAC_Din)/sizeof(Intermediate_Data.DAC_Din[0]) == sizeof(Intermediate_Data.Din_temp)/sizeof(Intermediate_Data.Din_temp[0])){
-            length = sizeof(Intermediate_Data.Din_temp)/sizeof(Intermediate_Data.Din_temp[0]);
-
-            for(i=0;i<length;i++)
-            {
-                sum += Intermediate_Data.Din_temp[i];
-            } 
-            x_sum_average = sum / length;
-
-            sum = 0;
-            for(i=0;i<length;i++)
-            {
-                sum += Intermediate_Data.DAC_Din[i];
-            } 
-            y_sum_average = sum / length;
-
-            sum = 0;
-            for(i=0;i<length;i++)
-            {
-                sum += Intermediate_Data.Din_temp[i]*Intermediate_Data.Din_temp[i];
-            }
-            x_square_sum = sum;
-
-            sum = 0;
-            for(i=0;i<length;i++)
-            {
-                sum += Intermediate_Data.DAC_Din[i]*Intermediate_Data.Din_temp[i];
-            }
-            x_multiply_y = sum;
-            
-            Intermediate_Data.Din_temp_DAC_Din_K = ( x_multiply_y - length * x_sum_average * y_sum_average)/(x_square_sum - length * x_sum_average * x_sum_average);
-            Intermediate_Data.Din_temp_DAC_Din_B = y_sum_average - Intermediate_Data.Din_temp_DAC_Din_K * x_sum_average;
-            //	UARTprintf("%.3f,%.4f\n",Din_temp_DAC_Din_K,Din_temp_DAC_Din_B);
         }
     }else if ((X == Intermediate_Data.PCB_TEMP_SET) && (Y == Intermediate_Data.PCB_TEMP_Din)){
         if (sizeof(Intermediate_Data.PCB_TEMP_Din)/sizeof(Intermediate_Data.PCB_TEMP_Din[0]) == sizeof(Intermediate_Data.PCB_TEMP_SET)/sizeof(Intermediate_Data.PCB_TEMP_SET[0])){
@@ -208,15 +139,14 @@ float quadratic_polynomial(float data)
     p2 = (double)test2/1000000000.0;
 		p3 = (double)test3/1000000000.0;
 		if ((output_data.MODEL_TYPE == 2)&&(flag == 50)){
-      UARTprintf("1->a1=%.7f\n",p1);
-      UARTprintf("1->b1=%.7f\n",p2);
-      UARTprintf("1->c1=%.7f\n",p3);
+      UARTprintf("1->a1=%.9f\n",p1);
+      UARTprintf("1->b1=%.9f\n",p2);
+      UARTprintf("1->c1=%.9f\n",p3);
 			UARTprintf("H2R=%.3f H2AG=%.3f\n",data,p1 * data * data + p2 * data + p3);
 			flag = 0;
 		}
 		flag++;
-		if (output_data.temperature == 70 && Intermediate_Data.wait_1min == 1 && Intermediate_Data.Oiltemp_Over == 1)
-			p3 = (double)test3/1000000000.0 + (Intermediate_Data.H2Resistor_T_K*(70-50));
+
 	}else if (data >= (float)(run_parameter.Piecewise_point1.ubit.hi<<16 | run_parameter.Piecewise_point1.ubit.lo)/1000.0 && data < (float)(run_parameter.Piecewise_point2.ubit.hi<<16 | run_parameter.Piecewise_point2.ubit.lo)/1000.0){
 		test4 = (( long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[0]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[1]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[2]<<16
 			| (unsigned long long int)run_parameter.Sensor_Fit_Para_B.Fit_Para_B[3]);
@@ -231,15 +161,14 @@ float quadratic_polynomial(float data)
     p2 = (double)test5/1000000000.0;
 		p3 = (double)test6/1000000000.0;
 		if ((output_data.MODEL_TYPE == 2)&&(flag == 50)){
-	   UARTprintf("2->a2=%.7f\n",p1);
-	   UARTprintf("2->b2=%.7f\n",p2);
-	   UARTprintf("2->c2=%.7f\n",p3);
+	   UARTprintf("2->a2=%.9f\n",p1);
+	   UARTprintf("2->b2=%.9f\n",p2);
+	   UARTprintf("2->c2=%.9f\n",p3);
 			UARTprintf("H2R=%.3f H2AG=%.3f\n",data,p1 * data * data + p2 * data + p3);
 			flag = 0;
 		}
 		flag++;
-		if (output_data.temperature == 70 && Intermediate_Data.wait_1min == 1 && Intermediate_Data.Oiltemp_Over == 1)
-			p3 = (double)test6/1000000000.0 + (Intermediate_Data.H2Resistor_T_K*(70-50));
+
 	}else if (data >= (float)(run_parameter.Piecewise_point2.ubit.hi<<16 | run_parameter.Piecewise_point2.ubit.lo)/1000.0 && data < (float)(run_parameter.Piecewise_point3.ubit.hi<<16 | run_parameter.Piecewise_point3.ubit.lo)/1000.0){
 		test7 = (( long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[0]<<48 | (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[1]<<32 | (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[2]<<16
 			| (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[3]);
@@ -254,16 +183,16 @@ float quadratic_polynomial(float data)
 		p2 = (double)test8/1000000000.0;
 		p3 = (double)test9/1000000000.0;
 		if ((output_data.MODEL_TYPE == 2)&&(flag == 50)){
-	    UARTprintf("3->a3=%.7f\n",p1);
-	    UARTprintf("3->b3=%.7f\n",p2);
-	    UARTprintf("3->c3=%.7f\n",p3);
+	    UARTprintf("3->a3=%.9f\n",p1);
+	    UARTprintf("3->b3=%.9f\n",p2);
+	    UARTprintf("3->c3=%.9f\n",p3);
 			UARTprintf("H2R=%.3f H2AG=%.3f\n",data,p1 * data * data + p2 * data + p3);
 			flag = 0;
 		}
 		flag++;
-		if (output_data.temperature == 70 && Intermediate_Data.wait_1min == 1 && Intermediate_Data.Oiltemp_Over == 1)
-			p3 = (double)test9/1000000000.0 + (Intermediate_Data.H2Resistor_T_K*(70-50));
+
 	}
 	tmp = p1 * data * data + p2 * data + p3;
+
 	return tmp;
 }

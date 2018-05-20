@@ -3158,7 +3158,7 @@ void cf_arg(void)
 			UARTprintf("0 - Exit cf\n1 - Normal\n2 - Debug\n3 - Calibration\n4- set temperature\n5 - turn off the screen\n6 - turn on the screen\n7 - Oiltemp_Cal\n");
       UARTprintf("8 - Model Number:\n9 - Serial Number:\n10 - Sensor model:\n11 - Hardware Version:\n");
       UARTprintf("12 - Factory:\n13 - Sensor Serial Number:\n14 - Sensor Board Serial Number:\n15 - Interface Board Serial Number:\n");
-		  UARTprintf("16 - set temp_point:\n17 - set temp_R_point:\nSelect function:\n");
+		  UARTprintf("16 - set K:\n17 - set B:\nSelect function:\n");
 		flag_function++;
 			break;
 		
@@ -3196,9 +3196,6 @@ void cf_arg(void)
 					  run_parameter.MODEL_TYPE= output_data.MODEL_TYPE;
 					  e2prom512_write((unsigned char*)&run_parameter.MODEL_TYPE,2,160*2);
 						UARTprintf(calibrate_menu);
-//						output_data.temperature = 50;
-//						DAC8568_INIT_SET(output_data.temperature,2*65536/5);	/* Set Senseor temperature :DOUT-C = xV*65536/5 */
-//		        Intermediate_Data.Start_print_calibrate_H2R = 1;
 					  flag_screen = 0;
 						flag_function++;
 					break;
@@ -3253,14 +3250,19 @@ void cf_arg(void)
 						flag_function = 12;
 						break;
 					case 16:
-						UARTprintf("\please input temp_point one by one:\n");
-					  UARTprintf("Please input 0 temp point:\n");
+						UARTprintf("please input K1:\n");
 						flag_function = 13;
 						break;
 					case 17:
-						UARTprintf("\please input temp_R_point one by one:\n");
-					  UARTprintf("Please input 0 temp_R_point point:\n");
+					  UARTprintf("Please input B1:\n");
 						flag_function = 14;
+					case 18:
+						UARTprintf("please input K2:\n");
+						flag_function = 15;
+						break;
+					case 19:
+					  UARTprintf("Please input B2:\n");
+						flag_function = 16;
 						break;
 
 					default:
@@ -3299,7 +3301,7 @@ void cf_arg(void)
 					output_data.temperature = atoi(cmd_tmp);
 					UARTprintf("now heat temperature is %d\r\n",output_data.temperature);
 					UARTprintf("\nSAVED  heat temperature Success, exit cf OK.\r\n\r\n");
-					DAC8568_INIT_SET(output_data.temperature,2*65536/5);
+					DAC8568_INIT_SET(output_data.temperature,Intermediate_Data.sensor_heat_current);
 					flag_screen = 0;
 					flag_function = 2;
 				}
@@ -3443,22 +3445,18 @@ void cf_arg(void)
 		case 13:
 			if(strlen(cmd_tmp)>0)
 			{
-				numb_of_temp = sizeof(Intermediate_Data.Temp)/sizeof(Intermediate_Data.Temp[0]);
-				if (number1 < numb_of_temp){
-				temp_tmp = atof(cmd_tmp)*100;
-				e2prom512_write((unsigned char*)&temp_tmp,4,(260+(number1*2))*2);
-				e2prom512_read((unsigned char*)&temp_tmp,4,(260+(number1*2))*2);
-				UARTprintf("write value: %.2f\r\n",(float)temp_tmp/100.0);
-				Intermediate_Data.Temp[number1++] = (float)temp_tmp/100.0;
-				if (number1 < numb_of_temp)
-				    UARTprintf("Please input %d temp point:\n",number1);
+				temp_tmp = atof(cmd_tmp)*1000000;
+				
+				e2prom512_write((unsigned char*)&temp_tmp,4,(260)*2);
+				e2prom512_read((unsigned char*)&temp_tmp,4,(260)*2);
+				if (atof(cmd_tmp) < 0){
+           temp_tmp = -temp_tmp;
 				}
-				if (number1 == numb_of_temp){
+				UARTprintf("write K: %.6f\r\n",(float)temp_tmp/1000000.0);
+
 				flag_screen = 0;
 				flag_function = 2;
-					number1 = 0;
-					temp_tmp = 0;
-				}
+				temp_tmp = 0;
 			}
 			memset(cmd_tmp,0,sizeof(cmd_tmp));
 			a = 0;	
@@ -3466,22 +3464,26 @@ void cf_arg(void)
 		case 14:
 			if(strlen(cmd_tmp)>0)
 			{
-				numb_of_temp = sizeof(Intermediate_Data.Temp_R)/sizeof(Intermediate_Data.Temp_R[0]);
-				if (number1 < numb_of_temp){
-				temp_tmp = atof(cmd_tmp)*1000;
-				e2prom512_write((unsigned char*)&temp_tmp,4,(268+(number1*2))*2);
-				e2prom512_read((unsigned char*)&temp_tmp,4,(268+(number1*2))*2);
-				UARTprintf("write value: %.2f\r\n",(float)temp_tmp/1000.0);
-				Intermediate_Data.Temp_R[number1++] = (float)temp_tmp/1000.0;
-				if (number1 < numb_of_temp)
-				    UARTprintf("Please input %d temp_R point:\n",number1);
+				temp_tmp = atof(cmd_tmp)*1000000;
+				e2prom512_write((unsigned char*)&temp_tmp,4,(268+(1*2))*2);
+				e2prom512_read((unsigned char*)&temp_tmp,4,(268+(1*2))*2);
+				if (atof(cmd_tmp) < 0){
+					UARTprintf("B = %.6f\r\n",-(float)temp_tmp/1000000.0);
+					temp_tmp = 1;
+				  e2prom512_write((unsigned char*)&temp_tmp,4,(268+(2*2))*2);
+				  e2prom512_read((unsigned char*)&temp_tmp,4,(268+(2*2))*2);
+				  UARTprintf("B is below 0, flag = %d\r\n",temp_tmp);
+				}else{
+					UARTprintf("B = %.6f\r\n",(float)temp_tmp/1000000.0);
+					temp_tmp = 2;
+				  e2prom512_write((unsigned char*)&temp_tmp,4,(268+(2*2))*2);
+				  e2prom512_read((unsigned char*)&temp_tmp,4,(268+(2*2))*2);
+				  UARTprintf("B is over 0, flag = %d\r\n",temp_tmp);
 				}
-				if (number1 == numb_of_temp){
+
 				flag_screen = 0;
 				flag_function = 2;
-					number1 = 0;
-					temp_tmp = 0;
-				}
+				temp_tmp = 0;
 			}
 			memset(cmd_tmp,0,sizeof(cmd_tmp));
 			a = 0;	

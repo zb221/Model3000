@@ -24,6 +24,8 @@
 #include "parameter.h"
 #include "ModBus.h"
 #include "AD420.h"
+#include "fitting.h"
+#include "Cubic.h"
 
 /*-------------------------Global variable region----------------------*/
 extern unsigned char flag_command;
@@ -46,12 +48,14 @@ unsigned char print_time = 30; /* console print cycle */
 unsigned char startup_time = 60;
 unsigned char cal_flag = 0;
 
+float point0 = 0,point1 = 0,point2 = 0,point3 = 0;
+
 const char print_menu[] = 
 	"\n"
 	"TimeStamp               PcbTemp         H2AG.ppm    OilTemp    H2DG.ppm    H2G.ppm    H2SldAv    DayROC    WeekROC    MonthROC    Message    \r\n";
 const char debug_menu[] =
 	"\n"
-	"TimeStamp               PcbTemp         H2AG.ppm        OilTemp  H2DG.ppm   H2G.ppm   H2SldAv    DayROC   WeekROC  MonthROC    SensorTemp    H2Resistor    TemResistor    Message    \r\n";\
+	"TimeStamp               PcbTemp         H2AG.ppm        OilTemp  H2DG.ppm   H2G.ppm   H2SldAv    DayROC   WeekROC  MonthROC    SensorTemp    H2Resistor    TemResistor    U23-AIN7    Message    \r\n";\
 const char calibrate_menu[] =
 	"\n"
 	"TimeStamp               PcbTemp        H2AG.ppm            SensorTemp    H2Resistor    TemResistor        Message    \r\n";\
@@ -70,9 +74,11 @@ char message10[] = "R1";
 char message11[] = "R2";
 char message12[] = "R3";
 
-
 void read_Piecewise_point_Sensor_Fit_Para(void)
 {
+  double a1 = 0, b1 = 0, c1 = 0;
+  double a2 = 0, b2 = 0, c2 = 0;
+  double a3 = 0, b3 = 0, c3 = 0;
   long long int test1 = 0;
   long long int test2 = 0;	
   long long int test3 = 0;	
@@ -122,27 +128,98 @@ void read_Piecewise_point_Sensor_Fit_Para(void)
 		| (unsigned long long int)run_parameter.Sensor_Fit_Para_C.Fit_Para_C[11]);
 	
 	if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
-	UARTprintf("point0=%.3f\n",(float)(run_parameter.Piecewise_point0.ubit.hi<<16 | run_parameter.Piecewise_point0.ubit.lo)/1000.0);
-	UARTprintf("point1=%.3f\n",(float)(run_parameter.Piecewise_point1.ubit.hi<<16 | run_parameter.Piecewise_point1.ubit.lo)/1000.0);
-	UARTprintf("point2=%.3f\n",(float)(run_parameter.Piecewise_point2.ubit.hi<<16 | run_parameter.Piecewise_point2.ubit.lo)/1000.0);
-	UARTprintf("point3=%.3f\n",(float)(run_parameter.Piecewise_point3.ubit.hi<<16 | run_parameter.Piecewise_point3.ubit.lo)/1000.0);
+		
+	point0 = (float)(run_parameter.Piecewise_point0.ubit.hi<<16 | run_parameter.Piecewise_point0.ubit.lo)/1000.0;
+	point1 = (float)(run_parameter.Piecewise_point1.ubit.hi<<16 | run_parameter.Piecewise_point1.ubit.lo)/1000.0;
+	point2 = (float)(run_parameter.Piecewise_point2.ubit.hi<<16 | run_parameter.Piecewise_point2.ubit.lo)/1000.0;
+	point3 = (float)(run_parameter.Piecewise_point3.ubit.hi<<16 | run_parameter.Piecewise_point3.ubit.lo)/1000.0;
+		
+	UARTprintf("point0=%.3f\n",point0);
+	UARTprintf("point1=%.3f\n",point1);
+	UARTprintf("point2=%.3f\n",point2);
+	UARTprintf("point3=%.3f\n",point3);
 
+  a1 = (double)test1/1000000000.0;
+  b1 = (double)test2/1000000000.0;
+  c1 = (double)test3/1000000000.0;
+  a2 = (double)test4/1000000000.0;
+  b2 = (double)test5/1000000000.0;
+  c2 = (double)test6/1000000000.0;
+  a3 = (double)test7/1000000000.0;
+  b3 = (double)test8/1000000000.0;
+  c3 = (double)test9/1000000000.0;
 
-	UARTprintf("a1=%.7f\n",(double)test1/1000000000.0);
-	UARTprintf("b1=%.7f\n",(double)test2/1000000000.0);
-	UARTprintf("c1=%.7f\n",(double)test3/1000000000.0);
+	UARTprintf("a1=%.9f\n", a1);
+	UARTprintf("b1=%.9f\n", b1);
+	UARTprintf("c1=%.9f\n", c1);
 
-	UARTprintf("a2=%.7f\n",(double)test4/1000000000.0);
-	UARTprintf("b2=%.7f\n",(double)test5/1000000000.0);
-	UARTprintf("c2=%.7f\n",(double)test6/1000000000.0);
+	UARTprintf("a2=%.9f\n", a2);
+	UARTprintf("b2=%.9f\n", b2);
+	UARTprintf("c2=%.9f\n", c2);
 
-	UARTprintf("a3=%.7f\n",(double)test7/1000000000.0);
-	UARTprintf("b3=%.7f\n",(double)test8/1000000000.0);
-	UARTprintf("c3=%.7f\n",(double)test9/1000000000.0);
+	UARTprintf("a3=%.9f\n", a3);
+	UARTprintf("b3=%.9f\n", b3);
+	UARTprintf("c3=%.9f\n", c3);
 	}
-	
-}
 
+}
+void born_70_Piecewise_point_Sensor_Fit_Para(void){
+	float H2[40] = {0};
+	float H2_R[40] = {0};
+	float data = 0;
+	float data_add = 0;
+	unsigned int i = 0, number1 = 0;
+	float R_diff_70 = 0;
+	
+	/****************************70 temp **********************************/
+
+  if (point3 > point0){
+	data_add = (point3 - point0)/(sizeof(H2)/sizeof(H2[0]));
+
+	i = 0;
+	for (data = point0;data <= point3;data +=data_add){
+		H2_R[i] = data;
+
+		if(data < (float)(run_parameter.Piecewise_point0.ubit.hi<<16 | run_parameter.Piecewise_point0.ubit.lo)/1000.0){
+			if (data < ((float)(run_parameter.Piecewise_point0.ubit.hi<<16 | run_parameter.Piecewise_point0.ubit.lo)/1000.0 - 0.5)){
+				Intermediate_Data.hydrogen_70[i] = 0;
+			}else{
+				Intermediate_Data.hydrogen_70[i] = 10000*(0.01*data + (-(0.01*((float)(run_parameter.Piecewise_point0.ubit.hi<<16 | run_parameter.Piecewise_point0.ubit.lo)/1000.0-0.5))));
+			}
+		}else if (data > (float)(run_parameter.Piecewise_point3.ubit.hi<<16 | run_parameter.Piecewise_point3.ubit.lo)/1000.0){
+			Intermediate_Data.hydrogen_70[i] = 100000;
+		}else{
+			Intermediate_Data.hydrogen_70[i] = 10000*quadratic_polynomial(data);
+			if (Intermediate_Data.hydrogen_70[i] > 100000)
+				Intermediate_Data.hydrogen_70[i] = 100000;
+			if (Intermediate_Data.hydrogen_70[i] < 0)
+				Intermediate_Data.hydrogen_70[i] = 0;
+		}
+		
+	  H2[i] = Intermediate_Data.hydrogen_70[i];
+		i++;
+	}
+
+	if (output_data.MODEL_TYPE == 2){
+	for (i= 0;i < sizeof(H2)/sizeof(H2[0]);i++)
+	UARTprintf("H2[%d]=%f,H2_R[%d]=%f\n",i,H2[i],i,H2_R[i]);
+	}
+	number1 = (sizeof(Intermediate_Data.hydrogen_70)/sizeof(Intermediate_Data.hydrogen_70[0]));
+
+	UARTprintf("Intermediate_Data.hydrogen_70[0]=%f\n",Intermediate_Data.hydrogen_70[0]);
+	if (Intermediate_Data.hydrogen_70[0] < 50){
+	  Intermediate_Data.hydrogen_70[0] = 50;
+	}
+		
+	for (i=0;i<number1;i++){
+	    R_diff_70 = Cubic_main(Intermediate_Data.hydrogen_70[i],Hydrogen_Res_70);
+		  UARTprintf("R_diff_70(%d)=%f\n",i,R_diff_70);
+		  Intermediate_Data.hydrogen_R_70[i] = R_diff_70 + H2_R[i];
+		  if (output_data.MODEL_TYPE == 2)
+		    UARTprintf("[%.3f] = %.3f\n", Intermediate_Data.hydrogen_70[i],Intermediate_Data.hydrogen_R_70[i]);
+	}
+ }
+}
 void reboot(void)
 {
 	if (run_parameter.reboot == 1){
@@ -165,27 +242,19 @@ Description: all Global variable region init should add here.
 ***********************************************************/
 void init_Global_Variable(void)
 {
-	unsigned char numb = 0;
-	unsigned int temp_tmp = 0;
-	float Temp[4] = {10,30,50,70};                            /* hhl */
-	float Temp_R[4] = {107.506,114.057,120.848,128.008};        /* hhl */
 	float DAC_Din[5] =  {39577,39677,39877,40000,40200};      /* hhl */
 	float Din_temp[5] = {45.8,50.8,61.1,66.9,76.9};           /* hhl */
 	
 	float PCB_TEMP_Din[3] =  {11336,11536,11636};
 	float PCB_TEMP_SET[3] = {37.5,42.6,44.9};
-	
-//	float Temp[4] = {10,30,50,70};                          /* new sense */
-//	float Temp_R[4] = {93.661,100.345,107.373,114.696};     /* new sense */
-//	float DAC_Din[5] =  {39777,39877,40000,40200,40300};    /* new sense */
-//	float Din_temp[5] = {45.7,49.4,55,63.9,68.3};           /* new sense */
+
 	
 	/*The relationship between H2 and H2_resistance*/
 	float H2[13] = {50,100,200,400,800,1600,3000,5000,10000,30000,40000,60000,100000};  /* new sense */
 	float OHM[13] = {957.362,957.512,957.932,958.498,959.230,960.226,961.227,962.232,964.148,968.251,969.743,971.975,975.627};  /* new sense */
 
-//	float H2[13] = {50,100,200,400,800,1600,3000,5000,8000,30000,40000,80000,100000};
-//	float OHM[13] = {948.391,948.653,948.952,949.426,950.044,950.848,951.771,952.573,953.628,957.897,959.167,963.071,964.484};
+	float H2_70[13] = {50,100,200,400,800,1600,3000,5000,10000,20000,40000,60000,100000};
+	float H2_R_70[13] = {14.57,14.83,14.71,14.65,14.46,14.34,14.23,14.02,13.78,13.55,13.17,12.88,12.12};
 	
 	print_count = 60 / print_time;
 	
@@ -230,9 +299,6 @@ void init_Global_Variable(void)
 	Intermediate_Data.H2Resistor_OilTemp_K = 0;
 	Intermediate_Data.H2Resistor_OilTemp_B = 0;
 
-	Intermediate_Data.Din_temp_DAC_Din_K = 0;
-	Intermediate_Data.Din_temp_DAC_Din_B = 0;
-
 	Intermediate_Data.PCB_TEMP_Din_K = 0;
 	Intermediate_Data.PCB_TEMP_Din_B = 0;
 
@@ -258,38 +324,29 @@ void init_Global_Variable(void)
 	Intermediate_Data.intercept = 0;
 	Intermediate_Data.Oiltemp_Over = 0;
 	
-	run_parameter.reboot = 0;
-
-  /* read eeprom init data*/
-	e2prom512_read(&run_parameter.h2_ppm_calibration_gas_h16.ubit.lo,4,126*2);
-	e2prom512_read(&output_data.MODEL_TYPE,1,160*2);
-	read_Piecewise_point_Sensor_Fit_Para();
+	Intermediate_Data.sensor_heat_current = 1.66*65536/5.0; /* set 1.66v*/
 	
-  /*copy Temp-Temp_R Temp-DAC_Din*/
-	memcpy(Intermediate_Data.Temp,Temp,sizeof(float)*sizeof(Temp)/sizeof(Temp[0]));
-	memcpy(Intermediate_Data.Temp_R,Temp_R,sizeof(float)*sizeof(Temp_R)/sizeof(Temp_R[0]));
-	memcpy(Intermediate_Data.DAC_Din,DAC_Din,sizeof(float)*sizeof(DAC_Din)/sizeof(DAC_Din[0]));
-	memcpy(Intermediate_Data.Din_temp,Din_temp,sizeof(float)*sizeof(Din_temp)/sizeof(Din_temp[0]));
+	run_parameter.reboot = 0;
+	
+	e2prom512_read(&output_data.MODEL_TYPE,1,160*2);
 
-	numb = sizeof(Intermediate_Data.Temp)/sizeof(Intermediate_Data.Temp[0]);
-	for (unsigned i = 0;i < numb;i++){
-		e2prom512_read((unsigned char*)&temp_tmp,4,(260+(i*2))*2);
-		Intermediate_Data.Temp[i] = (float)temp_tmp/100.0;
-		e2prom512_read((unsigned char*)&temp_tmp,4,(268+(i*2))*2);
-		Intermediate_Data.Temp_R[i] = (float)temp_tmp/1000.0;
-		if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
-				UARTprintf("%.2f/%.3f\n",Intermediate_Data.Temp[i],Intermediate_Data.Temp_R[i]);
-		}
-	}
 	/*cpy H2-OHM*/
 	memcpy(Intermediate_Data.H2,H2,sizeof(float)*sizeof(H2)/sizeof(H2[0]));
 	memcpy(Intermediate_Data.OHM,OHM,sizeof(float)*sizeof(OHM)/sizeof(OHM[0]));
+	
+	/*cpy H2-OHM 70*/
+	memcpy(Intermediate_Data.H2_70,H2_70,sizeof(float)*sizeof(H2_70)/sizeof(H2_70[0]));
+	memcpy(Intermediate_Data.H2_R_70,H2_R_70,sizeof(float)*sizeof(H2_R_70)/sizeof(H2_R_70[0]));
 
 	/*cpy DAC8568 Din data - PCB temp control*/
 	memcpy(Intermediate_Data.PCB_TEMP_Din,PCB_TEMP_Din,sizeof(float)*sizeof(PCB_TEMP_Din)/sizeof(PCB_TEMP_Din[0]));
 	memcpy(Intermediate_Data.PCB_TEMP_SET,PCB_TEMP_SET,sizeof(float)*sizeof(PCB_TEMP_SET)/sizeof(PCB_TEMP_SET[0]));
 
 	memset(Intermediate_Data.H2G_tmp,0,sizeof(Intermediate_Data.H2G_tmp)/sizeof(Intermediate_Data.H2G_tmp[0]));
+	
+	  /* read eeprom init data*/
+	e2prom512_read(&run_parameter.h2_ppm_calibration_gas_h16.ubit.lo,4,126*2);
+	read_Piecewise_point_Sensor_Fit_Para();
 }
 
 /***********************************************************
@@ -335,8 +392,8 @@ void command_print(void)
     UARTprintf("	%7.3f       %10.3f    %7.3f    %8.3f   %8.3f   %8.3f  %8.3f   %8.3f    %8.3f    ",output_data.PcbTemp,output_data.H2AG,output_data.OilTemp,output_data.H2DG,output_data.H2G,output_data.H2SldAv,
 		output_data.DayROC,output_data.WeekROC,output_data.MonthROC);
 	else if (output_data.MODEL_TYPE == 2)
-    UARTprintf("	%7.3f  %10.3f %10.3f  %7.3f  %8.3f  %8.3f  %8.3f  %8.3f  %8.3f  %8.3f      %8.3f      %8.3f       %8.3f    ",output_data.PcbTemp,output_data.H2AG,output_data.H2AG1,output_data.OilTemp,output_data.H2DG,output_data.H2G,output_data.H2SldAv,
-		output_data.DayROC,output_data.WeekROC,output_data.MonthROC,output_data.SensorTemp,output_data.H2Resistor,output_data.TempResistor);
+    UARTprintf("	%7.3f  %10.3f %10.3f  %7.3f  %8.3f  %8.3f  %8.3f  %8.3f  %8.3f  %8.3f      %8.3f      %8.3f       %8.3f    %8.3f    ",output_data.PcbTemp,output_data.H2AG,output_data.H2AG1,output_data.OilTemp,output_data.H2DG,output_data.H2G,output_data.H2SldAv,
+		output_data.DayROC,output_data.WeekROC,output_data.MonthROC,output_data.SensorTemp,output_data.H2Resistor,output_data.TempResistor,Intermediate_Data.Heat_V);
 	else if (output_data.MODEL_TYPE == 3)
 		UARTprintf("	%7.3f    %10.3f %10.3f      %7.3f      %8.3f        %7.3f        ",output_data.PcbTemp,output_data.H2AG,output_data.H2AG1,
 	  output_data.SensorTemp,output_data.H2Resistor,output_data.TempResistor);
@@ -493,19 +550,18 @@ int main (void)
 {
 	short val1 = 0, val2 = 0;
 	FrecInit();
-
-	init_Global_Variable();
 	init_peripherals();
 	Init_ModBus();
-
-  DAC8568_INIT_SET(output_data.temperature,2*65536/5);	/* Set Senseor temperature :DOUT-C = xV*65536/5 */
-	DAC8568_PCB_TEMP_SET(output_data.PCB_temp,0x1000);    /* Set PCB default temperature */
-	M25P16_erase_map(31*0x10000,SE);
 	
 	PINSEL1 = PINSEL1 & (~(0x03 << 26));        /*P0.29*/	
 	IODIR0 = IODIR0 | 0x1<<29;
 	IOSET0 = IOSET0 | 0x1<<29;		
 
+	M25P16_erase_map(31*0x10000,SE);
+	init_Global_Variable();
+//	DAC8568_PCB_TEMP_SET(output_data.PCB_temp,0x1000);    /* Set PCB default temperature */
+	born_70_Piecewise_point_Sensor_Fit_Para();
+	
 	while (1)  
 	{
     if (rcv_char_flag == 1){
@@ -636,7 +692,7 @@ int main (void)
 
 			case 2:
 			output_data.temperature = 50;
-			DAC8568_INIT_SET(output_data.temperature,2.35*65536/5);
+			DAC8568_INIT_SET(output_data.temperature,Intermediate_Data.sensor_heat_current);
 			Intermediate_Data.flag1 = 0;
 			print_count = 60*60 / print_time;
       if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
@@ -656,7 +712,7 @@ int main (void)
 
 			case 4:
 			output_data.temperature = 50;
-			DAC8568_INIT_SET(output_data.temperature,2.35*65536/5);
+			DAC8568_INIT_SET(output_data.temperature,Intermediate_Data.sensor_heat_current);
 			Intermediate_Data.flag1 = 0;
 			print_count = 60*60 / print_time;
       if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
@@ -676,7 +732,7 @@ int main (void)
 
 			case 6:
 			output_data.temperature = 70;
-			DAC8568_INIT_SET(output_data.temperature,2.35*65536/5);
+			DAC8568_INIT_SET(output_data.temperature,Intermediate_Data.sensor_heat_current);
 			Intermediate_Data.flag1 = 0;
 			print_count = 120*60 / print_time;
       if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
@@ -686,7 +742,7 @@ int main (void)
 
 			case 7:
 			output_data.temperature = 50;
-			DAC8568_INIT_SET(output_data.temperature,2.35*65536/5);
+			DAC8568_INIT_SET(output_data.temperature,Intermediate_Data.sensor_heat_current);
 			Intermediate_Data.flag1 = 0;
 			print_count = 30*60 / print_time;
       if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
@@ -709,7 +765,7 @@ int main (void)
 			Intermediate_Data.flag2 = 0;
 			if ((cal_flag == 0)&&(Intermediate_Data.count7 == 1)){
 				output_data.temperature = 50;
-				DAC8568_INIT_SET(output_data.temperature,2*65536/5);	/* Set Senseor temperature :DOUT-C = xV*65536/5 */
+				DAC8568_INIT_SET(output_data.temperature,Intermediate_Data.sensor_heat_current);	/* Set Senseor temperature :DOUT-C = xV*65536/5 */
 				Intermediate_Data.Start_print_calibrate_H2R = 1;
 				cal_flag = 1;
 			}
@@ -719,8 +775,7 @@ int main (void)
 			Intermediate_Data.flag2 = 0;
       if (Intermediate_Data.Power_On == 0)		
 			    UARTprintf("System startup wait time %d\n",--startup_time);
-			if (startup_time == 2){
-				--startup_time;
+			if (startup_time == 0){
 				switch (output_data.MODEL_TYPE){
 					case 1:
 						UARTprintf(print_menu);
@@ -803,6 +858,7 @@ int main (void)
 		{
 			RW_ModBus_Data();
 		}
+
    reboot();		
 	}
 }

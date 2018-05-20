@@ -140,6 +140,34 @@ float Cubic_main(float value,unsigned char type)
 					line1.y[i] = Intermediate_Data.H2[i];
 			}
 			break;
+		case Hydrogen_Res_70:
+			if (sizeof(Intermediate_Data.H2_70)/sizeof(Intermediate_Data.H2_70[0]) != sizeof(Intermediate_Data.H2_R_70)/sizeof(Intermediate_Data.H2_R_70[0]))
+					UARTprintf("input data ERROR!\n");
+			else{
+					number = sizeof(Intermediate_Data.H2_70)/sizeof(Intermediate_Data.H2_70[0]);
+					line1.point_num = number;
+			}
+
+			for (i=0;i<number;i++){
+					line1.x[i] = Intermediate_Data.H2_70[i];
+					line1.y[i] = Intermediate_Data.H2_R_70[i];
+			}
+			break;
+		case H_R_70:
+			if (sizeof(Intermediate_Data.hydrogen_70)/sizeof(Intermediate_Data.hydrogen_70[0]) != sizeof(Intermediate_Data.hydrogen_R_70)/sizeof(Intermediate_Data.hydrogen_R_70[0]))
+					UARTprintf("input data ERROR!\n");
+			else{
+					number = sizeof(Intermediate_Data.hydrogen_70)/sizeof(Intermediate_Data.hydrogen_70[0]);
+					line1.point_num = number;
+			}
+
+			for (i=0;i<number;i++){
+					line1.x[i] = Intermediate_Data.hydrogen_R_70[i];
+					line1.y[i] = Intermediate_Data.hydrogen_70[i];
+			}
+			if (output_data.MODEL_TYPE == 2)
+			  UARTprintf("70 test:value=%f,line1.x[0]=%f,line1.x[number-1]=%f\n",value,line1.x[0],line1.x[number-1]);
+			break;
 		default: break;
 	}
 		
