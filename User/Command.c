@@ -3256,6 +3256,7 @@ void cf_arg(void)
 					case 17:
 					  UARTprintf("Please input B1:\n");
 						flag_function = 14;
+						break;
 					case 18:
 						UARTprintf("please input K2:\n");
 						flag_function = 15;

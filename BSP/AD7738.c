@@ -429,10 +429,11 @@ void Temperature_of_resistance_Parameter(void)
 	}
 
 	output_data.TempResistor = (Channel_OilTemp/AD7738_resolution_NP25-2500)/Current_of_Temperature_resistance;
-
+  UARTprintf("ADC data: %d , NP25: %f, Cur: %f, R = %f\n",Channel_OilTemp, AD7738_resolution_NP25, Current_of_Temperature_resistance, output_data.TempResistor);
 	switch (output_data.temperature){
 		case 0:
 	    output_data.SensorTemp = Intermediate_Data.Temp_R_K*output_data.TempResistor + Intermediate_Data.Temp_R_B;
+		UARTprintf("0 -> Temp_R_K:%f, Temp_R_B:%f, R:%f,Temp = %f\n",Intermediate_Data.Temp_R_K,Intermediate_Data.Temp_R_B,output_data.TempResistor,output_data.SensorTemp);
 		  Intermediate_Data.SensorTemp_tmp[number1++] = output_data.SensorTemp;
 		  if (number1 == sizeof(Intermediate_Data.SensorTemp_tmp)/sizeof(Intermediate_Data.SensorTemp_tmp[0]))
 				number1 = 0;
@@ -483,6 +484,7 @@ void Temperature_of_resistance_Parameter(void)
 		
 		case 50:
 				output_data.SensorTemp = Intermediate_Data.Temp_R_K*output_data.TempResistor + Intermediate_Data.Temp_R_B;
+		UARTprintf("50 -> Temp_R_K:%f, Temp_R_B:%f, R:%f,Temp = %f\n",Intermediate_Data.Temp_R_K,Intermediate_Data.Temp_R_B,output_data.TempResistor,output_data.SensorTemp);
 		break;
 		
 		case 70:
