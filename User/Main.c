@@ -172,8 +172,10 @@ void born_70_Piecewise_point_Sensor_Fit_Para(void){
 	float R_diff_70 = 0;
 	
 	/****************************70 temp **********************************/
-
+point3 = 600;
+point0 = 500;
   if (point3 > point0){
+	UARTprintf("----------------output 50 -> 70 cal data start------------------\n");
 	data_add = (point3 - point0)/(sizeof(H2)/sizeof(H2[0]));
 
 	i = 0;
@@ -201,23 +203,26 @@ void born_70_Piecewise_point_Sensor_Fit_Para(void){
 	}
 
 	if (output_data.MODEL_TYPE == 2){
-	for (i= 0;i < sizeof(H2)/sizeof(H2[0]);i++)
-	UARTprintf("H2[%d]=%f,H2_R[%d]=%f\n",i,H2[i],i,H2_R[i]);
+	  for (i= 0;i < sizeof(H2)/sizeof(H2[0]);i++)
+	    UARTprintf("H2[%d]=%f,H2_R[%d]=%f\n",i,H2[i],i,H2_R[i]);
 	}
 	number1 = (sizeof(Intermediate_Data.hydrogen_70)/sizeof(Intermediate_Data.hydrogen_70[0]));
-
-	UARTprintf("Intermediate_Data.hydrogen_70[0]=%f\n",Intermediate_Data.hydrogen_70[0]);
+  
+	if (output_data.MODEL_TYPE == 2)
+	    UARTprintf("Intermediate_Data.hydrogen_70[0]=%f\n",Intermediate_Data.hydrogen_70[0]);
 	if (Intermediate_Data.hydrogen_70[0] < 50){
-	  Intermediate_Data.hydrogen_70[0] = 50;
+	    Intermediate_Data.hydrogen_70[0] = 50;
 	}
 		
 	for (i=0;i<number1;i++){
 	    R_diff_70 = Cubic_main(Intermediate_Data.hydrogen_70[i],Hydrogen_Res_70);
-		  UARTprintf("R_diff_70(%d)=%f\n",i,R_diff_70);
+		  if (output_data.MODEL_TYPE == 2)
+		      UARTprintf("R_diff_70(%d)=%f\n",i,R_diff_70);
 		  Intermediate_Data.hydrogen_R_70[i] = R_diff_70 + H2_R[i];
 		  if (output_data.MODEL_TYPE == 2)
-		    UARTprintf("[%.3f] = %.3f\n", Intermediate_Data.hydrogen_70[i],Intermediate_Data.hydrogen_R_70[i]);
+		      UARTprintf("hydrogen_70[%d]=%.3f, hydrogen_R_70[%d]= %.3f\n", i,Intermediate_Data.hydrogen_70[i],i,Intermediate_Data.hydrogen_R_70[i]);
 	}
+	UARTprintf("----------------output 50 -> 70 cal data end------------------\n");
  }
 }
 void reboot(void)
@@ -260,7 +265,7 @@ void init_Global_Variable(void)
 	
 	output_data.MODEL_TYPE = 1;/*1->normal model; 2->debug model; 3->calibrate model*/
 	output_data.temperature = 0;
-	output_data.PCB_temp = 40;
+	output_data.PCB_temp = 0;
 	output_data.PcbTemp = 0;
 	output_data.OilTemp = 0;
 	output_data.TempResistor = 0;
@@ -559,7 +564,6 @@ int main (void)
 
 	M25P16_erase_map(31*0x10000,SE);
 	init_Global_Variable();
-//	DAC8568_PCB_TEMP_SET(output_data.PCB_temp,0x1000);    /* Set PCB default temperature */
 	born_70_Piecewise_point_Sensor_Fit_Para();
 	
 	while (1)  

@@ -429,11 +429,11 @@ void Temperature_of_resistance_Parameter(void)
 	}
 
 	output_data.TempResistor = (Channel_OilTemp/AD7738_resolution_NP25-2500)/Current_of_Temperature_resistance;
-  UARTprintf("ADC data: %d , NP25: %f, Cur: %f, R = %f\n",Channel_OilTemp, AD7738_resolution_NP25, Current_of_Temperature_resistance, output_data.TempResistor);
+//  UARTprintf("ADC data: %d , NP25: %f, Cur: %f, R = %f\n",Channel_OilTemp, AD7738_resolution_NP25, Current_of_Temperature_resistance, output_data.TempResistor);
 	switch (output_data.temperature){
 		case 0:
 	    output_data.SensorTemp = Intermediate_Data.Temp_R_K*output_data.TempResistor + Intermediate_Data.Temp_R_B;
-		UARTprintf("0 -> Temp_R_K:%f, Temp_R_B:%f, R:%f,Temp = %f\n",Intermediate_Data.Temp_R_K,Intermediate_Data.Temp_R_B,output_data.TempResistor,output_data.SensorTemp);
+//		UARTprintf("0 -> Temp_R_K:%f, Temp_R_B:%f, R:%f,Temp = %f\n",Intermediate_Data.Temp_R_K,Intermediate_Data.Temp_R_B,output_data.TempResistor,output_data.SensorTemp);
 		  Intermediate_Data.SensorTemp_tmp[number1++] = output_data.SensorTemp;
 		  if (number1 == sizeof(Intermediate_Data.SensorTemp_tmp)/sizeof(Intermediate_Data.SensorTemp_tmp[0]))
 				number1 = 0;
@@ -484,7 +484,7 @@ void Temperature_of_resistance_Parameter(void)
 		
 		case 50:
 				output_data.SensorTemp = Intermediate_Data.Temp_R_K*output_data.TempResistor + Intermediate_Data.Temp_R_B;
-		UARTprintf("50 -> Temp_R_K:%f, Temp_R_B:%f, R:%f,Temp = %f\n",Intermediate_Data.Temp_R_K,Intermediate_Data.Temp_R_B,output_data.TempResistor,output_data.SensorTemp);
+//		UARTprintf("50 -> Temp_R_K:%f, Temp_R_B:%f, R:%f,Temp = %f\n",Intermediate_Data.Temp_R_K,Intermediate_Data.Temp_R_B,output_data.TempResistor,output_data.SensorTemp);
 		break;
 		
 		case 70:
@@ -696,12 +696,13 @@ void ADC7738_acquisition_output(unsigned char channel)
 						output_data.H2AG1 = output_data.H2AG;
 					}
 					if (output_data.MODEL_TYPE == 2)
-					    UARTprintf("output_data.H2Resistor[%f] < Intermediate_Data.hydrogen_R_70[0][%f]\n",output_data.H2Resistor,Intermediate_Data.hydrogen_R_70[0]);
+					    UARTprintf("output_data.H2Resistor[%f] < hydrogen_R_70[0][%f]\n",output_data.H2Resistor,Intermediate_Data.hydrogen_R_70[0]);
 				}else if (output_data.H2Resistor > Intermediate_Data.hydrogen_R_70[(sizeof(Intermediate_Data.hydrogen_R_70)/sizeof(Intermediate_Data.hydrogen_R_70[0]))-1]){
 					output_data.H2AG = 100000;
 					output_data.H2AG1 = output_data.H2AG;
 					if (output_data.MODEL_TYPE == 2)
-					    UARTprintf("output_data.H2Resistor[%f] > Intermediate_Data.hydrogen_R_70[39][%f]\n",output_data.H2Resistor,Intermediate_Data.hydrogen_R_70[(sizeof(Intermediate_Data.hydrogen_R_70)/sizeof(Intermediate_Data.hydrogen_R_70[0]))-1]);
+					    UARTprintf("output_data.H2Resistor[%f] > hydrogen_R_70[%d][%f]\n",
+					    output_data.H2Resistor,sizeof(Intermediate_Data.hydrogen_R_70)/sizeof(Intermediate_Data.hydrogen_R_70[0])-1,Intermediate_Data.hydrogen_R_70[(sizeof(Intermediate_Data.hydrogen_R_70)/sizeof(Intermediate_Data.hydrogen_R_70[0]))-1]);
 				}else{
 					output_data.H2AG = Cubic_main(output_data.H2Resistor,H_R_70);
 					if (output_data.H2AG > 100000)

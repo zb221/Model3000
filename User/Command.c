@@ -3158,7 +3158,8 @@ void cf_arg(void)
 			UARTprintf("0 - Exit cf\n1 - Normal\n2 - Debug\n3 - Calibration\n4- set temperature\n5 - turn off the screen\n6 - turn on the screen\n7 - Oiltemp_Cal\n");
       UARTprintf("8 - Model Number:\n9 - Serial Number:\n10 - Sensor model:\n11 - Hardware Version:\n");
       UARTprintf("12 - Factory:\n13 - Sensor Serial Number:\n14 - Sensor Board Serial Number:\n15 - Interface Board Serial Number:\n");
-		  UARTprintf("16 - set K:\n17 - set B:\nSelect function:\n");
+		  UARTprintf("16 - set K1:\n17 - set B1:\nSelect function:\n");
+		  UARTprintf("18 - set K2:\n19 - set B2:\nSelect function:\n20 - set ponit:\n21 - set PCB_temp:\n");
 		flag_function++;
 			break;
 		
@@ -3264,6 +3265,14 @@ void cf_arg(void)
 					case 19:
 					  UARTprintf("Please input B2:\n");
 						flag_function = 16;
+						break;
+					case 20:
+						UARTprintf("please input point:\n");
+						flag_function = 17;
+						break;
+					case 21:
+					  UARTprintf("Please input PCB_temp:\n");
+						flag_function = 18;
 						break;
 
 					default:
@@ -3489,7 +3498,22 @@ void cf_arg(void)
 			memset(cmd_tmp,0,sizeof(cmd_tmp));
 			a = 0;	
 			break;
-
+		case 18:
+			if(strlen(cmd_tmp)>0)
+			{
+				temp_tmp = atoi(cmd_tmp);
+				UARTprintf("%d\r\n",temp_tmp);
+				output_data.PCB_temp = temp_tmp;
+				UARTprintf("set output_data.PCB_temp = %d\r\n",output_data.PCB_temp);
+				DAC8568_PCB_TEMP_SET(output_data.PCB_temp,0x1000);    /* Set PCB default temperature */
+				
+				flag_screen = 0;
+				flag_function = 2;
+				temp_tmp = 0;
+			}
+			memset(cmd_tmp,0,sizeof(cmd_tmp));
+			a = 0;	
+			break;
 		default:
 			flag_function = 0;
 			flag_command = 0;
