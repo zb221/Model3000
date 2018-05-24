@@ -172,11 +172,11 @@ void born_70_Piecewise_point_Sensor_Fit_Para(void){
 	float R_diff_70 = 0;
 	
 	/****************************70 temp **********************************/
-point3 = 600;
-point0 = 500;
+//point3 = 1265.702;
+//point0 = 1246.054;
   if (point3 > point0){
 	UARTprintf("----------------output 50 -> 70 cal data start------------------\n");
-	data_add = (point3 - point0)/(sizeof(H2)/sizeof(H2[0]));
+	data_add = (point3 - point0)/(sizeof(H2)/sizeof(H2[0])-1);
 
 	i = 0;
 	for (data = point0;data <= point3;data +=data_add){
@@ -254,12 +254,13 @@ void init_Global_Variable(void)
 	float PCB_TEMP_SET[3] = {37.5,42.6,44.9};
 
 	
-	/*The relationship between H2 and H2_resistance*/
+	/*The relationship between H2 and H2_resistance for testting*/
 	float H2[13] = {50,100,200,400,800,1600,3000,5000,10000,30000,40000,60000,100000};  /* new sense */
 	float OHM[13] = {957.362,957.512,957.932,958.498,959.230,960.226,961.227,962.232,964.148,968.251,969.743,971.975,975.627};  /* new sense */
-
+  
+	/*50-70 */
 	float H2_70[13] = {50,100,200,400,800,1600,3000,5000,10000,20000,40000,60000,100000};
-	float H2_R_70[13] = {14.57,14.83,14.71,14.65,14.46,14.34,14.23,14.02,13.78,13.55,13.17,12.88,12.12};
+	float H2_R_70[13] = {15.27,15.16,14.97,14.88,14.76,14.61,14.31,14.39,14.13,13.64,13.02,12.77,12.12};
 	
 	print_count = 60 / print_time;
 	
