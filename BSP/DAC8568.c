@@ -83,7 +83,7 @@ void DAC8568_INIT_SET(float temperature,float current)
 	int DAC_G_Din = 0;
 	float TempResistor_tmp = 0;
 
-	TempResistor_tmp = (temperature - (Intermediate_Data.Temp_R_B))/Intermediate_Data.Temp_R_K;
+	TempResistor_tmp = (-Intermediate_Data.Temp_R_B + sqrt((double)(Intermediate_Data.Temp_R_B*Intermediate_Data.Temp_R_B-4*Intermediate_Data.Temp_R_A*(Intermediate_Data.Temp_R_C-(temperature)))))/(2*Intermediate_Data.Temp_R_A);
 	TempResistor_tmp = TempResistor_tmp + 1.2;
 	DAC_G_Din = (int)(((TempResistor_tmp*5.0 + 2500.0)/1000.0)*(65536.0/5.0));
 

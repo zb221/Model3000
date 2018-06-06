@@ -395,22 +395,43 @@ void Temperature_of_resistance_Parameter(void)
 
 	if (flag == 0){
 //	    Line_Fit(Intermediate_Data.Temp_R, Intermediate_Data.Temp);
-				e2prom512_read((unsigned char*)&temp_tmp,4,(260)*2);
-		    Intermediate_Data.Temp_R_K = (float)temp_tmp/1000000.0;
-		    if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3)
-				  UARTprintf("read K: %.6f\r\n",Intermediate_Data.Temp_R_K);
-		
-				e2prom512_read((unsigned char*)&temp_tmp,4,(268+(2*2))*2);
+				e2prom512_read((unsigned char*)&temp_tmp,4,(260+(1*2))*2);
 				if (temp_tmp == 1){
-				  e2prom512_read((unsigned char*)&temp_tmp,4,(268+(1*2))*2);
+				  e2prom512_read((unsigned char*)&temp_tmp,4,(260+(0*2))*2);
+					Intermediate_Data.Temp_R_A = -(float)temp_tmp/1000000.0;
+					if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3)
+				    UARTprintf("read A: %.6f\r\n",Intermediate_Data.Temp_R_A);
+				}else if (temp_tmp == 2){
+				  e2prom512_read((unsigned char*)&temp_tmp,4,(260+(0*2))*2);
+					Intermediate_Data.Temp_R_A = (float)temp_tmp/1000000.0;
+					if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3)
+				    UARTprintf("read A: %.6f\r\n",Intermediate_Data.Temp_R_A);
+				}
+		
+				e2prom512_read((unsigned char*)&temp_tmp,4,(260+(3*2))*2);
+				if (temp_tmp == 1){
+				  e2prom512_read((unsigned char*)&temp_tmp,4,(260+(2*2))*2);
 					Intermediate_Data.Temp_R_B = -(float)temp_tmp/1000000.0;
 					if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3)
 				    UARTprintf("read B: %.6f\r\n",Intermediate_Data.Temp_R_B);
 				}else if (temp_tmp == 2){
-				  e2prom512_read((unsigned char*)&temp_tmp,4,(268+(1*2))*2);
+				  e2prom512_read((unsigned char*)&temp_tmp,4,(260+(2*2))*2);
 					Intermediate_Data.Temp_R_B = (float)temp_tmp/1000000.0;
 					if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3)
 				    UARTprintf("read B: %.6f\r\n",Intermediate_Data.Temp_R_B);
+				}
+				
+				e2prom512_read((unsigned char*)&temp_tmp,4,(260+(5*2))*2);
+				if (temp_tmp == 1){
+				  e2prom512_read((unsigned char*)&temp_tmp,4,(260+(4*2))*2);
+					Intermediate_Data.Temp_R_C = -(float)temp_tmp/1000000.0;
+					if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3)
+				    UARTprintf("read C: %.6f\r\n",Intermediate_Data.Temp_R_C);
+				}else if (temp_tmp == 2){
+				  e2prom512_read((unsigned char*)&temp_tmp,4,(260+(4*2))*2);
+					Intermediate_Data.Temp_R_C = (float)temp_tmp/1000000.0;
+					if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3)
+				    UARTprintf("read C: %.6f\r\n",Intermediate_Data.Temp_R_C);
 				}
 	      flag = 1;
   }
@@ -419,11 +440,11 @@ void Temperature_of_resistance_Parameter(void)
 		e2prom512_read((unsigned char*)&run_parameter.reserved_parameter40,2,136*2);
 		e2prom512_read((unsigned char*)&run_parameter.Temp_R_B_cal_hi,4,134*2);
 		if (run_parameter.reserved_parameter40 == 200)
-		Intermediate_Data.Temp_R_B = (float)((run_parameter.Temp_R_B_cal_hi<<16)|(run_parameter.Temp_R_B_cal_lo))/(-1000000.0);
+		Intermediate_Data.Temp_R_C = (float)((run_parameter.Temp_R_B_cal_hi<<16)|(run_parameter.Temp_R_B_cal_lo))/(-1000000.0);
 		else
-		Intermediate_Data.Temp_R_B = (float)((run_parameter.Temp_R_B_cal_hi<<16)|(run_parameter.Temp_R_B_cal_lo))/(1000000.0);
+		Intermediate_Data.Temp_R_C = (float)((run_parameter.Temp_R_B_cal_hi<<16)|(run_parameter.Temp_R_B_cal_lo))/(1000000.0);
 	  if (output_data.MODEL_TYPE == 2){
-		    UARTprintf("after OilTemp cal -> Temp_R_K:%f, Temp_R_B:%f\n",Intermediate_Data.Temp_R_K,Intermediate_Data.Temp_R_B);
+		    UARTprintf("after OilTemp cal -> Temp_R_A:%f, Temp_R_B:%f, Temp_R_C:%f\n",Intermediate_Data.Temp_R_A,Intermediate_Data.Temp_R_B,Intermediate_Data.Temp_R_C);
 	  }
 		flag1 = 1;
 	}
@@ -432,7 +453,7 @@ void Temperature_of_resistance_Parameter(void)
 //  UARTprintf("ADC data: %d , NP25: %f, Cur: %f, R = %f\n",Channel_OilTemp, AD7738_resolution_NP25, Current_of_Temperature_resistance, output_data.TempResistor);
 	switch (output_data.temperature){
 		case 0:
-	    output_data.SensorTemp = Intermediate_Data.Temp_R_K*output_data.TempResistor + Intermediate_Data.Temp_R_B;
+	    output_data.SensorTemp = Intermediate_Data.Temp_R_A*output_data.TempResistor*output_data.TempResistor + Intermediate_Data.Temp_R_B*output_data.TempResistor + Intermediate_Data.Temp_R_C;
 //		UARTprintf("0 -> Temp_R_K:%f, Temp_R_B:%f, R:%f,Temp = %f\n",Intermediate_Data.Temp_R_K,Intermediate_Data.Temp_R_B,output_data.TempResistor,output_data.SensorTemp);
 		  Intermediate_Data.SensorTemp_tmp[number1++] = output_data.SensorTemp;
 		  if (number1 == sizeof(Intermediate_Data.SensorTemp_tmp)/sizeof(Intermediate_Data.SensorTemp_tmp[0]))
@@ -442,32 +463,32 @@ void Temperature_of_resistance_Parameter(void)
 				output_data.OilTemp = output_data.SensorTemp;
 				if (((Cal_flag == 0)&&(output_data.MODEL_TYPE == 3))&&(Intermediate_Data.Oiltemp_Cal_flag == 1)){
 					e2prom512_read((unsigned char*)&run_parameter.reserved_parameter33,2,120*2);
-					UARTprintf("befor calibrate, %d, %f,K =  %f,B = %f\n",run_parameter.reserved_parameter33,
-					((float)run_parameter.reserved_parameter33/100.0 - output_data.OilTemp),Intermediate_Data.Temp_R_K,Intermediate_Data.Temp_R_B);
+					UARTprintf("befor calibrate, %d, %f,A =  %f,B = %f,C = %f\n",run_parameter.reserved_parameter33,
+					((float)run_parameter.reserved_parameter33/100.0 - output_data.OilTemp),Intermediate_Data.Temp_R_A,Intermediate_Data.Temp_R_B,Intermediate_Data.Temp_R_C);
 					Intermediate_Data.intercept = ((float)run_parameter.reserved_parameter33/100.0 - output_data.OilTemp);
 				if ((float)run_parameter.reserved_parameter33/100.0 >= output_data.OilTemp){
-			    Intermediate_Data.Temp_R_B = Intermediate_Data.Temp_R_B + ((float)run_parameter.reserved_parameter33/100.0 - output_data.OilTemp);
-				  output_data.SensorTemp = Intermediate_Data.Temp_R_K*output_data.TempResistor + Intermediate_Data.Temp_R_B;
+			    Intermediate_Data.Temp_R_C = Intermediate_Data.Temp_R_C + ((float)run_parameter.reserved_parameter33/100.0 - output_data.OilTemp);
+				  output_data.SensorTemp = Intermediate_Data.Temp_R_A*output_data.TempResistor*output_data.TempResistor + Intermediate_Data.Temp_R_B*output_data.TempResistor + Intermediate_Data.Temp_R_C;
 				  output_data.OilTemp = output_data.SensorTemp;
-					run_parameter.Temp_R_B_cal_hi = ((unsigned int)(Intermediate_Data.Temp_R_B * 1000000.0)) >> 16;
-					run_parameter.Temp_R_B_cal_lo = ((unsigned int)(Intermediate_Data.Temp_R_B * 1000000.0));
+					run_parameter.Temp_R_B_cal_hi = ((unsigned int)(Intermediate_Data.Temp_R_C * 1000000.0)) >> 16;
+					run_parameter.Temp_R_B_cal_lo = ((unsigned int)(Intermediate_Data.Temp_R_C * 1000000.0));
 					e2prom512_write((unsigned char*)&run_parameter.Temp_R_B_cal_hi,4,134*2);
 				}else{
-					Intermediate_Data.Temp_R_B = Intermediate_Data.Temp_R_B + ((float)run_parameter.reserved_parameter33/100.0 - output_data.OilTemp);
-					output_data.SensorTemp = Intermediate_Data.Temp_R_K*output_data.TempResistor + Intermediate_Data.Temp_R_B;
+					Intermediate_Data.Temp_R_C = Intermediate_Data.Temp_R_C + ((float)run_parameter.reserved_parameter33/100.0 - output_data.OilTemp);
+					output_data.SensorTemp = Intermediate_Data.Temp_R_A*output_data.TempResistor*output_data.TempResistor + Intermediate_Data.Temp_R_B*output_data.TempResistor + Intermediate_Data.Temp_R_C;
 				  output_data.OilTemp = output_data.SensorTemp;
-					run_parameter.Temp_R_B_cal_hi = ((unsigned int)(Intermediate_Data.Temp_R_B * 1000000.0)) >> 16;
-					run_parameter.Temp_R_B_cal_lo = ((unsigned int)(Intermediate_Data.Temp_R_B * 1000000.0));
+					run_parameter.Temp_R_B_cal_hi = ((unsigned int)(Intermediate_Data.Temp_R_C * 1000000.0)) >> 16;
+					run_parameter.Temp_R_B_cal_lo = ((unsigned int)(Intermediate_Data.Temp_R_C * 1000000.0));
 					e2prom512_write((unsigned char*)&run_parameter.Temp_R_B_cal_hi,4,134*2);
 				}
-				if (Intermediate_Data.Temp_R_B > 0){
+				if (Intermediate_Data.Temp_R_C > 0){
 						run_parameter.reserved_parameter40 = 100;
 						e2prom512_write((unsigned char*)&run_parameter.reserved_parameter40,2,136*2);
 				}else{
 						run_parameter.reserved_parameter40 = 200;
 						e2prom512_write((unsigned char*)&run_parameter.reserved_parameter40,2,136*2);
 				}
-				UARTprintf("OilTemp calibrate OK and SAVE, After calibrate,K = %f,B = %f\n",Intermediate_Data.Temp_R_K,Intermediate_Data.Temp_R_B);
+				UARTprintf("OilTemp calibrate OK and SAVE, After calibrate,A = %f,B = %f,C = %f\n",Intermediate_Data.Temp_R_A,Intermediate_Data.Temp_R_B,Intermediate_Data.Temp_R_C);
 				Intermediate_Data.Oiltemp_Cal_flag = 0;
 				Intermediate_Data.Oiltemp_Cal_OK = 1;
 				Cal_flag = 1;
@@ -483,12 +504,12 @@ void Temperature_of_resistance_Parameter(void)
 			break;
 		
 		case 50:
-				output_data.SensorTemp = Intermediate_Data.Temp_R_K*output_data.TempResistor + Intermediate_Data.Temp_R_B;
+	    output_data.SensorTemp = Intermediate_Data.Temp_R_A*output_data.TempResistor*output_data.TempResistor + Intermediate_Data.Temp_R_B*output_data.TempResistor + Intermediate_Data.Temp_R_C;
 //		UARTprintf("50 -> Temp_R_K:%f, Temp_R_B:%f, R:%f,Temp = %f\n",Intermediate_Data.Temp_R_K,Intermediate_Data.Temp_R_B,output_data.TempResistor,output_data.SensorTemp);
 		break;
 		
 		case 70:
-	    output_data.SensorTemp = Intermediate_Data.Temp_R_K*output_data.TempResistor + Intermediate_Data.Temp_R_B;
+	    output_data.SensorTemp = Intermediate_Data.Temp_R_A*output_data.TempResistor*output_data.TempResistor + Intermediate_Data.Temp_R_B*output_data.TempResistor + Intermediate_Data.Temp_R_C;
 			break;
 		
 		default:
@@ -517,7 +538,7 @@ void Temperature_of_resistance_Parameter(void)
 			Intermediate_Data.Oiltemp_Over = 2;
 	}
 	
-	Intermediate_Data.OilTemp_Tmp[number++] = Intermediate_Data.Temp_R_K*output_data.TempResistor + Intermediate_Data.Temp_R_B;
+	Intermediate_Data.OilTemp_Tmp[number++] = Intermediate_Data.Temp_R_A*output_data.TempResistor*output_data.TempResistor + Intermediate_Data.Temp_R_B*output_data.TempResistor + Intermediate_Data.Temp_R_C;
 	if (number == sizeof(Intermediate_Data.OilTemp_Tmp)/sizeof(Intermediate_Data.OilTemp_Tmp[0])){
 		number = 0;
 	}
