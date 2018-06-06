@@ -260,7 +260,7 @@ void init_Global_Variable(void)
   
 	/*50-70 */
 	float H2_70[13] = {50,100,200,400,800,1600,3000,5000,10000,20000,40000,60000,100000};
-	float H2_R_70[13] = {15.27,15.16,14.97,14.88,14.76,14.61,14.31,14.39,14.13,13.64,13.02,12.77,12.12};
+	float H2_R_70[13] = {39.090,38.840,38.718,38.382,38.026,37.603,36.809,36.252,35.304,33.689,31.170,29.055,25.422};
 	
 	print_count = 60 / print_time;
 	
@@ -820,6 +820,14 @@ int main (void)
 
 		if (Intermediate_Data.flag4 == 1)
  		{
+			if (output_data.temperature == 0){
+				output_data.PCB_temp = 10 + output_data.OilTemp;
+				if (output_data.PCB_temp > 50)
+					output_data.PCB_temp = 50;
+				if (output_data.PCB_temp < -30)
+					output_data.PCB_temp = -30;
+				DAC8568_PCB_TEMP_SET(output_data.PCB_temp,0x1000);
+			}
  			/*30S command_print*/
 			ADC7738_acquisition_output(1);
 			ADC7738_acquisition_output(3);
