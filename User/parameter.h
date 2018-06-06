@@ -1222,8 +1222,11 @@ typedef struct Intermediate_Data
 	float PCB_TEMP_Din_K;
 	float PCB_TEMP_Din_B;
 
-	float Temp_R_K;
+//	float Temp_R_K;
+//	float Temp_R_B;
+	float Temp_R_A;
 	float Temp_R_B;
+	float Temp_R_C;
 	
 	float H2Resistor_T_K;
 	float H2Resistor_T_B;

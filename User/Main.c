@@ -172,9 +172,11 @@ void born_70_Piecewise_point_Sensor_Fit_Para(void){
 	float R_diff_70 = 0;
 	
 	/****************************70 temp **********************************/
-
+//point3 = 1265.702;
+//point0 = 1246.054;
   if (point3 > point0){
-	data_add = (point3 - point0)/(sizeof(H2)/sizeof(H2[0]));
+	UARTprintf("----------------output 50 -> 70 cal data start------------------\n");
+	data_add = (point3 - point0)/(sizeof(H2)/sizeof(H2[0])-1);
 
 	i = 0;
 	for (data = point0;data <= point3;data +=data_add){
@@ -201,23 +203,26 @@ void born_70_Piecewise_point_Sensor_Fit_Para(void){
 	}
 
 	if (output_data.MODEL_TYPE == 2){
-	for (i= 0;i < sizeof(H2)/sizeof(H2[0]);i++)
-	UARTprintf("H2[%d]=%f,H2_R[%d]=%f\n",i,H2[i],i,H2_R[i]);
+	  for (i= 0;i < sizeof(H2)/sizeof(H2[0]);i++)
+	    UARTprintf("H2[%d]=%f,H2_R[%d]=%f\n",i,H2[i],i,H2_R[i]);
 	}
 	number1 = (sizeof(Intermediate_Data.hydrogen_70)/sizeof(Intermediate_Data.hydrogen_70[0]));
-
-	UARTprintf("Intermediate_Data.hydrogen_70[0]=%f\n",Intermediate_Data.hydrogen_70[0]);
+  
+	if (output_data.MODEL_TYPE == 2)
+	    UARTprintf("Intermediate_Data.hydrogen_70[0]=%f\n",Intermediate_Data.hydrogen_70[0]);
 	if (Intermediate_Data.hydrogen_70[0] < 50){
-	  Intermediate_Data.hydrogen_70[0] = 50;
+	    Intermediate_Data.hydrogen_70[0] = 50;
 	}
 		
 	for (i=0;i<number1;i++){
 	    R_diff_70 = Cubic_main(Intermediate_Data.hydrogen_70[i],Hydrogen_Res_70);
-		  UARTprintf("R_diff_70(%d)=%f\n",i,R_diff_70);
+		  if (output_data.MODEL_TYPE == 2)
+		      UARTprintf("R_diff_70(%d)=%f\n",i,R_diff_70);
 		  Intermediate_Data.hydrogen_R_70[i] = R_diff_70 + H2_R[i];
 		  if (output_data.MODEL_TYPE == 2)
-		    UARTprintf("[%.3f] = %.3f\n", Intermediate_Data.hydrogen_70[i],Intermediate_Data.hydrogen_R_70[i]);
+		      UARTprintf("hydrogen_70[%d]=%.3f, hydrogen_R_70[%d]= %.3f\n", i,Intermediate_Data.hydrogen_70[i],i,Intermediate_Data.hydrogen_R_70[i]);
 	}
+	UARTprintf("----------------output 50 -> 70 cal data end------------------\n");
  }
 }
 void reboot(void)
@@ -249,12 +254,13 @@ void init_Global_Variable(void)
 	float PCB_TEMP_SET[3] = {37.5,42.6,44.9};
 
 	
-	/*The relationship between H2 and H2_resistance*/
+	/*The relationship between H2 and H2_resistance for testting*/
 	float H2[13] = {50,100,200,400,800,1600,3000,5000,10000,30000,40000,60000,100000};  /* new sense */
 	float OHM[13] = {957.362,957.512,957.932,958.498,959.230,960.226,961.227,962.232,964.148,968.251,969.743,971.975,975.627};  /* new sense */
-
+  
+	/*50-70 */
 	float H2_70[13] = {50,100,200,400,800,1600,3000,5000,10000,20000,40000,60000,100000};
-	float H2_R_70[13] = {14.57,14.83,14.71,14.65,14.46,14.34,14.23,14.02,13.78,13.55,13.17,12.88,12.12};
+	float H2_R_70[13] = {39.090,38.840,38.718,38.382,38.026,37.603,36.809,36.252,35.304,33.689,31.170,29.055,25.422};
 	
 	print_count = 60 / print_time;
 	
@@ -302,8 +308,9 @@ void init_Global_Variable(void)
 	Intermediate_Data.PCB_TEMP_Din_K = 0;
 	Intermediate_Data.PCB_TEMP_Din_B = 0;
 
-	Intermediate_Data.Temp_R_K = 0;
+	Intermediate_Data.Temp_R_A = 0;
 	Intermediate_Data.Temp_R_B = 0;
+	Intermediate_Data.Temp_R_C = 0;
 	
 	Intermediate_Data.da_H2ppm = 0;
 	Intermediate_Data.db_H2ppm = 0;
@@ -559,9 +566,9 @@ int main (void)
 
 	M25P16_erase_map(31*0x10000,SE);
 	init_Global_Variable();
-//	DAC8568_PCB_TEMP_SET(output_data.PCB_temp,0x1000);    /* Set PCB default temperature */
 	born_70_Piecewise_point_Sensor_Fit_Para();
-	
+	DAC8568_PCB_TEMP_SET(output_data.PCB_temp,0x1000);    /* Set PCB default temperature */
+
 	while (1)  
 	{
     if (rcv_char_flag == 1){
@@ -813,6 +820,14 @@ int main (void)
 
 		if (Intermediate_Data.flag4 == 1)
  		{
+			if (output_data.temperature == 0){
+				output_data.PCB_temp = 10 + output_data.OilTemp;
+				if (output_data.PCB_temp > 50)
+					output_data.PCB_temp = 50;
+				if (output_data.PCB_temp < -30)
+					output_data.PCB_temp = -30;
+				DAC8568_PCB_TEMP_SET(output_data.PCB_temp,0x1000);
+			}
  			/*30S command_print*/
 			ADC7738_acquisition_output(1);
 			ADC7738_acquisition_output(3);
@@ -860,6 +875,7 @@ int main (void)
 		}
 
    reboot();		
+//	 DAC8568_INIT_SET(0,0);
 	}
 }
 

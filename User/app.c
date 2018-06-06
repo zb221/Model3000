@@ -12,7 +12,7 @@
 #include "AD420.h"
 #include "e25LC512.h"
 #include "DAC8568.h"
-
+#include <math.h>
 unsigned char Heating_R_failure = 0;
 /***********************************************************
 Function:	LED status.
@@ -180,8 +180,8 @@ void device_checkself(void)
 			|| (output_data.H2Resistor > (float)(run_parameter.Piecewise_point3.ubit.hi<<16 | run_parameter.Piecewise_point3.ubit.lo)/1000.0+1000))
 			Heating_R_failure = 1;
 		
-		if ((output_data.TempResistor < (-40.0 - Intermediate_Data.Temp_R_B)/Intermediate_Data.Temp_R_K) 
-		|| (output_data.TempResistor > (105.0 - Intermediate_Data.Temp_R_B)/Intermediate_Data.Temp_R_K))
+		if ((output_data.TempResistor < (-Intermediate_Data.Temp_R_B + sqrt((double)(Intermediate_Data.Temp_R_B*Intermediate_Data.Temp_R_B-4*Intermediate_Data.Temp_R_A*(Intermediate_Data.Temp_R_C-(-40)))))/(2*Intermediate_Data.Temp_R_A))
+		|| (output_data.TempResistor > (-Intermediate_Data.Temp_R_B + sqrt((double)(Intermediate_Data.Temp_R_B*Intermediate_Data.Temp_R_B-4*Intermediate_Data.Temp_R_A*(Intermediate_Data.Temp_R_C-(105)))))/(2*Intermediate_Data.Temp_R_A)))
 			Heating_R_failure = 1;
 	}
 		
