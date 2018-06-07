@@ -62,7 +62,7 @@ void LED_status(void)
 	}
 	
 	if (Intermediate_Data.Power_On == 1){
-		if ((output_data.OilTemp<(-20)) || (output_data.OilTemp>105) || (output_data.PcbTemp<30) || (output_data.PcbTemp>50)){
+		if ((output_data.OilTemp<(-20)) || (output_data.OilTemp>105)){
 //			UARTprintf("test2\n");
 				AD420_OUTPUT_SET((65535.0/20.0)*3.0); /*output error current 3mA*/
 		}

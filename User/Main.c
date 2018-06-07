@@ -567,7 +567,7 @@ int main (void)
 	M25P16_erase_map(31*0x10000,SE);
 	init_Global_Variable();
 	born_70_Piecewise_point_Sensor_Fit_Para();
-	DAC8568_PCB_TEMP_SET(output_data.PCB_temp,0x1000);    /* Set PCB default temperature */
+	DAC8568_PCB_TEMP_SET(output_data.PCB_temp,0.03*65536/5.0);//0.03V    /* Set PCB default temperature */
 
 	while (1)  
 	{
@@ -821,12 +821,12 @@ int main (void)
 		if (Intermediate_Data.flag4 == 1)
  		{
 			if (output_data.temperature == 0){
-				output_data.PCB_temp = 10 + output_data.OilTemp;
+				output_data.PCB_temp = 5 + output_data.OilTemp;
 				if (output_data.PCB_temp > 50)
 					output_data.PCB_temp = 50;
-				if (output_data.PCB_temp < -30)
-					output_data.PCB_temp = -30;
-				DAC8568_PCB_TEMP_SET(output_data.PCB_temp,0x1000);
+				if (output_data.PCB_temp < -40)
+					output_data.PCB_temp = -40;
+				DAC8568_PCB_TEMP_SET(output_data.PCB_temp,0.03*65536/5.0);//0.03V
 			}
  			/*30S command_print*/
 			ADC7738_acquisition_output(1);
