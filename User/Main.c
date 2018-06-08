@@ -555,7 +555,7 @@ Description: main function for Model3000 project.
 ***********************************************************/
 int main (void)  
 {
-	short val1 = 0, val2 = 0;
+	short val1 = 0, val2 = 0, temperature_tmp = 0,dynamic_50 = 0,dynamic_70 = 0;
 	FrecInit();
 	init_peripherals();
 	Init_ModBus();
@@ -827,6 +827,32 @@ int main (void)
 				if (output_data.PCB_temp < -40)
 					output_data.PCB_temp = -40;
 				DAC8568_PCB_TEMP_SET(output_data.PCB_temp,0.03*65536/5.0);//0.03V
+			}
+			if ((output_data.temperature == 50) && (dynamic_50 == 0)){
+				if (temperature_tmp == 0)
+				temperature_tmp = output_data.OilTemp;
+				temperature_tmp += 10;
+				if (temperature_tmp>output_data.temperature){
+					temperature_tmp = output_data.temperature;
+				}
+			  DAC8568_INIT_SET(temperature_tmp,Intermediate_Data.sensor_heat_current);
+				if (temperature_tmp == output_data.temperature){
+						temperature_tmp = 0;
+				    dynamic_50 = 1;
+				}
+			}
+			if ((output_data.temperature == 70) && (dynamic_70 == 0)){
+				if (temperature_tmp == 0)
+				temperature_tmp = output_data.OilTemp;
+				temperature_tmp += 10;
+				if (temperature_tmp > output_data.temperature){
+					temperature_tmp = output_data.temperature;
+				}
+			  DAC8568_INIT_SET(temperature_tmp,Intermediate_Data.sensor_heat_current);
+				if (temperature_tmp == output_data.temperature){
+						temperature_tmp = 0;
+				    dynamic_70 = 1;
+				}
 			}
  			/*30S command_print*/
 			ADC7738_acquisition_output(1);
