@@ -266,7 +266,7 @@ void init_Global_Variable(void)
 	
 	output_data.MODEL_TYPE = 1;/*1->normal model; 2->debug model; 3->calibrate model*/
 	output_data.temperature = 0;
-	output_data.PCB_temp = 40;
+	output_data.PCB_temp = 0;
 	output_data.PcbTemp = 0;
 	output_data.OilTemp = 0;
 	output_data.TempResistor = 0;
@@ -330,6 +330,10 @@ void init_Global_Variable(void)
 	Intermediate_Data.Oiltemp_Cal_OK = 0;
 	Intermediate_Data.intercept = 0;
 	Intermediate_Data.Oiltemp_Over = 0;
+	
+	Intermediate_Data.temperature_tmp = 0;
+	Intermediate_Data.dynamic_50 = 0;
+	Intermediate_Data.dynamic_70 = 0;
 	
 	Intermediate_Data.sensor_heat_current = 1.66*65536/5.0; /* set 1.66v*/
 	
@@ -567,7 +571,7 @@ int main (void)
 	M25P16_erase_map(31*0x10000,SE);
 	init_Global_Variable();
 	born_70_Piecewise_point_Sensor_Fit_Para();
-	DAC8568_PCB_TEMP_SET(output_data.PCB_temp,0.03*65536/5.0);//0.03V    /* Set PCB default temperature */
+	DAC8568_PCB_TEMP_SET(output_data.PCB_temp,0.3*65536/5.0);//0.3*65536/5.0    /* Set PCB default temperature */
 
 	while (1)  
 	{
@@ -821,12 +825,46 @@ int main (void)
 		if (Intermediate_Data.flag4 == 1)
  		{
 			if (output_data.temperature == 0){
-				output_data.PCB_temp = 5 + output_data.OilTemp;
+				output_data.PCB_temp = 5 + (int)output_data.OilTemp;
 				if (output_data.PCB_temp > 50)
 					output_data.PCB_temp = 50;
 				if (output_data.PCB_temp < -40)
 					output_data.PCB_temp = -40;
-				DAC8568_PCB_TEMP_SET(output_data.PCB_temp,0.03*65536/5.0);//0.03V
+				if (output_data.MODEL_TYPE == 2)
+				  UARTprintf("output_data.PCB_temp=%d\n",output_data.PCB_temp);
+				DAC8568_PCB_TEMP_SET(output_data.PCB_temp,0.3*65536/5.0);//0.03V 
+				Intermediate_Data.dynamic_50 = 0;
+				Intermediate_Data.dynamic_70 = 0;
+			}
+			if ((output_data.temperature == 50) && (Intermediate_Data.dynamic_50 == 0)){
+				if (Intermediate_Data.temperature_tmp == 0)
+				Intermediate_Data.temperature_tmp = (int)output_data.OilTemp;
+				Intermediate_Data.temperature_tmp += 10;
+				if (Intermediate_Data.temperature_tmp>output_data.temperature){
+					Intermediate_Data.temperature_tmp = output_data.temperature;
+				}
+				if (output_data.MODEL_TYPE == 2)
+				UARTprintf("Intermediate_Data.temperature_tmp=%d\n",Intermediate_Data.temperature_tmp);
+			  DAC8568_INIT_SET(Intermediate_Data.temperature_tmp,Intermediate_Data.sensor_heat_current);
+				if (Intermediate_Data.temperature_tmp == output_data.temperature){
+						Intermediate_Data.temperature_tmp = 0;
+				    Intermediate_Data.dynamic_50 = 1;
+				}
+			}
+			if ((output_data.temperature == 70) && (Intermediate_Data.dynamic_70 == 0)){
+				if (Intermediate_Data.temperature_tmp == 0)
+				Intermediate_Data.temperature_tmp = (int)output_data.OilTemp;
+				Intermediate_Data.temperature_tmp += 10;
+				if (Intermediate_Data.temperature_tmp > output_data.temperature){
+					Intermediate_Data.temperature_tmp = output_data.temperature;
+				}
+				if (output_data.MODEL_TYPE == 2)
+				UARTprintf("Intermediate_Data.temperature_tmp=%d\n",Intermediate_Data.temperature_tmp);
+			  DAC8568_INIT_SET(Intermediate_Data.temperature_tmp,Intermediate_Data.sensor_heat_current);
+				if (Intermediate_Data.temperature_tmp == output_data.temperature){
+						Intermediate_Data.temperature_tmp = 0;
+				    Intermediate_Data.dynamic_70 = 1;
+				}
 			}
  			/*30S command_print*/
 			ADC7738_acquisition_output(1);

@@ -1258,6 +1258,10 @@ typedef struct Intermediate_Data
 	float H2_R_70[13];
 	float hydrogen_70[40];
 	float hydrogen_R_70[40];
+	
+	short temperature_tmp;
+	char dynamic_50;
+	char dynamic_70;
 }Intermediate_Parameters;
 VARIABLE_EXT Intermediate_Parameters Intermediate_Data;
 
