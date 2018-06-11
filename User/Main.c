@@ -334,6 +334,7 @@ void init_Global_Variable(void)
 	Intermediate_Data.temperature_tmp = 0;
 	Intermediate_Data.dynamic_50 = 0;
 	Intermediate_Data.dynamic_70 = 0;
+	Intermediate_Data.pcb_current = 0.1*65536/5.0;//set 0.1v
 	
 	Intermediate_Data.sensor_heat_current = 1.66*65536/5.0; /* set 1.66v*/
 	
@@ -571,7 +572,7 @@ int main (void)
 	M25P16_erase_map(31*0x10000,SE);
 	init_Global_Variable();
 	born_70_Piecewise_point_Sensor_Fit_Para();
-	DAC8568_PCB_TEMP_SET(output_data.PCB_temp,0.3*65536/5.0);//0.3*65536/5.0    /* Set PCB default temperature */
+	DAC8568_PCB_TEMP_SET(output_data.PCB_temp,Intermediate_Data.pcb_current);//0.3*65536/5.0    /* Set PCB default temperature */
 
 	while (1)  
 	{
@@ -832,7 +833,7 @@ int main (void)
 					output_data.PCB_temp = -40;
 				if (output_data.MODEL_TYPE == 2)
 				  UARTprintf("output_data.PCB_temp=%d\n",output_data.PCB_temp);
-				DAC8568_PCB_TEMP_SET(output_data.PCB_temp,0.3*65536/5.0);//0.03V 
+				DAC8568_PCB_TEMP_SET(output_data.PCB_temp,Intermediate_Data.pcb_current);//0.03V 
 				Intermediate_Data.dynamic_50 = 0;
 				Intermediate_Data.dynamic_70 = 0;
 			}

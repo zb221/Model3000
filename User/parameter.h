@@ -1262,6 +1262,8 @@ typedef struct Intermediate_Data
 	short temperature_tmp;
 	char dynamic_50;
 	char dynamic_70;
+	
+	float pcb_current;
 }Intermediate_Parameters;
 VARIABLE_EXT Intermediate_Parameters Intermediate_Data;
 
