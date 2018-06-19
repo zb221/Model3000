@@ -3541,6 +3541,7 @@ void cf_arg(void)
 			memset(cmd_tmp,0,sizeof(cmd_tmp));
 			a = 0;	
 			break;
+
 		default:
 			flag_function = 0;
 			flag_command = 0;
