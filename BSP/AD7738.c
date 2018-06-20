@@ -555,7 +555,9 @@ Description: .
 void Hydrogen_Resistance_Parameter(void)
 {
 	static unsigned int number1 = 0;
-	
+	if (output_data.MODEL_TYPE == 2)
+//			UARTprintf("%d\r\n",Channel_H2Resistor);
+
 	Intermediate_Data.H2Resistor_Tmp[number1++] = (Channel_H2Resistor/AD7738_resolution_NP25-2500)/Current_of_Hydrogen_Resistance;
 	if (number1 == sizeof(Intermediate_Data.H2Resistor_Tmp)/sizeof(Intermediate_Data.H2Resistor_Tmp[0])){
 		number1 = 0;

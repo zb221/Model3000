@@ -3532,7 +3532,7 @@ void cf_arg(void)
 				UARTprintf("%d\r\n",temp_tmp);
 				output_data.PCB_temp = temp_tmp;
 				UARTprintf("set output_data.PCB_temp = %d\r\n",output_data.PCB_temp);
-				DAC8568_PCB_TEMP_SET(output_data.PCB_temp,0x1000);    /* Set PCB default temperature */
+				DAC8568_PCB_TEMP_SET(output_data.PCB_temp,Intermediate_Data.pcb_current);    /* Set PCB default temperature */
 				
 				flag_screen = 0;
 				flag_function = 2;
@@ -3541,6 +3541,7 @@ void cf_arg(void)
 			memset(cmd_tmp,0,sizeof(cmd_tmp));
 			a = 0;	
 			break;
+
 		default:
 			flag_function = 0;
 			flag_command = 0;

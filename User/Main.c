@@ -266,7 +266,7 @@ void init_Global_Variable(void)
 	
 	output_data.MODEL_TYPE = 1;/*1->normal model; 2->debug model; 3->calibrate model*/
 	output_data.temperature = 0;
-	output_data.PCB_temp = 0;
+	output_data.PCB_temp = 40;
 	output_data.PcbTemp = 0;
 	output_data.OilTemp = 0;
 	output_data.TempResistor = 0;
@@ -298,7 +298,7 @@ void init_Global_Variable(void)
 	Intermediate_Data.Power_On = 0;
 	Intermediate_Data.Start_print_H2R = 0;
 	Intermediate_Data.Start_print_calibrate_H2R = 0;
-	Intermediate_Data.wait_1min = 1;
+	Intermediate_Data.wait_1min = 0;
 	Intermediate_Data.wait_1min_oil = 0;
 	Intermediate_Data.current_cal = 0;
 	
@@ -334,6 +334,8 @@ void init_Global_Variable(void)
 	Intermediate_Data.temperature_tmp = 0;
 	Intermediate_Data.dynamic_50 = 0;
 	Intermediate_Data.dynamic_70 = 0;
+	Intermediate_Data.sensor_heat_time = 0;
+	Intermediate_Data.pcb_current = 0.15*65536/5.0;//set 0.1v
 	
 	Intermediate_Data.sensor_heat_current = 1.66*65536/5.0; /* set 1.66v*/
 	
@@ -479,7 +481,7 @@ void UpData_ModbBus(REALTIMEINFO *Time)
 	run_parameter.pcb_temperature_celsius.hilo = (unsigned int)(output_data.PcbTemp*100.F);//PCB温度	
 
 	////8
-	run_parameter.oil_temperature_celsius.hilo = (unsigned int)(output_data.OilTemp*100.F);//油温
+	run_parameter.oil_temperature_celsius.hilo = (unsigned int)(output_data.OilTemp*100.F)+100;//油温
 	////9、10
 
 	////11、12
@@ -560,6 +562,7 @@ Description: main function for Model3000 project.
 int main (void)  
 {
 	short val1 = 0, val2 = 0;
+	unsigned char pcb_flag = 0,pcb_flag1 = 0;
 	FrecInit();
 	init_peripherals();
 	Init_ModBus();
@@ -571,7 +574,7 @@ int main (void)
 	M25P16_erase_map(31*0x10000,SE);
 	init_Global_Variable();
 	born_70_Piecewise_point_Sensor_Fit_Para();
-	DAC8568_PCB_TEMP_SET(output_data.PCB_temp,0.3*65536/5.0);//0.3*65536/5.0    /* Set PCB default temperature */
+	DAC8568_PCB_TEMP_SET(output_data.PCB_temp,Intermediate_Data.pcb_current);//0.3*65536/5.0    /* Set PCB default temperature */
 
 	while (1)  
 	{
@@ -820,50 +823,76 @@ int main (void)
       if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
 		    UARTprintf("save data into flash\n");			
       }
+
 		}
 
 		if (Intermediate_Data.flag4 == 1)
  		{
+			if(flag_screen==0)
+			{
+				if (Intermediate_Data.Power_On == 1)
+			      command_print();
+			}
+			
 			if (output_data.temperature == 0){
-				output_data.PCB_temp = 5 + (int)output_data.OilTemp;
-				if (output_data.PCB_temp > 50)
-					output_data.PCB_temp = 50;
-				if (output_data.PCB_temp < -40)
-					output_data.PCB_temp = -40;
-				if (output_data.MODEL_TYPE == 2)
-				  UARTprintf("output_data.PCB_temp=%d\n",output_data.PCB_temp);
-				DAC8568_PCB_TEMP_SET(output_data.PCB_temp,0.3*65536/5.0);//0.03V 
+				if (pcb_flag == 0){
+	    		DAC8568_PCB_TEMP_SET(0,0);//set PCB temp
+					pcb_flag = 1;
+					pcb_flag1 = 0;
+					if ((output_data.MODEL_TYPE == 2)||(output_data.MODEL_TYPE == 2))
+					UARTprintf("stop PCB temp, wait......\n");
+				}
 				Intermediate_Data.dynamic_50 = 0;
 				Intermediate_Data.dynamic_70 = 0;
 			}
-			if ((output_data.temperature == 50) && (Intermediate_Data.dynamic_50 == 0)){
-				if (Intermediate_Data.temperature_tmp == 0)
-				Intermediate_Data.temperature_tmp = (int)output_data.OilTemp;
-				Intermediate_Data.temperature_tmp += 10;
-				if (Intermediate_Data.temperature_tmp>output_data.temperature){
-					Intermediate_Data.temperature_tmp = output_data.temperature;
-				}
-				if (output_data.MODEL_TYPE == 2)
-				UARTprintf("Intermediate_Data.temperature_tmp=%d\n",Intermediate_Data.temperature_tmp);
-			  DAC8568_INIT_SET(Intermediate_Data.temperature_tmp,Intermediate_Data.sensor_heat_current);
-				if (Intermediate_Data.temperature_tmp == output_data.temperature){
-						Intermediate_Data.temperature_tmp = 0;
-				    Intermediate_Data.dynamic_50 = 1;
-				}
+			if (((Intermediate_Data.wait_1min == 1)&&(pcb_flag1==0))&&(output_data.temperature != 0)){
+				output_data.PCB_temp = 8 + (int)output_data.PcbTemp;
+				if (output_data.PCB_temp > 60)
+					output_data.PCB_temp = 60;
+				if (output_data.PCB_temp < -35)
+					output_data.PCB_temp = -35;
+				if ((output_data.MODEL_TYPE == 2)||(output_data.MODEL_TYPE == 2))
+				  UARTprintf("start PCB temp, set %d\n",output_data.PCB_temp);
+				DAC8568_PCB_TEMP_SET(output_data.PCB_temp,Intermediate_Data.pcb_current);//set PCB temp
+				pcb_flag = 0;
+				pcb_flag1 = 1;
 			}
-			if ((output_data.temperature == 70) && (Intermediate_Data.dynamic_70 == 0)){
-				if (Intermediate_Data.temperature_tmp == 0)
+			if ((output_data.temperature == 50) && (Intermediate_Data.dynamic_50 == 0)){
+				if (Intermediate_Data.sensor_heat_time == 0)
 				Intermediate_Data.temperature_tmp = (int)output_data.OilTemp;
-				Intermediate_Data.temperature_tmp += 10;
+				if (Intermediate_Data.temperature_tmp < 0)
+				  Intermediate_Data.temperature_tmp += 5;
+				else
+					Intermediate_Data.temperature_tmp += 10;
 				if (Intermediate_Data.temperature_tmp > output_data.temperature){
 					Intermediate_Data.temperature_tmp = output_data.temperature;
 				}
 				if (output_data.MODEL_TYPE == 2)
-				UARTprintf("Intermediate_Data.temperature_tmp=%d\n",Intermediate_Data.temperature_tmp);
+				UARTprintf("50->Step %d, set sensor temp = %d, waitting...\n",++Intermediate_Data.sensor_heat_time,Intermediate_Data.temperature_tmp);
+			  DAC8568_INIT_SET(Intermediate_Data.temperature_tmp,Intermediate_Data.sensor_heat_current);
+				if (Intermediate_Data.temperature_tmp == output_data.temperature){
+						Intermediate_Data.temperature_tmp = 0;
+				    Intermediate_Data.dynamic_50 = 1;
+					  Intermediate_Data.sensor_heat_time = 0;
+				}
+			}
+			if ((output_data.temperature == 70) && (Intermediate_Data.dynamic_70 == 0)){
+				if (Intermediate_Data.sensor_heat_time == 0)
+				Intermediate_Data.temperature_tmp = (int)output_data.OilTemp;
+				if (Intermediate_Data.temperature_tmp < 0)
+				  Intermediate_Data.temperature_tmp += 5;
+				else
+					Intermediate_Data.temperature_tmp += 10;
+				if (Intermediate_Data.temperature_tmp > output_data.temperature){
+					Intermediate_Data.temperature_tmp = output_data.temperature;
+				}
+				if (output_data.MODEL_TYPE == 2)
+				UARTprintf("70->Step %d, set sensor temp = %d, waitting...\n",++Intermediate_Data.sensor_heat_time,Intermediate_Data.temperature_tmp);
 			  DAC8568_INIT_SET(Intermediate_Data.temperature_tmp,Intermediate_Data.sensor_heat_current);
 				if (Intermediate_Data.temperature_tmp == output_data.temperature){
 						Intermediate_Data.temperature_tmp = 0;
 				    Intermediate_Data.dynamic_70 = 1;
+					  Intermediate_Data.sensor_heat_time = 0;
 				}
 			}
  			/*30S command_print*/
@@ -892,12 +921,8 @@ int main (void)
 		  }
 
 			Intermediate_Data.flag4 = 0;
-			if(flag_screen==0)
-			{
-				if (Intermediate_Data.Power_On == 1)
-			      command_print();
-			}
 		}
+		
 		ADC7738_acquisition(1);
 		ADC7738_acquisition(2);
 		ADC7738_acquisition(3);
