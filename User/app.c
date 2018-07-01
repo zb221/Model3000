@@ -163,12 +163,6 @@ void device_checkself(void)
 //					UARTprintf("%.3f Heating resistance self-check error.\n",Intermediate_Data.Heat_V);
 					Heating_R_failure = 1;
 		}
-		if ((output_data.temperature == 50)||(output_data.temperature == 70)){
-//			if (Intermediate_Data.Heat_V>940)
-//				DAC8568_SET(0x0,0x3,0x2,0,0);		       /* when > 400 mA, DAC-C set 0 */
-//			else
-//				DAC8568_SET(0x0,0x3,0x2,2.35*65536/5,0);
-	  }
 		if ((output_data.MODEL_TYPE == 1)||(output_data.MODEL_TYPE == 2)){
 		e2prom512_read((unsigned char*)&run_parameter.Piecewise_point0.ubit.hi,4,243*2);
 		e2prom512_read((unsigned char*)&run_parameter.Piecewise_point3.ubit.hi,4,249*2);

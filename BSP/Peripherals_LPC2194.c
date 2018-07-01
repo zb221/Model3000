@@ -428,7 +428,6 @@ __irq void TC0_IR (void)
 	count5++;
 	count6++;
 	
-//	Intermediate_Data.count7++;
 
 	switch (output_data.MODEL_TYPE){
 		case 2:	/*debug model*/
@@ -445,58 +444,17 @@ __irq void TC0_IR (void)
 					Intermediate_Data.wait_1min_oil = 1;
 				break;
 
-				case 240000:	/* 4-1H4min set 50 temp, keep 1H  */
+				case 240000:	/* 4-1H4min set 70 temp, keep 1H  */
 				Intermediate_Data.flag1 = 2;
         Intermediate_Data.wait_1min = 0;
 				break;
 				
-				case 840000: /* wait 10min for 4-1H4min set 50 temp, keep 1H */
+				case 840000: /* wait 10min for 4-1H4min set 70 temp, keep 1H */
 				Intermediate_Data.wait_1min = 1;
 				Intermediate_Data.unready_current = 1;
 				break;
 
-				case 3840000: /* 1H4min-1H7min stop heating, capture 3min oil temp */
-				Intermediate_Data.flag1 = 3;
-				Intermediate_Data.wait_1min_oil = 0;
-				break;
-				
-				case 3960000: /* wait 2min for 1H4min-1H7min stop heating, capture 3min oil temp */
-				Intermediate_Data.wait_1min_oil = 1;
-				break;
-
-				case 4020000: /* 1H7min-2H7min set 50 temp and keep 1H */
-				Intermediate_Data.flag1 = 4;
-        Intermediate_Data.wait_1min = 0;
-				break;
-				
-				case 4620000: /* wait 10min for 1H7min-2H7min set 50 temp and keep 1H */
-				Intermediate_Data.wait_1min = 1;
-				break;
-
-				case 7620000: /* 2H7min-2H10min stop heating and capture oil temp 3min */
-				Intermediate_Data.flag1 = 5;
-				Intermediate_Data.wait_1min_oil = 0;
-				break;
-				
-				case 7740000: /*wait 2min for 2H7min-2H10min stop heating and capture oil temp 3min */
-				Intermediate_Data.wait_1min_oil = 1;
-				break;
-
-				case 7800000: /* 2H10min-4H10min set 70 temp and keep 2H */
-				Intermediate_Data.flag1 = 6;
-				Intermediate_Data.wait_1min = 0;
-				break;
-				
-				case 8400000: /* wait 10min for 2H10min-4H10min set 70 temp and keep 2H */
-				Intermediate_Data.wait_1min = 1;
-				break;
-
-				case 15000000: /* 4H10min-4H40min set 50 temp and keep 0.5H */
-				Intermediate_Data.flag1 = 7;
-				Intermediate_Data.wait_1min = 0;
-				break;
-
-				case 16800000: /*wait 1min for 4H10min-4H13min stop heating and capture oil temp 3min */
+				case 3840000: /* 1H4min stop heating, capture 3min oil temp */
 				count1 = 60000 - 1;
 				break;
 

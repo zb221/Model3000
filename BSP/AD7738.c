@@ -529,14 +529,11 @@ void Temperature_of_resistance_Parameter(void)
 		Intermediate_Data.Operat_temp_alarm = 0;
 	}
 	
-	if ((output_data.OilTemp > 50) && (output_data.OilTemp < 70)){
-		Intermediate_Data.Oiltemp_Over = 1;
-	}else{
-		if (output_data.OilTemp < 50)
+
+		if (output_data.OilTemp < 70)
 	    Intermediate_Data.Oiltemp_Over = 0;
 		else
 			Intermediate_Data.Oiltemp_Over = 2;
-	}
 	
 	Intermediate_Data.OilTemp_Tmp[number++] = Intermediate_Data.Temp_R_A*output_data.TempResistor*output_data.TempResistor + Intermediate_Data.Temp_R_B*output_data.TempResistor + Intermediate_Data.Temp_R_C;
 	if (number == sizeof(Intermediate_Data.OilTemp_Tmp)/sizeof(Intermediate_Data.OilTemp_Tmp[0])){
@@ -669,8 +666,8 @@ void ADC7738_acquisition_output(unsigned char channel)
 		number = sizeof(Intermediate_Data.OHM)/sizeof(Intermediate_Data.OHM[0]);
 
 		if (Intermediate_Data.Operat_temp_alarm == 0){
-			if (output_data.temperature == 50 && Intermediate_Data.wait_1min == 1 && Intermediate_Data.Oiltemp_Over == 0){
-				if (output_data.SensorTemp < 51){
+			if (output_data.temperature == 70 && Intermediate_Data.wait_1min == 1 && Intermediate_Data.Oiltemp_Over == 0){
+				if (output_data.SensorTemp < 72){
 				if(output_data.H2Resistor < (float)(run_parameter.Piecewise_point0.ubit.hi<<16 | run_parameter.Piecewise_point0.ubit.lo)/1000.0){
 					if (output_data.H2Resistor < ((float)(run_parameter.Piecewise_point0.ubit.hi<<16 | run_parameter.Piecewise_point0.ubit.lo)/1000.0 - 0.5)){
 						output_data.H2AG = 0;

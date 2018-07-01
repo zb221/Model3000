@@ -411,7 +411,7 @@ void command_print(void)
 		UARTprintf("	%7.3f    %10.3f %10.3f      %7.3f      %8.3f        %7.3f        ",output_data.PcbTemp,output_data.H2AG,output_data.H2AG1,
 	  output_data.SensorTemp,output_data.H2Resistor,output_data.TempResistor);
 	
-	if(output_data.temperature == 50)
+	if(output_data.temperature == 70)
 	{
 		if (Intermediate_Data.wait_1min == 1)
       UARTprintf(message1);
@@ -705,12 +705,12 @@ int main (void)
 			break;
 
 			case 2:
-			output_data.temperature = 50;
+			output_data.temperature = 70;
 			DAC8568_INIT_SET(output_data.temperature,Intermediate_Data.sensor_heat_current);
 			Intermediate_Data.flag1 = 0;
 			print_count = 60*60 / print_time;
       if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
-	  		UARTprintf("4-1H4min set 50 temp, keep 1H\n");
+	  		UARTprintf("4-1H4min set 70 temp, keep 1H\n");
       }
 			break;
 
@@ -720,7 +720,7 @@ int main (void)
 			Intermediate_Data.flag1 = 0;
 			print_count = 3*60 / print_time;
       if (output_data.MODEL_TYPE == 2 || output_data.MODEL_TYPE == 3){
-			  UARTprintf("1H4min-1H7min stop heating, capture 3min oil temp\n");
+			  UARTprintf("1H4min stop heating, capture 3min oil temp\n");
       }
 			break;
 
@@ -907,7 +907,7 @@ int main (void)
 				run_parameter.status_flag.ubit.senser_state1=0;
 				run_parameter.status_flag.ubit.senser_state2=0;
 			}
-			if (output_data.temperature == 50 && Intermediate_Data.wait_1min == 1){
+			if (output_data.temperature == 70 && Intermediate_Data.wait_1min == 1){
 				if (Intermediate_Data.current_cal == 0){
 					e2prom512_read((unsigned char*)&val1,2,118*2);
 					e2prom512_read((unsigned char*)&val2,2,119*2);
