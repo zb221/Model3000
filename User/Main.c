@@ -847,8 +847,8 @@ int main (void)
 			}
 			if (((Intermediate_Data.wait_1min == 1)&&(pcb_flag1==0))&&(output_data.temperature != 0)){
 				output_data.PCB_temp = 8 + (int)output_data.PcbTemp;
-				if (output_data.PCB_temp > 60)
-					output_data.PCB_temp = 60;
+				if (output_data.PCB_temp > 75)
+					output_data.PCB_temp = 75;
 				if (output_data.PCB_temp < -35)
 					output_data.PCB_temp = -35;
 				if ((output_data.MODEL_TYPE == 2)||(output_data.MODEL_TYPE == 2))
