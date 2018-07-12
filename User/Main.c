@@ -833,13 +833,13 @@ int main (void)
 				if (Intermediate_Data.Power_On == 1)
 			      command_print();
 			}
-			
+                        if ((output_data.MODEL_TYPE == 1)||(output_data.MODEL_TYPE == 2)){
 			if (output_data.temperature == 0){
 				if (pcb_flag == 0){
 	    		DAC8568_PCB_TEMP_SET(0,0);//set PCB temp
 					pcb_flag = 1;
 					pcb_flag1 = 0;
-					if ((output_data.MODEL_TYPE == 2)||(output_data.MODEL_TYPE == 2))
+                                        if (output_data.MODEL_TYPE == 2)
 					UARTprintf("stop PCB temp, wait......\n");
 				}
 				Intermediate_Data.dynamic_50 = 0;
@@ -851,7 +851,7 @@ int main (void)
 					output_data.PCB_temp = 75;
 				if (output_data.PCB_temp < -35)
 					output_data.PCB_temp = -35;
-				if ((output_data.MODEL_TYPE == 2)||(output_data.MODEL_TYPE == 2))
+                                if (output_data.MODEL_TYPE == 2)
 				  UARTprintf("start PCB temp, set %d\n",output_data.PCB_temp);
 				DAC8568_PCB_TEMP_SET(output_data.PCB_temp,Intermediate_Data.pcb_current);//set PCB temp
 				pcb_flag = 0;
@@ -895,6 +895,7 @@ int main (void)
 					  Intermediate_Data.sensor_heat_time = 0;
 				}
 			}
+                        }
  			/*30S command_print*/
 			ADC7738_acquisition_output(1);
 			ADC7738_acquisition_output(3);

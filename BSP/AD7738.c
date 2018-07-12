@@ -347,12 +347,13 @@ Input: *arry.
 Output: none
 Author: zhuobin
 Date: 2017/11/01
-Description: .
+Description: H2R = 0.012*pcb_temp - 0.3687
 ***********************************************************/
 void filterA(float *arry)
 {
 	unsigned int i = 0, number = 0, effective = 1;
 	float sum = 0;
+        float K = 0.012, B = 0.3687;
 
 	sortB(arry);
 
@@ -366,11 +367,13 @@ void filterA(float *arry)
 
 		if (((output_data.MODEL_TYPE == 1)||(output_data.MODEL_TYPE == 2))&&(Intermediate_Data.Start_print_H2R == 1)){
 		  output_data.H2Resistor = sum / (2*effective);
+                  output_data.H2Resistor = output_data.H2Resistor + (K*output_data.PcbTemp - B);
 			run_parameter.h2_ppm_resistor_h16.hilo = (unsigned int)(output_data.H2Resistor*1000.0) >> 16; //171
 			run_parameter.h2_ppm_resistor_l16.hilo = (unsigned int)(output_data.H2Resistor*1000.0) & 0xFFFF; //172
 		}
 		if ((output_data.MODEL_TYPE == 3)&&(Intermediate_Data.Start_print_calibrate_H2R == 2)){
 		  output_data.H2Resistor = sum / (2*effective);
+                  output_data.H2Resistor = output_data.H2Resistor + (K*output_data.PcbTemp - B);
 			run_parameter.h2_ppm_resistor_h16.hilo = (unsigned int)(output_data.H2Resistor*1000.0) >> 16; //171
 			run_parameter.h2_ppm_resistor_l16.hilo = (unsigned int)(output_data.H2Resistor*1000.0) & 0xFFFF; //172
 		}
