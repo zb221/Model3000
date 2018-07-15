@@ -53,7 +53,7 @@ void Line_Fit(float *X, float *Y)
             
             Intermediate_Data.H2Resistor_OilTemp_K = ( x_multiply_y - length * x_sum_average * y_sum_average)/(x_square_sum - length * x_sum_average * x_sum_average);
             Intermediate_Data.H2Resistor_OilTemp_B = y_sum_average - Intermediate_Data.H2Resistor_OilTemp_K * x_sum_average;
-            //UARTprintf("%.3f,%.4f\n",Intermediate_Data.H2Resistor_OilTemp_K,Intermediate_Data.H2Resistor_OilTemp_B);
+//            UARTprintf("%.3f,%.4f\n",Intermediate_Data.H2Resistor_OilTemp_K,Intermediate_Data.H2Resistor_OilTemp_B);
         }
     }else if ((X == Intermediate_Data.PCB_TEMP_SET) && (Y == Intermediate_Data.PCB_TEMP_Din)){
         if (sizeof(Intermediate_Data.PCB_TEMP_Din)/sizeof(Intermediate_Data.PCB_TEMP_Din[0]) == sizeof(Intermediate_Data.PCB_TEMP_SET)/sizeof(Intermediate_Data.PCB_TEMP_SET[0])){

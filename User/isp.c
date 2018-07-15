@@ -2,6 +2,8 @@
 #include <string.h>
 #include "Peripherals_LPC2194.h"
 #include "isp.h"
+#include "e25LC512.h"
+#include "parameter.h"
 
 #undef  MEMMAP
 #define MEMMAP (*((volatile unsigned int *) 0xE01FC040))
@@ -53,6 +55,15 @@ void ISPbyCode_init(void)
 
 void ISPbyCode(void)
 {
+	unsigned int temp_tmp = 0xffffffff;
+	unsigned char model_teype = 255;
+	e2prom512_write(&model_teype,1,160*2);
+	
+	
+	e2prom512_write((unsigned char*)&temp_tmp,4,(260+(0*2))*2);
+	e2prom512_write((unsigned char*)&temp_tmp,4,(260+(2*2))*2);
+	e2prom512_write((unsigned char*)&temp_tmp,4,(260+(4*2))*2);
+	
 	ISPbyCode_init();
 	while(1)
 	bootloader_entry();

@@ -519,9 +519,9 @@ __irq void TC0_IR (void)
 					break;
 				
 				case 120000:
-					Intermediate_Data.wait_1min_oil = 1;
-				break;
-				
+					  Intermediate_Data.wait_1min_oil = 1;
+					break;
+
 				case 180000:
 					Intermediate_Data.count7 = 1;
 				  count6 = 0;

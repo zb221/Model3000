@@ -264,7 +264,8 @@ void init_Global_Variable(void)
 	
 	print_count = 60 / print_time;
 	
-	output_data.MODEL_TYPE = 1;/*1->normal model; 2->debug model; 3->calibrate model*/
+  run_parameter.MODEL_TYPE = 0;
+	output_data.MODEL_TYPE = 3;/*1->normal model; 2->debug model; 3->calibrate model*/
 	output_data.temperature = 0;
 	output_data.PCB_temp = 40;
 	output_data.PcbTemp = 0;
@@ -341,7 +342,7 @@ void init_Global_Variable(void)
 	
 	run_parameter.reboot = 0;
 	
-	e2prom512_read(&output_data.MODEL_TYPE,1,160*2);
+//	e2prom512_read(&output_data.MODEL_TYPE,1,160*2);
 
 	/*cpy H2-OHM*/
 	memcpy(Intermediate_Data.H2,H2,sizeof(float)*sizeof(H2)/sizeof(H2[0]));
@@ -362,6 +363,24 @@ void init_Global_Variable(void)
 	read_Piecewise_point_Sensor_Fit_Para();
 }
 
+void new_board(void)
+{
+	unsigned char model_teype = 0;
+	e2prom512_read(&output_data.MODEL_TYPE,1,160*2);
+
+	if ((output_data.MODEL_TYPE != 1)&&(output_data.MODEL_TYPE != 2))
+	{
+		if (output_data.MODEL_TYPE != 3){
+			UARTprintf("first download -> output_data.MODEL_TYPE = %d\n",output_data.MODEL_TYPE);
+      model_teype = 3;
+		  e2prom512_write(&model_teype,1,160*2);
+		  e2prom512_read(&output_data.MODEL_TYPE,1,160*2);
+	    UARTprintf("set default -> output_data.MODEL_TYPE = %d\n",output_data.MODEL_TYPE);
+		}
+	}
+	    
+
+}
 /***********************************************************
 Function:	init peripherals.
 Input:	none
@@ -576,6 +595,8 @@ int main (void)
 	born_70_Piecewise_point_Sensor_Fit_Para();
 	DAC8568_PCB_TEMP_SET(output_data.PCB_temp,Intermediate_Data.pcb_current);//0.3*65536/5.0    /* Set PCB default temperature */
 
+	new_board();
+	
 	while (1)  
 	{
     if (rcv_char_flag == 1){
@@ -768,6 +789,13 @@ int main (void)
 			break;
 		}
 
+		if ((cal_flag == 0)&&(Intermediate_Data.count7 == 1)){
+				output_data.temperature = 50;
+				DAC8568_INIT_SET(output_data.temperature,Intermediate_Data.sensor_heat_current);	/* Set Senseor temperature :DOUT-C = xV*65536/5 */
+				Intermediate_Data.Start_print_calibrate_H2R = 1;
+				cal_flag = 1;
+		}
+
 		switch (Intermediate_Data.flag2)  {
 			case 1:
 			device_checkself();
@@ -777,12 +805,7 @@ int main (void)
 			UpData_ModbBus(&CurrentTime);
 			update_e2c();
 			Intermediate_Data.flag2 = 0;
-			if ((cal_flag == 0)&&(Intermediate_Data.count7 == 1)){
-				output_data.temperature = 50;
-				DAC8568_INIT_SET(output_data.temperature,Intermediate_Data.sensor_heat_current);	/* Set Senseor temperature :DOUT-C = xV*65536/5 */
-				Intermediate_Data.Start_print_calibrate_H2R = 1;
-				cal_flag = 1;
-			}
+//			UARTprintf("output_data.MODEL_TYPE = %d\n",output_data.MODEL_TYPE);
 			break;
 
 			case 2:
