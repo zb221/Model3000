@@ -1253,6 +1253,7 @@ typedef struct Intermediate_Data
 	float intercept;
 	
 	float sensor_heat_current;
+	float sensor_heat_votage;
 
 	float H2_70[13];
 	float H2_R_70[13];

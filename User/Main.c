@@ -339,6 +339,7 @@ void init_Global_Variable(void)
 	Intermediate_Data.pcb_current = 0.15*65536/5.0;//set 0.1v
 	
 	Intermediate_Data.sensor_heat_current = 1.66*65536/5.0; /* set 1.66v*/
+	Intermediate_Data.sensor_heat_votage = 1;
 	
 	run_parameter.reboot = 0;
 	

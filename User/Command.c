@@ -3159,7 +3159,7 @@ void cf_arg(void)
       UARTprintf("8 - Model Number:\n9 - Serial Number:\n10 - Sensor model:\n11 - Hardware Version:\n");
       UARTprintf("12 - Factory:\n13 - Sensor Serial Number:\n14 - Sensor Board Serial Number:\n15 - Interface Board Serial Number:\n");
 		  UARTprintf("16 - set A:\n17 - set B:\n18 - set C:\n");
-		  UARTprintf("19 - set PCB_temp:\nSelect function:\n");
+		  UARTprintf("19 - set PCB_temp:\n20 - set sensor_heat_current:\nSelect function:\n");
 		flag_function++;
 			break;
 		
@@ -3265,6 +3265,10 @@ void cf_arg(void)
 					case 19:
 					  UARTprintf("Please input PCB_temp:\n");
 						flag_function = 16;
+						break;
+					case 20:
+					  UARTprintf("Please input sensor_heat_current:\n");
+						flag_function = 17;
 						break;
 
 					default:
@@ -3533,6 +3537,24 @@ void cf_arg(void)
 				output_data.PCB_temp = temp_tmp;
 				UARTprintf("set output_data.PCB_temp = %d\r\n",output_data.PCB_temp);
 				DAC8568_PCB_TEMP_SET(output_data.PCB_temp,Intermediate_Data.pcb_current);    /* Set PCB default temperature */
+				
+				flag_screen = 0;
+				flag_function = 2;
+				temp_tmp = 0;
+			}
+			memset(cmd_tmp,0,sizeof(cmd_tmp));
+			a = 0;	
+			break;
+		case 17:
+			if(strlen(cmd_tmp)>0)
+			{
+				temp_tmp = atoi(cmd_tmp);
+				UARTprintf("%d\r\n",temp_tmp);
+
+	      Intermediate_Data.sensor_heat_votage = (float)temp_tmp/1000.0;
+				Intermediate_Data.sensor_heat_current = Intermediate_Data.sensor_heat_votage*65536/5.0; /* set sensor_heat_votage v*/
+				
+//				UARTprintf("set value = %f\r\n",Intermediate_Data.sensor_heat_current);
 				
 				flag_screen = 0;
 				flag_function = 2;
