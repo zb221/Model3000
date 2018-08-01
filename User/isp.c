@@ -55,15 +55,6 @@ void ISPbyCode_init(void)
 
 void ISPbyCode(void)
 {
-	unsigned int temp_tmp = 0xffffffff;
-	unsigned char model_teype = 255;
-	e2prom512_write(&model_teype,1,160*2);
-	
-	
-	e2prom512_write((unsigned char*)&temp_tmp,4,(260+(0*2))*2);
-	e2prom512_write((unsigned char*)&temp_tmp,4,(260+(2*2))*2);
-	e2prom512_write((unsigned char*)&temp_tmp,4,(260+(4*2))*2);
-	
 	ISPbyCode_init();
 	while(1)
 	bootloader_entry();

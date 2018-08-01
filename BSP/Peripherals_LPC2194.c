@@ -30,7 +30,7 @@ Description: Global variable region.
 Author: zhuobin
 Date: 2017/10/10
 ***********************************************************/
-unsigned int count1 = 0, count2 = 0, count3 = 0, count4 = 0, count5 = 0, count6 = 0;
+unsigned int count1 = 0, count2 = 0, count3 = 0, count4 = 0, count5 = 0, count6 = 0, count7 = 0;
 
 unsigned char rcv_buf[60] = {0};
 unsigned char rcv_char[60] = {0};
@@ -427,6 +427,7 @@ __irq void TC0_IR (void)
 	count4++;
 	count5++;
 	count6++;
+	count7++;
 	
 //	Intermediate_Data.count7++;
 
@@ -508,7 +509,7 @@ __irq void TC0_IR (void)
 		case 3:	/*calibrate model*/
 			if (Intermediate_Data.Start_print_calibrate_H2R == 1){
 				Intermediate_Data.count6++;
-				if (Intermediate_Data.count6 == 60000){
+				if (Intermediate_Data.count6 == 180000){
 					Intermediate_Data.Start_print_calibrate_H2R = 2;
 					Intermediate_Data.count6 = 0;
 				}
@@ -596,6 +597,16 @@ __irq void TC0_IR (void)
 		
 		case 604800000: /*7*24H*/
 		count5 = 0;
+		break;
+
+		default:
+		break;
+	}
+	
+	switch (count7){
+		case 5000:
+		Intermediate_Data.flag8 = 1;
+		count7 = 0;
 		break;
 
 		default:

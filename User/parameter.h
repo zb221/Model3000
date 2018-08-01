@@ -1196,7 +1196,7 @@ VARIABLE_EXT OUTPUT_Parameters output_data;
 
 typedef struct Intermediate_Data
 {
-	unsigned char flag1, flag2, flag3, flag4, flag5;
+	unsigned char flag1, flag2, flag3, flag4, flag5, flag8;
 	unsigned char Start_day, Start_week, Start_month;
 	unsigned char Power_On,Start_print_H2R, wait_1min,Start_print_calibrate_H2R,wait_1min_oil,current_cal;
 	
@@ -1209,11 +1209,11 @@ typedef struct Intermediate_Data
 	float H2[13];
 	float OHM[13];
 
-	float OilTemp_Tmp[1000];
-	float H2Resistor_Tmp[1000];
-	float H2Resistor_Tmp_1[200];    /* Data for filtering processing */
-	float H2Resistor_Tmp_2[30];    /* Data for filtering processing */
-	
+	float OilTemp_Tmp[900];
+	float H2Resistor_Tmp[900];
+	float H2Resistor_Tmp_1[100];    /* Data for filtering processing */
+	float H2Resistor_Tmp_2[100];    /* Data for filtering processing */
+	float H2Resistor_A[100];
 	float SensorTemp_tmp[10];
 	
 	float H2Resistor_OilTemp_K;
@@ -1263,6 +1263,7 @@ typedef struct Intermediate_Data
 	int temperature_tmp;
 	char dynamic_50;
 	char dynamic_70;
+	char dynamic_90;
 	unsigned char sensor_heat_time;
 	
 	float pcb_current;

@@ -295,6 +295,13 @@ float AVERAGE_F(float *p)
 			sum += Intermediate_Data.SensorTemp_tmp[i];
 		}
 		sum = sum / number;
+	}else if (p == Intermediate_Data.H2Resistor_A){
+			number = sizeof(Intermediate_Data.H2Resistor_A)/sizeof(Intermediate_Data.H2Resistor_A[0]);
+		for (i=0;i<number;i++)
+		{
+			sum += Intermediate_Data.H2Resistor_A[i];
+		}
+		sum = sum / number;
 	}
 	return sum;
 }
@@ -351,28 +358,129 @@ Description: H2R = 0.012*pcb_temp - 0.3687
 ***********************************************************/
 void filterA(float *arry)
 {
-	unsigned int i = 0, number = 0, effective = 1;
+	unsigned int i = 0, number = 0, effective = 1, j = 0;
 	float sum = 0;
-        float K = 0.012, B = 0.3687;
-
-	sortB(arry);
+  float K = 0.012, B = 0.3687;
+	float h2r_tmp = 0;
+	float H2Resistor_B[100] = {0,};
+	static int num = 0;
+	float temp = 0;
 
 	if (arry == Intermediate_Data.H2Resistor_Tmp_2){
-		number = sizeof(Intermediate_Data.H2Resistor_Tmp_2)/sizeof(Intermediate_Data.H2Resistor_Tmp_2[0]);
+	  for (i=0;i<sizeof(Intermediate_Data.H2Resistor_Tmp_2)/sizeof(Intermediate_Data.H2Resistor_Tmp_2[0]);i++)
+	  {
+	   H2Resistor_B[i] = Intermediate_Data.H2Resistor_Tmp_2[i];
+	  }
+	
+		for(i = 0; i < sizeof(H2Resistor_B)/sizeof(H2Resistor_B[0]); ++i)
+		{
+			for(j = i + 1; j < sizeof(H2Resistor_B)/sizeof(H2Resistor_B[0]); ++j){
+
+				if(H2Resistor_B[j] < H2Resistor_B[i]){
+
+					temp = H2Resistor_B[i];
+
+					H2Resistor_B[i] = H2Resistor_B[j];
+
+					H2Resistor_B[j] = temp;
+
+				}
+			}
+		}
+
+		number = sizeof(H2Resistor_B)/sizeof(H2Resistor_B[0]);
 		for (i=(number/2)-effective;i<(number/2)+effective;i++)
 		{
-			sum += Intermediate_Data.H2Resistor_Tmp_2[i];
+			sum += H2Resistor_B[i];
 
 		}
 
 		if (((output_data.MODEL_TYPE == 1)||(output_data.MODEL_TYPE == 2))&&(Intermediate_Data.Start_print_H2R == 1)){
-		  output_data.H2Resistor = sum / (2*effective);
+		  h2r_tmp = sum / (2*effective);
+			if (h2r_tmp <= 0)
+				h2r_tmp = 0;
+
+			if (h2r_tmp - output_data.H2Resistor >= 0.01)
+							Intermediate_Data.H2Resistor_A[num++] = h2r_tmp + 0.002;
+			else if ((h2r_tmp - output_data.H2Resistor >= 0)&&(h2r_tmp - output_data.H2Resistor < 0.01))
+							Intermediate_Data.H2Resistor_A[num++] = h2r_tmp + 0.001;
+			else if ((h2r_tmp - output_data.H2Resistor <= 0)&&(h2r_tmp - output_data.H2Resistor > -0.01))
+							Intermediate_Data.H2Resistor_A[num++] = h2r_tmp - 0.001;
+			else if (h2r_tmp - output_data.H2Resistor <= -0.01)
+							Intermediate_Data.H2Resistor_A[num++] = h2r_tmp - 0.002;
+			
+			if (num == sizeof(Intermediate_Data.H2Resistor_A)/sizeof(Intermediate_Data.H2Resistor_A[0]))
+				num = 0;
+
+		for(i = 0; i < sizeof(Intermediate_Data.H2Resistor_A)/sizeof(Intermediate_Data.H2Resistor_A[0]); ++i)
+		{
+			for(j = i + 1; j < sizeof(Intermediate_Data.H2Resistor_A)/sizeof(Intermediate_Data.H2Resistor_A[0]); ++j){
+
+				if(Intermediate_Data.H2Resistor_A[j] < Intermediate_Data.H2Resistor_A[i]){
+
+					temp = Intermediate_Data.H2Resistor_A[i];
+
+					Intermediate_Data.H2Resistor_A[i] = Intermediate_Data.H2Resistor_A[j];
+
+					Intermediate_Data.H2Resistor_A[j] = temp;
+
+				}
+			}
+		}
+
+		number = sizeof(Intermediate_Data.H2Resistor_A)/sizeof(Intermediate_Data.H2Resistor_A[0]);
+		for (i=(number/2)-effective;i<(number/2)+effective;i++)
+		{
+			sum += Intermediate_Data.H2Resistor_A[i];
+
+		}
+			
+			output_data.H2Resistor = sum / (2*effective);
 //                  output_data.H2Resistor = output_data.H2Resistor + (K*output_data.PcbTemp - B);
 			run_parameter.h2_ppm_resistor_h16.hilo = (unsigned int)(output_data.H2Resistor*1000.0) >> 16; //171
 			run_parameter.h2_ppm_resistor_l16.hilo = (unsigned int)(output_data.H2Resistor*1000.0) & 0xFFFF; //172
 		}
 		if ((output_data.MODEL_TYPE == 3)&&(Intermediate_Data.Start_print_calibrate_H2R == 2)){
-		  output_data.H2Resistor = sum / (2*effective);
+		  h2r_tmp = sum / (2*effective);
+			if (h2r_tmp <= 0)
+				h2r_tmp = 0;
+
+			if (h2r_tmp - output_data.H2Resistor >= 0.01)
+							Intermediate_Data.H2Resistor_A[num++] = h2r_tmp + 0.002;
+			else if ((h2r_tmp - output_data.H2Resistor >= 0)&&(h2r_tmp - output_data.H2Resistor < 0.01))
+							Intermediate_Data.H2Resistor_A[num++] = h2r_tmp + 0.001;
+			else if ((h2r_tmp - output_data.H2Resistor <= 0)&&(h2r_tmp - output_data.H2Resistor > -0.01))
+							Intermediate_Data.H2Resistor_A[num++] = h2r_tmp - 0.001;
+			else if (h2r_tmp - output_data.H2Resistor <= -0.01)
+							Intermediate_Data.H2Resistor_A[num++] = h2r_tmp - 0.002;
+			
+			if (num == sizeof(Intermediate_Data.H2Resistor_A)/sizeof(Intermediate_Data.H2Resistor_A[0]))
+				num = 0;
+
+		for(i = 0; i < sizeof(Intermediate_Data.H2Resistor_A)/sizeof(Intermediate_Data.H2Resistor_A[0]); ++i)
+		{
+			for(j = i + 1; j < sizeof(Intermediate_Data.H2Resistor_A)/sizeof(Intermediate_Data.H2Resistor_A[0]); ++j){
+
+				if(Intermediate_Data.H2Resistor_A[j] < Intermediate_Data.H2Resistor_A[i]){
+
+					temp = Intermediate_Data.H2Resistor_A[i];
+
+					Intermediate_Data.H2Resistor_A[i] = Intermediate_Data.H2Resistor_A[j];
+
+					Intermediate_Data.H2Resistor_A[j] = temp;
+
+				}
+			}
+		}
+
+		number = sizeof(Intermediate_Data.H2Resistor_A)/sizeof(Intermediate_Data.H2Resistor_A[0]);
+		for (i=(number/2)-effective;i<(number/2)+effective;i++)
+		{
+			sum += Intermediate_Data.H2Resistor_A[i];
+
+		}
+			
+			output_data.H2Resistor = sum / (2*effective);
 //                  output_data.H2Resistor = output_data.H2Resistor + (K*output_data.PcbTemp - B);
 			run_parameter.h2_ppm_resistor_h16.hilo = (unsigned int)(output_data.H2Resistor*1000.0) >> 16; //171
 			run_parameter.h2_ppm_resistor_l16.hilo = (unsigned int)(output_data.H2Resistor*1000.0) & 0xFFFF; //172
@@ -509,11 +617,8 @@ void Temperature_of_resistance_Parameter(void)
 			break;
 		
 		case 50:
-	    output_data.SensorTemp = Intermediate_Data.Temp_R_A*output_data.TempResistor*output_data.TempResistor + Intermediate_Data.Temp_R_B*output_data.TempResistor + Intermediate_Data.Temp_R_C;
-//  		UARTprintf("50 -> Temp_R_A:%f, Temp_R_B:%f,Temp_R_C:%f, R:%f,Temp = %f\n",Intermediate_Data.Temp_R_A,Intermediate_Data.Temp_R_B,Intermediate_Data.Temp_R_C,output_data.TempResistor,output_data.SensorTemp);
-		break;
-		
 		case 70:
+		case 90:
 	    output_data.SensorTemp = Intermediate_Data.Temp_R_A*output_data.TempResistor*output_data.TempResistor + Intermediate_Data.Temp_R_B*output_data.TempResistor + Intermediate_Data.Temp_R_C;
 			break;
 		
@@ -600,6 +705,7 @@ Description:  accept three char data.
 void ADC7738_acquisition(unsigned char channel)
 {
 	static unsigned int number2 = 0;
+	static unsigned int number3 = 0;
 	unsigned char flag = 0;
 	unsigned int temp = 0, count1 = 0, one_time = 4;
 	unsigned char data0 = 0, data1 = 0, data2 = 0;	/* The raw data output from ADC */
@@ -639,6 +745,10 @@ void ADC7738_acquisition(unsigned char channel)
 		if (number2 == sizeof(Intermediate_Data.H2Resistor_Tmp_1)/sizeof(Intermediate_Data.H2Resistor_Tmp_1[0])){
 		    number2 = 0;
 		}
+		Intermediate_Data.H2Resistor_Tmp_2[number3++] = AVERAGE_F(Intermediate_Data.H2Resistor_Tmp_1); /*H2Resistor 1*/
+		if (number3 == sizeof(Intermediate_Data.H2Resistor_Tmp_2)/sizeof(Intermediate_Data.H2Resistor_Tmp_2[0])){
+		    number3 = 0;
+		}
 		break;
 
 		case 3:
@@ -661,17 +771,12 @@ Description:  .
 void ADC7738_acquisition_output(unsigned char channel)
 {
 	static unsigned char number = 0;
-	static unsigned int number3 = 0;
 	
 	switch (channel){
 		case 1:
 		break;
 
 		case 2:
-		Intermediate_Data.H2Resistor_Tmp_2[number3++] = AVERAGE_F(Intermediate_Data.H2Resistor_Tmp_1); /*H2Resistor 1*/
-		if (number3 == sizeof(Intermediate_Data.H2Resistor_Tmp_2)/sizeof(Intermediate_Data.H2Resistor_Tmp_2[0])){
-		    number3 = 0;
-		}
 		filterA(Intermediate_Data.H2Resistor_Tmp_2); /*H2Resistor 2*/
 	
 		if (number == 0)

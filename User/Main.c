@@ -267,7 +267,7 @@ void init_Global_Variable(void)
   run_parameter.MODEL_TYPE = 0;
 	output_data.MODEL_TYPE = 3;/*1->normal model; 2->debug model; 3->calibrate model*/
 	output_data.temperature = 0;
-	output_data.PCB_temp = 40;
+	output_data.PCB_temp = 50;
 	output_data.PcbTemp = 0;
 	output_data.OilTemp = 0;
 	output_data.TempResistor = 0;
@@ -291,6 +291,7 @@ void init_Global_Variable(void)
 	Intermediate_Data.flag3 = 0;
 	Intermediate_Data.flag4 = 0;
 	Intermediate_Data.flag5 = 0;
+	Intermediate_Data.flag8 = 0;
 	
   Intermediate_Data.Start_day = 0;
   Intermediate_Data.Start_week = 0;
@@ -335,6 +336,7 @@ void init_Global_Variable(void)
 	Intermediate_Data.temperature_tmp = 0;
 	Intermediate_Data.dynamic_50 = 0;
 	Intermediate_Data.dynamic_70 = 0;
+	Intermediate_Data.dynamic_90 = 0;
 	Intermediate_Data.sensor_heat_time = 0;
 	Intermediate_Data.pcb_current = 0.15*65536/5.0;//set 0.1v
 	
@@ -358,6 +360,23 @@ void init_Global_Variable(void)
 	memcpy(Intermediate_Data.PCB_TEMP_SET,PCB_TEMP_SET,sizeof(float)*sizeof(PCB_TEMP_SET)/sizeof(PCB_TEMP_SET[0]));
 
 	memset(Intermediate_Data.H2G_tmp,0,sizeof(Intermediate_Data.H2G_tmp)/sizeof(Intermediate_Data.H2G_tmp[0]));
+	
+	for (int i=0;i<sizeof(Intermediate_Data.OilTemp_Tmp)/sizeof(Intermediate_Data.OilTemp_Tmp[0]);i++){
+	  Intermediate_Data.OilTemp_Tmp[i] = 0;
+	  Intermediate_Data.H2Resistor_Tmp[i] = 0;
+	}
+	for (int i=0;i<sizeof(Intermediate_Data.H2Resistor_Tmp_1)/sizeof(Intermediate_Data.H2Resistor_Tmp_1[0]);i++){
+	  Intermediate_Data.H2Resistor_Tmp_1[i] = 0;
+	}
+	for (int i=0;i<sizeof(Intermediate_Data.H2Resistor_Tmp_2)/sizeof(Intermediate_Data.H2Resistor_Tmp_2[0]);i++){
+	  Intermediate_Data.H2Resistor_Tmp_2[i] = 0;
+	}
+	for (int i=0;i<sizeof(Intermediate_Data.H2Resistor_A)/sizeof(Intermediate_Data.H2Resistor_A[0]);i++){
+	  Intermediate_Data.H2Resistor_A[i] = 0;
+	}
+	for (int i=0;i<sizeof(Intermediate_Data.SensorTemp_tmp)/sizeof(Intermediate_Data.SensorTemp_tmp[0]);i++){
+	  Intermediate_Data.SensorTemp_tmp[i] = 0;
+	}
 	
 	  /* read eeprom init data*/
 	e2prom512_read(&run_parameter.h2_ppm_calibration_gas_h16.ubit.lo,4,126*2);
@@ -857,7 +876,7 @@ int main (void)
 				if (Intermediate_Data.Power_On == 1)
 			      command_print();
 			}
-                        if ((output_data.MODEL_TYPE == 1)||(output_data.MODEL_TYPE == 2)){
+    if ((output_data.MODEL_TYPE == 1)||(output_data.MODEL_TYPE == 2)){
 			if (output_data.temperature == 0){
 				if (pcb_flag == 0){
 	    		DAC8568_PCB_TEMP_SET(0,0);//set PCB temp
@@ -919,10 +938,47 @@ int main (void)
 					  Intermediate_Data.sensor_heat_time = 0;
 				}
 			}
-                        }
+    }else{
+			if ((output_data.temperature == 70) && (Intermediate_Data.dynamic_70 == 0)){
+				if (Intermediate_Data.sensor_heat_time == 0)
+				Intermediate_Data.temperature_tmp = (int)output_data.OilTemp;
+				if (Intermediate_Data.temperature_tmp < 0)
+				  Intermediate_Data.temperature_tmp += 5;
+				else
+					Intermediate_Data.temperature_tmp += 10;
+				if (Intermediate_Data.temperature_tmp > output_data.temperature){
+					Intermediate_Data.temperature_tmp = output_data.temperature;
+				}
+				if (output_data.MODEL_TYPE == 2)
+				UARTprintf("70->Step %d, set sensor temp = %d, waitting...\n",++Intermediate_Data.sensor_heat_time,Intermediate_Data.temperature_tmp);
+			  DAC8568_INIT_SET(Intermediate_Data.temperature_tmp,Intermediate_Data.sensor_heat_current);
+				if (Intermediate_Data.temperature_tmp == output_data.temperature){
+						Intermediate_Data.temperature_tmp = 0;
+				    Intermediate_Data.dynamic_70 = 1;
+					  Intermediate_Data.sensor_heat_time = 0;
+				}
+			}
+			if ((output_data.temperature == 90) && (Intermediate_Data.dynamic_90 == 0)){
+				if (Intermediate_Data.sensor_heat_time == 0)
+				Intermediate_Data.temperature_tmp = (int)output_data.OilTemp;
+				if (Intermediate_Data.temperature_tmp < 0)
+				  Intermediate_Data.temperature_tmp += 5;
+				else
+					Intermediate_Data.temperature_tmp += 10;
+				if (Intermediate_Data.temperature_tmp > output_data.temperature){
+					Intermediate_Data.temperature_tmp = output_data.temperature;
+				}
+				if (output_data.MODEL_TYPE == 3)
+				UARTprintf("90->Step %d, set sensor temp = %d, waitting...\n",++Intermediate_Data.sensor_heat_time,Intermediate_Data.temperature_tmp);
+			  DAC8568_INIT_SET(Intermediate_Data.temperature_tmp,Intermediate_Data.sensor_heat_current);
+				if (Intermediate_Data.temperature_tmp == output_data.temperature){
+						Intermediate_Data.temperature_tmp = 0;
+				    Intermediate_Data.dynamic_90 = 1;
+					  Intermediate_Data.sensor_heat_time = 0;
+				}
+			}
+		}
  			/*30S command_print*/
-			ADC7738_acquisition_output(1);
-			ADC7738_acquisition_output(3);
 			Calculate_H2_rate();
 			
 			if (Intermediate_Data.unready_current == 0){
@@ -951,7 +1007,15 @@ int main (void)
 		ADC7738_acquisition(1);
 		ADC7738_acquisition(2);
 		ADC7738_acquisition(3);
-    ADC7738_acquisition_output(2);
+		if (Intermediate_Data.flag8 == 1)
+		{
+			ADC7738_acquisition_output(1);
+      ADC7738_acquisition_output(2);
+			ADC7738_acquisition_output(3);
+			
+		  Intermediate_Data.flag8 = 0;
+		}
+
 		
 		if(user_parameter.flag.ubit.recept_ok==1)
 		{			
